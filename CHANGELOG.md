@@ -1,3 +1,10 @@
+## v0.5.45.9.1 – GitHub-Regressionskorrektur
+- `AnalyzerSignalValidity`: ein Original-FFT-Puffer mit NaN oder +/-Infinity wird konsequent als NO_INPUT erkannt. Finite Werte am technischen Anzeigeuntergrund -180 dBFS bleiben weiterhin gueltiger Eingang; unter NOISE-Kompensation BELOW_NOISE_FLOOR.
+- Regression: Fehler `invalidNumbersDoNotCreateFakeInput` aus GitHub-Actions-Run 38291009441 gezielt adressiert; zusaetzliche Tests fuer gemischt finite/nichtfinite Originalbins und reinen Anzeigeuntergrund.
+- Die 1/f-Instrumentierung aus v0.5.45.9 bleibt bestehen. Laufzeitmessungen auf Android ausstehend.
+- versionCode 203 fuer regulaeres Update; Windows-Build, GitHub-REGULAR-Signierung, TEST-Paket und CI-JDK-Uebersteuerung unveraendert.
+- Teststatus: Quellpruefung; Android-Gradle-Test und Geraetetest sind noch offen.
+
 ## v0.5.45.8 – 12.10.2026 – Android-GitHub-Build + Signalstatus-Regression (Quellkandidat)
 - `AnalyzerSignalValidity`: gültige Original-FFT-Daten im Bereich der technischen Anzeigeuntergrenze sind kein Audioausfall. Nur leere/nichtfinite FFT-Puffer führen zu `NO_INPUT`; Quellenalter und Audioaufnahmefehler bleiben unabhängig zu prüfen.
 - Regressionstests für wechselnden 1/f-Restpegel sowie durchgehend unter Rauschboden liegende FFT.

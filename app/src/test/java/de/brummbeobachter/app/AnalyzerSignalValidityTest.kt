@@ -33,6 +33,16 @@ class AnalyzerSignalValidityTest {
         assertEquals(AnalyzerSignalValidity.Result.VALID_SIGNAL,
             AnalyzerSignalValidity.classify(doubleArrayOf(-85.0),doubleArrayOf(-85.0),false))
     }
+    @Test fun nonFiniteMixedWithMeasurablePowerIsInvalid() {
+        assertEquals(AnalyzerSignalValidity.Result.NO_INPUT,
+            AnalyzerSignalValidity.classify(doubleArrayOf(-85.0, Double.NaN), doubleArrayOf(-100.0), true))
+        assertEquals(AnalyzerSignalValidity.Result.NO_INPUT,
+            AnalyzerSignalValidity.classify(doubleArrayOf(-85.0, Double.NEGATIVE_INFINITY), doubleArrayOf(-100.0), false))
+    }
+    @Test fun validFloorValuesWithNoiseOffRemainInput() {
+        assertEquals(AnalyzerSignalValidity.Result.VALID_SIGNAL,
+            AnalyzerSignalValidity.classify(doubleArrayOf(-180.0, -180.0), doubleArrayOf(-180.0), false))
+    }
     @Test fun invalidNumbersDoNotCreateFakeInput() {
         assertEquals(AnalyzerSignalValidity.Result.NO_INPUT,
             AnalyzerSignalValidity.classify(doubleArrayOf(Double.NaN,Double.POSITIVE_INFINITY,-180.0),doubleArrayOf(-180.0),true))
