@@ -45,17 +45,17 @@ internal object NoiseFloorReference {
         var fitNs: Long = 0, var maxFitNs: Long = 0, var processingNs: Long = 0,
         var maxProcessingNs: Long = 0, var fullyCancelled: Long = 0,
         var bins: Long = 0, var cancelledBins: Long = 0, var invalidReference: Long = 0,
-        var fallback: Long = 0, var lastWallMs: Long = 0)
+        var fallback: Long = 0, var cacheHits: Long = 0, var cacheMisses: Long = 0, var lastWallMs: Long = 0)
     private var mainTiming = PathTiming()
     private var rollingTiming = PathTiming()
     private var diagnosticsStartMs = System.currentTimeMillis()
     private fun timingString(name: String, t: PathTiming): String {
         val avgFitMs = if (t.fitCalls == 0L) 0.0 else t.fitNs.toDouble() / t.fitCalls / 1e6
         val avgProcessMs = if (t.calls == 0L) 0.0 else t.processingNs.toDouble() / t.calls / 1e6
-        return "%s: frames=%d fits=%d fit_avg=%.1fms fit_max=%.1fms total_avg=%.1fms total_max=%.1fms cancelled=%d/%d bins=%d/%d fallback=%d invalid_ref=%d age=%dms".format(
+        return "%s: frames=%d fits=%d fit_avg=%.1fms fit_max=%.1fms total_avg=%.1fms total_max=%.1fms cancelled=%d/%d bins=%d/%d fallback=%d invalid_ref=%d cache_hit=%d cache_miss=%d age=%dms".format(
             java.util.Locale.US, name, t.calls, t.fitCalls, avgFitMs, t.maxFitNs / 1e6,
             avgProcessMs, t.maxProcessingNs / 1e6, t.fullyCancelled, t.calls,
-            t.cancelledBins, t.bins, t.fallback, t.invalidReference,
+            t.cancelledBins, t.bins, t.fallback, t.invalidReference, t.cacheHits, t.cacheMisses,
             if (t.lastWallMs == 0L) -1 else System.currentTimeMillis() - t.lastWallMs)
     }
     fun timingDiagnostic(): String = synchronized(mutex) {
@@ -66,15 +66,31 @@ internal object NoiseFloorReference {
         mainTiming = PathTiming(); rollingTiming = PathTiming()
         diagnosticsStartMs = System.currentTimeMillis()
     }
-    private fun measuredModel(reference: DoubleArray, fs: Int, n: Int, t: PathTiming): DoubleArray? {
+    // Model references are immutable snapshots. Each path has an independent cache.
+    // Reference identity is sufficient because profiles are replaced, never mutated in place.
+    private val mainModelCache = NoiseModelReferenceCache()
+    private val rollingModelCache = NoiseModelReferenceCache()
+    private fun invalidateModelCache() {
+        mainModelCache.clear()
+        rollingModelCache.clear()
+    }
+    private fun measuredModel(reference: DoubleArray, fs: Int, n: Int,
+                              t: PathTiming, isRolling: Boolean): DoubleArray? {
+        if (mode != "MODEL") return reference
+        val cache = if (isRolling) rollingModelCache else mainModelCache
         val start = System.nanoTime()
-        val result = if (mode == "MODEL") NoisePowerModel.reference(reference, fs, n) else reference
-        if (mode == "MODEL") {
+        val (result, hit) = cache.get(reference, fs, n) {
+            val candidate = NoisePowerModel.reference(reference, fs, n)
+            val validated = candidate?.takeIf { it.all { value -> value.isFinite() && value >= 0.0 } }
+            if (candidate != null && validated == null) t.invalidReference++
+            validated
+        }
+        if (hit) t.cacheHits++ else {
+            t.cacheMisses++
             val elapsed = System.nanoTime() - start
             t.fitCalls++; t.fitNs += elapsed; t.maxFitNs = maxOf(t.maxFitNs, elapsed)
         }
         if (result == null) t.fallback++
-        else if (result.any { !it.isFinite() || it < 0.0 }) t.invalidReference++
         return result
     }
     fun currentMode(): String = synchronized(mutex) { if (!enabled) "OFF" else mode }
@@ -119,7 +135,7 @@ internal object NoiseFloorReference {
         }
         val measuredRef = rollingPower ?: return@synchronized input
         if (!enabled) return@synchronized input
-        val ref = measuredModel(measuredRef, 1000, 1024, rollingTiming) ?: return@synchronized input
+        val ref = measuredModel(measuredRef, 1000, 1024, rollingTiming, true) ?: return@synchronized input
         if (ref.size != input.size) return@synchronized input
         var cancelled = 0L
         val output = DoubleArray(input.size) { i ->
@@ -161,6 +177,7 @@ internal object NoiseFloorReference {
 
 
     fun initialize(context: Context) = synchronized(mutex) {
+        invalidateModelCache()
         file = File(context.filesDir, "noise_floor_reference_v1.json")
         val settings = context.getSharedPreferences("noise_floor_reference", Context.MODE_PRIVATE)
         enabled = settings.getBoolean("enabled", false)
@@ -226,6 +243,7 @@ internal object NoiseFloorReference {
     fun start(seconds: Int, sampleRate: Int, fftSize: Int, windowName: String, gainDb: Int): String = synchronized(mutex) {
         if (capturing) return@synchronized "Einmessung bereits aktiv"
         if (seconds !in 10..600) return@synchronized "Ungueltige Messdauer"
+        invalidateModelCache()
         rate=sampleRate; fft=fftSize;window=windowName;gain=gainDb
         spectrumAverage.reset();frames=0;bandCaptureSum.clear();bandCaptureCount.clear()
         rollingPowerSum=DoubleArray(0);rollingFrames=0;startedMs=System.currentTimeMillis()
@@ -273,6 +291,7 @@ internal object NoiseFloorReference {
                         val destination=requireNotNull(file)
                         val tmp=File(destination.parentFile,destination.name+".tmp")
                         tmp.writeText(obj.toString()); check(tmp.renameTo(destination))
+                        invalidateModelCache()
                         profile=newProfile
                         rollingPower = newRolling
                         bandNoise.clear()
@@ -290,7 +309,7 @@ internal object NoiseFloorReference {
         val measuredReference=profile ?: return@synchronized s
         val tick = System.nanoTime()
         mainTiming.calls++; mainTiming.lastWallMs = System.currentTimeMillis()
-        val reference=if (enabled) measuredModel(measuredReference,rate,fft,mainTiming) ?: return@synchronized s else measuredReference
+        val reference=if (enabled) measuredModel(measuredReference,rate,fft,mainTiming, false) ?: return@synchronized s else measuredReference
         if (!enabled || reference.size!=s.liveDbFs.size || rate!=s.sampleRateHz ||
             fft!=s.fftSize || window!=windowName || gain!=gainDb) return@synchronized s
         var cancelledLive = 0L

@@ -1,3 +1,12 @@
+## v0.5.46 – 1/f-Cache und Laufzeitdiagnose
+- Einheitliche Versionierung mit maximal zwei Punkten, Android versionCode 204.
+- Wiederverwendung der berechneten 1/f-Rauschleistungsreferenz fuer gleiche Referenzarray-Identitaet, Abtastrate und FFT-Groesse; getrennte Caches fuer Main-FFT und Rolling-FFT.
+- Automatische Cache-Invalidierung bei Referenzladen, Beginn einer Einmessung, Abschluss einer neuen Einmessung und Wechsel des Frequenzrasters.
+- Im DIAG-Text neue Zaehler cache_hit/cache_miss je Pipeline, vorhandene PCM-Alter- und FFT-Zeitstempel bleiben getrennt sichtbar.
+- Die eigentliche Fit-Formel sowie FAST, Cloud, Windows-Build und GitHub-REGULAR/TEST-Signierung bleiben unveraendert.
+- Drei JUnit-Regressionen fuer Cache-Wiederverwendung, Invalidierung und unbrauchbare Referenz.
+- Status: Kotlin-Cache-Quelldatei erfolgreich kompiliert; Android-Gradle/Github-Tests und Geraeteverhalten noch nicht verifiziert.
+
 ## v0.5.45.9.1 – GitHub-Regressionskorrektur
 - `AnalyzerSignalValidity`: ein Original-FFT-Puffer mit NaN oder +/-Infinity wird konsequent als NO_INPUT erkannt. Finite Werte am technischen Anzeigeuntergrund -180 dBFS bleiben weiterhin gueltiger Eingang; unter NOISE-Kompensation BELOW_NOISE_FLOOR.
 - Regression: Fehler `invalidNumbersDoNotCreateFakeInput` aus GitHub-Actions-Run 38291009441 gezielt adressiert; zusaetzliche Tests fuer gemischt finite/nichtfinite Originalbins und reinen Anzeigeuntergrund.
