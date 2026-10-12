@@ -121,6 +121,22 @@ jobs:
         if: env.BUILD_VARIANT == 'REGULAR'
         run: ./gradlew assembleDebug --stacktrace
 
+      - name: Sign REGULAR APK with Windows key
+        if: env.BUILD_VARIANT == 'REGULAR'
+        shell: bash
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.LFN_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.LFN_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.LFN_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          APK="app/build/outputs/apk/debug/app-debug.apk"
+          SIGNED="app/build/outputs/apk/debug/app-debug-resigned.apk"
+          BUILD_TOOLS=$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)
+          "$BUILD_TOOLS/apksigner" sign --ks "$HOME/.android/debug.keystore" --ks-key-alias "$KEY_ALIAS" --ks-pass env:KEYSTORE_PASSWORD --key-pass env:KEY_PASSWORD --out "$SIGNED" "$APK"
+          "$BUILD_TOOLS/apksigner" verify "$SIGNED"
+          mv -f "$SIGNED" "$APK"
+
       - name: Verify APK package and signature
         shell: bash
         run: |
