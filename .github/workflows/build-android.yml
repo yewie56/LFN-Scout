@@ -2,30 +2,38 @@ name: Build LFN-Scout
 
 on:
   workflow_dispatch:
+    inputs:
+      variant:
+        description: "APK-Variante"
+        required: true
+        type: choice
+        default: TEST
+        options:
+          - TEST
+          - REGULAR
   push:
   pull_request:
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
-  group: lfn-scout-${{ github.workflow }}-${{ github.ref }}
+  group: lfn-scout-${{ github.workflow }}-${{ github.ref }}-${{ github.event_name }}
   cancel-in-progress: true
 
 env:
-  STORE_APK_IN_REPOSITORY: "true"
+  BUILD_VARIANT: ${{ github.event_name == 'workflow_dispatch' && inputs.variant || 'TEST' }}
+  EXPECTED_SHA256: 7e4342fb19302cbf2ca8eff4a2cfbb91a04a0bc571ff188980d15101fac6e987
 
 jobs:
   test-and-build:
-    name: Test and build debug APK
+    name: Test and build APK
     runs-on: ubuntu-24.04
     timeout-minutes: 30
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Set up Java 17
         uses: actions/setup-java@v4
@@ -43,13 +51,14 @@ jobs:
         id: appmeta
         shell: bash
         run: |
+          set -euo pipefail
           VERSION=$(grep -E 'versionName[[:space:]]*=' app/build.gradle.kts | head -1 | sed -E 's/.*"([^"]+)".*/\1/')
           if [ -z "$VERSION" ]; then
-            echo "Version konnte nicht aus app/build.gradle.kts gelesen werden." >&2
+            echo "Version konnte nicht gelesen werden." >&2
             exit 1
           fi
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-          echo "apk=LFN-Scout-v${VERSION}-debug.apk" >> "$GITHUB_OUTPUT"
+          echo "apk=LFN-Scout-v${VERSION}-${BUILD_VARIANT}-debug.apk" >> "$GITHUB_OUTPUT"
 
       - name: Run unit tests
         run: ./gradlew testDebugUnitTest --stacktrace
@@ -67,17 +76,109 @@ jobs:
           if-no-files-found: warn
           retention-days: 14
 
-      - name: Build debug APK
+      - name: Install Windows debug keystore for REGULAR
+        if: env.BUILD_VARIANT == 'REGULAR'
+        shell: bash
+        env:
+          KEYSTORE_B64: ${{ secrets.LFN_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.LFN_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.LFN_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.LFN_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          if [ -z "$KEYSTORE_B64" ] || [ -z "$KEYSTORE_PASSWORD" ] || [ -z "$KEY_ALIAS" ] || [ -z "$KEY_PASSWORD" ]; then
+            echo "Fehlende GitHub-Secrets fuer REGULAR." >&2
+            exit 1
+          fi
+          mkdir -p "$HOME/.android"
+          chmod 700 "$HOME/.android"
+          printf '%s' "$KEYSTORE_B64" | base64 --decode > "$HOME/.android/debug.keystore"
+          chmod 600 "$HOME/.android/debug.keystore"
+
+          ACTUAL=$(keytool -list -v \
+            -keystore "$HOME/.android/debug.keystore" \
+            -storepass "$KEYSTORE_PASSWORD" \
+            -alias "$KEY_ALIAS" \
+            | sed -n 's/^[[:space:]]*SHA256:[[:space:]]*//p' \
+            | head -1 | tr -d ':' | tr '[:upper:]' '[:lower:]')
+
+          if [ "$ACTUAL" != "$EXPECTED_SHA256" ]; then
+            echo "Falscher Keystore: Zertifikat stimmt nicht mit Windows ueberein." >&2
+            exit 1
+          fi
+          echo "Windows-Keystore-Zertifikat geprueft."
+
+          if [ "$KEYSTORE_PASSWORD" != "android" ] || [ "$KEY_ALIAS" != "androiddebugkey" ] || [ "$KEY_PASSWORD" != "android" ]; then
+            echo "Nichtstandard-Debug-Zugangsdaten. Die automatische Gradle-Debug-Signierung ist damit nicht konfiguriert." >&2
+            exit 1
+          fi
+
+      - name: Build TEST APK
+        if: env.BUILD_VARIANT == 'TEST'
         run: ./gradlew assembleDebug -PlfnGithubTestApp=true --stacktrace
+
+      - name: Build REGULAR APK
+        if: env.BUILD_VARIANT == 'REGULAR'
+        run: ./gradlew assembleDebug --stacktrace
+
+      - name: Verify APK package and signature
+        shell: bash
+        run: |
+          set -euo pipefail
+          APK="app/build/outputs/apk/debug/app-debug.apk"
+          test -f "$APK"
+
+          BUILD_TOOLS=$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)
+          test -n "$BUILD_TOOLS"
+
+          PACKAGE=$("$BUILD_TOOLS/aapt" dump badging "$APK" | sed -n "s/^package: name='\([^']*\)'.*/\1/p")
+          if [ "$BUILD_VARIANT" = "REGULAR" ]; then
+            EXPECTED_PACKAGE="de.brummbeobachter.app"
+          else
+            EXPECTED_PACKAGE="de.brummbeobachter.app.githubdebug"
+          fi
+
+          if [ "$PACKAGE" != "$EXPECTED_PACKAGE" ]; then
+            echo "Falscher Paketname: $PACKAGE (erwartet: $EXPECTED_PACKAGE)" >&2
+            exit 1
+          fi
+
+          CERT=$("$BUILD_TOOLS/apksigner" verify --print-certs "$APK" \
+            | sed -n 's/^Signer #1 certificate SHA-256 digest: //p' \
+            | head -1 | tr -d ':' | tr '[:upper:]' '[:lower:]')
+
+          if [ -z "$CERT" ]; then
+            echo "APK-Signatur konnte nicht geprueft werden." >&2
+            exit 1
+          fi
+
+          if [ "$BUILD_VARIANT" = "REGULAR" ] && [ "$CERT" != "$EXPECTED_SHA256" ]; then
+            echo "Falsche REGULAR-Signatur: APK passt nicht zum Windows-Schluessel." >&2
+            exit 1
+          fi
+
+          echo "Variante: $BUILD_VARIANT"
+          echo "Paketname: $PACKAGE"
+          echo "Signaturpruefung: OK"
+
+      - name: Remove temporary keystore
+        if: always()
+        shell: bash
+        run: |
+          if [ "$BUILD_VARIANT" = "REGULAR" ]; then
+            rm -f "$HOME/.android/debug.keystore"
+          fi
 
       - name: Rename debug APK
         shell: bash
-        run: cp app/build/outputs/apk/debug/app-debug.apk "app/build/outputs/apk/debug/${{ steps.appmeta.outputs.apk }}"
+        run: |
+          cp app/build/outputs/apk/debug/app-debug.apk \
+            "app/build/outputs/apk/debug/${{ steps.appmeta.outputs.apk }}"
 
       - name: Upload debug APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: LFN-Scout-v${{ steps.appmeta.outputs.version }}-debug
+          name: LFN-Scout-v${{ steps.appmeta.outputs.version }}-${{ env.BUILD_VARIANT }}-debug
           path: app/build/outputs/apk/debug/${{ steps.appmeta.outputs.apk }}
           if-no-files-found: error
           retention-days: 14
