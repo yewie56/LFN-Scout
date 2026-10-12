@@ -429,6 +429,11 @@ internal fun LiveAnalyzerScreen(
             Text("Frequenzverschiebung: +${monitorShiftHz.toInt()} Hz",color=white,fontSize=12.sp)
             Slider(value=monitorShiftHz,onValueChange={ monitorShiftHz=it },valueRange=20f..400f,
                 onValueChangeFinished={ AnalyzerMonitor.setShift(context,monitorShiftHz.toDouble()) })
+            var monitorTone by remember { mutableStateOf(AnalyzerMonitor.diagnosticToneEnabled) }
+            OutlinedButton(onClick={ AnalyzerMonitor.toggleDiagnosticTone();monitorTone=AnalyzerMonitor.diagnosticToneEnabled },
+                enabled=monitoring) { Text(if(monitorTone) "440-Hz-Ausgangstest AUS" else "440-Hz-Ausgangstest EIN") }
+            Text("440 Hz mit festem niedrigem Pegel prüft nur die Audio-Ausgabe (ohne Mikrofon, MON-Filter oder Gain).",
+                color=muted,fontSize=11.sp)
             Text("Mithörpegel und Mittenfrequenz: Wischen im Wasserfall, solange MON aktiv ist. " +
                 "Mithören kurz drücken = EIN/AUS; lang drücken = Frequenzverschiebung.",
                 color=muted,fontSize=11.sp)
@@ -719,7 +724,7 @@ internal fun LiveAnalyzerScreen(
                         monitorCenter=AnalyzerMonitor.centerHz
                     } else {
                         AnalyzerMonitor.setLevel(context,AnalyzerMonitor.levelDb-
-                            delta.y.toDouble()/size.height*48.0)
+                            delta.y.toDouble()/size.height*160.0)
                         monitorLevel=AnalyzerMonitor.levelDb
                     }
                     change.consume()
@@ -905,10 +910,11 @@ internal fun LiveAnalyzerScreen(
                         Text("1/f-Laufzeitdiagnose (Main und Rolling getrennt):")
                         Text(timingText)
                         Text(NoiseFloorReference.powerComparisonDiagnostic())
+                        Text(AnalyzerMonitor.diagnostic())
                         OutlinedButton(onClick={ { NoiseFloorReference.resetTimingDiagnostic(); timingText=NoiseFloorReference.timingDiagnostic() } }) { Text("Laufzeitzähler zurücksetzen") }
                         OutlinedButton(onClick={
                             val snap = LiveAnalyzerController.snapshot()
-                            val report = timingText + "\n" + NoiseFloorReference.powerComparisonDiagnostic() + "\nPCM-Alter=" + snap.signalAgeMs +
+                            val report = timingText + "\n" + NoiseFloorReference.powerComparisonDiagnostic() + "\n" + AnalyzerMonitor.diagnostic() + "\nPCM-Alter=" + snap.signalAgeMs +
                                 "ms; FFT-Zaehler=" + snap.spectra + "; validSignal=" + snap.validSignal +
                                 "; status=" + snap.status
                             val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager

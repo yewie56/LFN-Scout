@@ -1,3 +1,11 @@
+## v0.5.50 (versionCode 208) – Bluetooth-Mithören und Gain
+- 48-kHz-Mono-AudioTrack-Ausgabe mit linearer Interpolation der bandbegrenzten Monitoring-PCM-Eingangsdaten.
+- Mithör-Gain −60 bis +100 dB per vertikaler Wischgeste im Wasserfall und persistentem Setupwert. Sanftes Fade-in 1,5 s, digitaler Softlimiter mit −20 dBFS Spitzengrenze.
+- DIAG: tatsächliche Ausgaberoute, Ausgabestatus, Input/Output-Rate, geschriebene PCM-Samples, Limiter-Zählung und Ausgabefehler.
+- 440-Hz-Ausgangstest mit festem niedrigem Pegel, unabhängig von Mikrofon, Bandpass, SHIFT und Gain.
+- FFT, WAV, Cloud, Windows-Build und GitHub-Workflow unverändert.
+- Android-Build und Gerätetest stehen aus. Siehe ANLEITUNG_TEST_v0.5.50.md.
+
 ## v0.5.49 (versionCode 207) – AUDIO-REC, DIAG, Mithören, kompaktes Routing
 - AUDIO-REC: roter Kreis; Buffersekunden / konfigurierter Clipdauer und lokal gespeicherte Aufnahmen / Tageslimit in der 48-dp-Taste. Nur Uhr bei gespeichert + ausstehender Cloud; Haken nach bestätigtem Upload derselben WAV. Archivstatus für noch offene Übertragung wird nachgelesen.
 - DIAG: Rahmen, Größe und Rundung an untere Tasten angepasst. NOISE-Zustände bleiben vollständig innerhalb der eigenen Taste.
