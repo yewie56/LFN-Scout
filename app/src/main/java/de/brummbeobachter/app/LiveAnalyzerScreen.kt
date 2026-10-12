@@ -754,11 +754,15 @@ internal fun LiveAnalyzerScreen(
                 ) }, contentAlignment=Alignment.Center) {
                 Column(horizontalAlignment=Alignment.CenterHorizontally) {
                     Text("NOISE", color=if (noiseState.enabled) cyan else white, fontSize=10.sp, lineHeight=12.sp)
-                    Text(if(noiseState.capturing) "${noiseState.progress}%" else when(noiseState.mode) { "MEASURED" -> "MESS"; "MODEL" -> "1/f"; else -> "AUS" },
-                        color=if(noiseState.enabled) cyan else muted, fontSize=11.sp, lineHeight=12.sp)
+                    Text(if (noiseState.capturing) "${noiseState.progress}%" else if (noiseMessage.startsWith("Analyzer muss") ||
+                        noiseMessage.contains("Fehler", ignoreCase=true)) "FEHLER"
+                        else when(noiseState.mode) { "MEASURED" -> "MESS"; "MODEL" -> "1/f"; else -> "AUS" },
+                        color=if(noiseMessage.startsWith("Analyzer muss") || noiseMessage.contains("Fehler", ignoreCase=true)) Color(0xFFFF6655)
+                            else if(noiseState.enabled) cyan else muted,
+                        fontSize=11.sp, lineHeight=12.sp, maxLines=1)
                 }
             }
-            if (noiseMessage.isNotEmpty()) Text(noiseMessage, color=cyan,fontSize=10.sp, modifier=Modifier.widthIn(max=100.dp))
+
             var diagnosticOpen by remember { mutableStateOf(false) }
             Text("DIAG", color=cyan, fontSize=12.sp,
                 modifier=Modifier.padding(start=6.dp,top=13.dp).clickable { diagnosticOpen=true })
@@ -846,8 +850,8 @@ internal fun LiveAnalyzerScreen(
                     }
                 }
             }
-            // SAVE AUDIO is a 48-dp action button like the camera. No status text is
-            // inserted into measurement/display rows; all save feedback is a transient popup.
+            // AUDIO RECORD: fixed 48-dp button like the neighbouring action buttons.
+            // ALL status text stays INSIDE its own button; never create a popup/row label.
             Box(Modifier.size(48.dp)
                 .clickable(enabled=canLocalSave) {
                     // Freeze/copy the complete audio window BEFORE opening the comment dialog.
@@ -866,39 +870,33 @@ internal fun LiveAnalyzerScreen(
                         audioSaveStatus = ""
                     }
                 }, contentAlignment=Alignment.Center) {
-                Canvas(Modifier.size(32.dp)) {
-                    val c = if (canLocalSave) cyan else muted
-                    val stroke = 2.dp.toPx()
-                    val xs = listOf(6f, 10f, 14f, 18f, 22f).map { it.dp.toPx() }
-                    val heights = listOf(7f, 14f, 20f, 14f, 7f).map { it.dp.toPx() }
-                    xs.forEachIndexed { i, x ->
-                        drawLine(c, Offset(x, 13.dp.toPx()-heights[i]/2f),
-                            Offset(x, 13.dp.toPx()+heights[i]/2f), strokeWidth=stroke)
-                    }
-                    val center = 24.dp.toPx()
-                    drawLine(c, Offset(center, 5.dp.toPx()), Offset(center, 24.dp.toPx()), strokeWidth=stroke)
-                    drawLine(c, Offset(center, 24.dp.toPx()), Offset(19.dp.toPx(), 19.dp.toPx()), strokeWidth=stroke)
-                    drawLine(c, Offset(center, 24.dp.toPx()), Offset(29.dp.toPx(), 19.dp.toPx()), strokeWidth=stroke)
-                    drawLine(c, Offset(18.dp.toPx(), 28.dp.toPx()), Offset(30.dp.toPx(), 28.dp.toPx()), strokeWidth=stroke)
-                }
-                if (audioSaveBusy) Text("…", color=cyan, fontSize=16.sp, modifier=Modifier.align(Alignment.BottomEnd))
-                if (audioSaveStatus.isNotEmpty()) {
-                    val popY = with(LocalDensity.current) { (-82).dp.roundToPx() }
-                    val ok = audioSaveStatus.startsWith("Lokal gespeichert")
-                    val info = audioSaveStatus == "Speichert …"
-                    Popup(alignment=Alignment.TopStart,offset=IntOffset(0,popY)) {
-                        Box(Modifier.border(BorderStroke(1.dp, if(ok || info) cyan else Color(0xFFFF6655)),
-                            RoundedCornerShape(9.dp))
-                            .background(Color(0xFF102E36),RoundedCornerShape(9.dp))
-                            .padding(horizontal=12.dp,vertical=9.dp)) {
-                            Text(audioSaveStatus, color=if(ok || info) cyan else Color(0xFFFF6655),
-                                fontSize=13.sp,fontWeight=FontWeight.Bold)
+                Column(horizontalAlignment=Alignment.CenterHorizontally,
+                    verticalArrangement=Arrangement.Center,
+                    modifier=Modifier.matchParentSize()) {
+                    Row(verticalAlignment=Alignment.CenterVertically,
+                        horizontalArrangement=Arrangement.Center) {
+                        Canvas(Modifier.size(7.dp)) {
+                            drawCircle(Color(0xFFFF3232))
                         }
+                        Spacer(Modifier.width(3.dp))
+                        Text("AUDIO",color=if(canLocalSave) white else muted,
+                            fontSize=9.sp,lineHeight=10.sp,maxLines=1)
                     }
+                    val recordText = when {
+                        audioSaveStatus.startsWith("Audio-Save fehlgeschlagen") ||
+                            audioSaveStatus.startsWith("Audiofenster") -> "FEHLER"
+                        audioSaveBusy || audioSaveStatus == "Speichert …" -> "SICHERT"
+                        audioSaveStatus.startsWith("Lokal gespeichert") -> "OK"
+                        pendingAudioClip != null -> "BEREIT"
+                        !canLocalSave -> "WARTEN"
+                        else -> "REC"
+                    }
+                    Text(recordText,
+                        color=if(recordText == "FEHLER") Color(0xFFFF6655)
+                            else if(canLocalSave || recordText == "OK") cyan else muted,
+                        fontSize=9.sp,lineHeight=10.sp,maxLines=1)
                 }
             }
-            Text("${if(state.paused) (if(canLocalSave || pendingAudioClip != null) localSaveConfig.durationSeconds else 0) else availableSeconds}/${localSaveConfig.durationSeconds}s\n${dailyCount}/${dailyLimit}",
-                color=muted,fontSize=9.sp,lineHeight=10.sp,modifier=Modifier.widthIn(min=42.dp,max=58.dp))
             if(!state.direct48k) {
                 WaterfallSwitchIcon(original=true,active=state.showOriginalWaterfall, onLongPress={}) {
                     LiveAnalyzerController.setWaterfallVisibility(context,!state.showOriginalWaterfall,state.showFilterWaterfall)

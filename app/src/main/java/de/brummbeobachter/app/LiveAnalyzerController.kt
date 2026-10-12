@@ -827,7 +827,7 @@ internal object LiveAnalyzerController {
             history.clear(); historyEpochMillis.clear(); filterHistory.clear(); pendingFilter = null
             waterfallAccumulator.clear(); waterfallRevision++
             floor = doubleArrayOf(); current = null
-            status = response + " · FFT-Statistik neu gestartet"
+            // NOISE state belongs exclusively inside the NOISE button (not in the global status line).
         }
         response
     }

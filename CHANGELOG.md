@@ -1,3 +1,9 @@
+## v0.5.48 (versionCode 206) – Kompakte NOISE- und AUDIO-Tasten
+- NOISE: Keine eigene Statusmeldung mehr neben der Taste oder in der globalen Statuszeile. AUS/MESS/1/f, Einmessfortschritt und Fehlerindikator erscheinen nur innerhalb der 52-dp-Taste.
+- AUDIO: Feste 48 × 48 dp wie die übrigen unteren Aktionen, roter Aufnahmepunkt und vollständig interne zweizeilige Beschriftung. Status SICHERT/OK/FEHLER/BEREIT/WARTEN nur in der Taste; bisheriges Popup und externer Sekunden-/Tageszähler entfallen.
+- Sonstige Analyzer-, Rauschreferenz-, Audioaufnahme- und Cloud-Funktionen bleiben unverändert.
+- Windows-Build- und GitHub-Workflow-Konfigurationen unverändert.
+
 ## v0.5.47 – Diagnose gemeinsamer NOISE-MESS-/1/f-Ueberkompensation
 - Original-Live-FFT-Leistung, Referenzleistung und Restleistung je 5/10/20/50/100 Hz als dB-Werte vor bzw. nach der Subtraktion dokumentiert.
 - Separate Main-/Rolling-Diagnose, Anzahl momentan unterdrueckter Bins und Leistungs-Verhaeltnis Referenz zu Live.
