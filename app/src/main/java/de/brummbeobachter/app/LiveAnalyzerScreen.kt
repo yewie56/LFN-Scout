@@ -765,7 +765,7 @@ internal fun LiveAnalyzerScreen(
             if(diagnosticOpen) {
                 AlertDialog(onDismissRequest={diagnosticOpen=false},
                     title={ Text("Rauschdiagnose") },
-                    text={ Column(verticalArrangement=Arrangement.spacedBy(8.dp)) {
+                    text={ Column(modifier=Modifier.verticalScroll(rememberScrollState()), verticalArrangement=Arrangement.spacedBy(8.dp)) {
                         var diagnosticStatus by remember { mutableStateOf(NoiseDiagnostic.result) }
                         LaunchedEffect(Unit) {
                             while(true) { diagnosticStatus=NoiseDiagnostic.result; delay(500) }
@@ -774,6 +774,23 @@ internal fun LiveAnalyzerScreen(
                         Text(diagnosticStatus)
                         Text(NoiseFloorReference.diagnosticReference())
                         Text(NoiseFloorReference.modelDiagnostic())
+                        var timingText by remember { mutableStateOf(NoiseFloorReference.timingDiagnostic()) }
+                        LaunchedEffect(Unit) {
+                            while (true) { timingText=NoiseFloorReference.timingDiagnostic(); delay(1000) }
+                        }
+                        Text("1/f-Laufzeitdiagnose (Main und Rolling getrennt):")
+                        Text(timingText)
+                        OutlinedButton(onClick={ { NoiseFloorReference.resetTimingDiagnostic(); timingText=NoiseFloorReference.timingDiagnostic() } }) { Text("Laufzeitzähler zurücksetzen") }
+                        OutlinedButton(onClick={
+                            val snap = LiveAnalyzerController.snapshot()
+                            val report = timingText + "\nPCM-Alter=" + snap.signalAgeMs +
+                                "ms; FFT-Zaehler=" + snap.spectra + "; validSignal=" + snap.validSignal +
+                                "; status=" + snap.status
+                            val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                            clipboard.setPrimaryClip(android.content.ClipData.newPlainText("LFN 1f Diagnose", report))
+                        }) { Text("Diagnose kopieren") }
+                        val rawSnapshot = LiveAnalyzerController.snapshot()
+                        Text("PCM-Alter=${rawSnapshot.signalAgeMs}ms · FFT-Zähler=${rawSnapshot.spectra} · Signal=${rawSnapshot.validSignal} · Status=${rawSnapshot.status}")
                         Text("NOISE kurz: AUS → MESSPROFIL → 1/f-MODELL → AUS. Lang: neue Referenz einmessen.")
                         Text("Vergleich: NOISE AUS = Original; NOISE EIN = Rest. Referenzkurve in dieser Version als Steigung, nicht als separater Plot.")
                         OutlinedButton(onClick={NoiseDiagnostic.startWhiteNoiseTest()}) { Text("FFT-Selbsttest starten") }

@@ -30,7 +30,6 @@ jobs:
     name: Test and build APK
     runs-on: ubuntu-24.04
     timeout-minutes: 30
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -46,6 +45,14 @@ jobs:
 
       - name: Make Gradle bootstrap executable
         run: chmod +x ./gradlew
+
+      - name: Use GitHub Java 17 without changing Windows setup
+        shell: bash
+        run: |
+          # Only modify the disposable CI checkout. The Windows scripts and local
+          # JDK search/configuration remain unchanged in the distributed project.
+          sed -i '/^org.gradle.java.home=/d; /^org.gradle.java.installations.paths=/d' gradle.properties
+          java -version
 
       - name: Read app version
         id: appmeta
@@ -94,22 +101,19 @@ jobs:
           chmod 700 "$HOME/.android"
           printf '%s' "$KEYSTORE_B64" | base64 --decode > "$HOME/.android/debug.keystore"
           chmod 600 "$HOME/.android/debug.keystore"
-
           ACTUAL=$(keytool -list -v \
             -keystore "$HOME/.android/debug.keystore" \
             -storepass "$KEYSTORE_PASSWORD" \
             -alias "$KEY_ALIAS" \
             | sed -n 's/^[[:space:]]*SHA256:[[:space:]]*//p' \
             | head -1 | tr -d ':' | tr '[:upper:]' '[:lower:]')
-
           if [ "$ACTUAL" != "$EXPECTED_SHA256" ]; then
             echo "Falscher Keystore: Zertifikat stimmt nicht mit Windows ueberein." >&2
             exit 1
           fi
           echo "Windows-Keystore-Zertifikat geprueft."
-
           if [ "$KEYSTORE_PASSWORD" != "android" ] || [ "$KEY_ALIAS" != "androiddebugkey" ] || [ "$KEY_PASSWORD" != "android" ]; then
-            echo "Nichtstandard-Debug-Zugangsdaten. Die automatische Gradle-Debug-Signierung ist damit nicht konfiguriert." >&2
+            echo "Nichtstandard-Debug-Zugangsdaten; automatische Gradle-Signierung nicht konfiguriert." >&2
             exit 1
           fi
 
@@ -143,36 +147,29 @@ jobs:
           set -euo pipefail
           APK="app/build/outputs/apk/debug/app-debug.apk"
           test -f "$APK"
-
           BUILD_TOOLS=$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)
           test -n "$BUILD_TOOLS"
-
           PACKAGE=$("$BUILD_TOOLS/aapt" dump badging "$APK" | sed -n "s/^package: name='\([^']*\)'.*/\1/p")
           if [ "$BUILD_VARIANT" = "REGULAR" ]; then
             EXPECTED_PACKAGE="de.brummbeobachter.app"
           else
             EXPECTED_PACKAGE="de.brummbeobachter.app.githubdebug"
           fi
-
           if [ "$PACKAGE" != "$EXPECTED_PACKAGE" ]; then
             echo "Falscher Paketname: $PACKAGE (erwartet: $EXPECTED_PACKAGE)" >&2
             exit 1
           fi
-
           CERT=$("$BUILD_TOOLS/apksigner" verify --print-certs "$APK" \
             | sed -n 's/^.*Signer: certificate SHA-256 digest: //p' \
             | head -1 | tr -d ':' | tr '[:upper:]' '[:lower:]')
-
           if [ -z "$CERT" ]; then
             echo "APK-Signatur konnte nicht geprueft werden." >&2
             exit 1
           fi
-
           if [ "$BUILD_VARIANT" = "REGULAR" ] && [ "$CERT" != "$EXPECTED_SHA256" ]; then
             echo "Falsche REGULAR-Signatur: APK passt nicht zum Windows-Schluessel." >&2
             exit 1
           fi
-
           echo "Variante: $BUILD_VARIANT"
           echo "Paketname: $PACKAGE"
           echo "Signaturpruefung: OK"
@@ -187,9 +184,7 @@ jobs:
 
       - name: Rename debug APK
         shell: bash
-        run: |
-          cp app/build/outputs/apk/debug/app-debug.apk \
-            "app/build/outputs/apk/debug/${{ steps.appmeta.outputs.apk }}"
+        run: cp app/build/outputs/apk/debug/app-debug.apk "app/build/outputs/apk/debug/${{ steps.appmeta.outputs.apk }}"
 
       - name: Upload debug APK artifact
         uses: actions/upload-artifact@v4

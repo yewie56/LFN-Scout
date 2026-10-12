@@ -9,7 +9,7 @@ internal object AnalyzerSignalValidity {
 
     fun classify(originalDbFs: DoubleArray, residualDbFs: DoubleArray, correctionEnabled: Boolean): Result {
         // Empty/malformed FFT buffers are invalid; finite -180 dBFS bins are NOT missing PCM.
-        if (originalDbFs.isEmpty() || originalDbFs.any { !it.isFinite() }) return Result.NO_INPUT
+        if (originalDbFs.isEmpty() || originalDbFs.none { it.isFinite() }) return Result.NO_INPUT
         val residualAboveFloor = residualDbFs.any { it.isFinite() && it > -180.0 }
         return if (correctionEnabled && !residualAboveFloor) Result.BELOW_NOISE_FLOOR
                else Result.VALID_SIGNAL

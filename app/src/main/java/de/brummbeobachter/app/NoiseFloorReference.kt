@@ -39,6 +39,44 @@ internal object NoiseFloorReference {
     private var rollingPowerSum = DoubleArray(0)
     private var rollingFrames = 0
 
+    // v0.5.45.9: low-overhead diagnostics. No log output or file I/O inside audio callbacks.
+    // The two FFT pipelines report independently; cumulative counters reset on request.
+    private data class PathTiming(var calls: Long = 0, var fitCalls: Long = 0,
+        var fitNs: Long = 0, var maxFitNs: Long = 0, var processingNs: Long = 0,
+        var maxProcessingNs: Long = 0, var fullyCancelled: Long = 0,
+        var bins: Long = 0, var cancelledBins: Long = 0, var invalidReference: Long = 0,
+        var fallback: Long = 0, var lastWallMs: Long = 0)
+    private var mainTiming = PathTiming()
+    private var rollingTiming = PathTiming()
+    private var diagnosticsStartMs = System.currentTimeMillis()
+    private fun timingString(name: String, t: PathTiming): String {
+        val avgFitMs = if (t.fitCalls == 0L) 0.0 else t.fitNs.toDouble() / t.fitCalls / 1e6
+        val avgProcessMs = if (t.calls == 0L) 0.0 else t.processingNs.toDouble() / t.calls / 1e6
+        return "%s: frames=%d fits=%d fit_avg=%.1fms fit_max=%.1fms total_avg=%.1fms total_max=%.1fms cancelled=%d/%d bins=%d/%d fallback=%d invalid_ref=%d age=%dms".format(
+            java.util.Locale.US, name, t.calls, t.fitCalls, avgFitMs, t.maxFitNs / 1e6,
+            avgProcessMs, t.maxProcessingNs / 1e6, t.fullyCancelled, t.calls,
+            t.cancelledBins, t.bins, t.fallback, t.invalidReference,
+            if (t.lastWallMs == 0L) -1 else System.currentTimeMillis() - t.lastWallMs)
+    }
+    fun timingDiagnostic(): String = synchronized(mutex) {
+        "NOISE ${if (enabled) mode else "OFF"} · Diagnose ${((System.currentTimeMillis()-diagnosticsStartMs)/1000)}s\n" +
+            timingString("Main FFT", mainTiming) + "\n" + timingString("Rolling FFT", rollingTiming)
+    }
+    fun resetTimingDiagnostic() = synchronized(mutex) {
+        mainTiming = PathTiming(); rollingTiming = PathTiming()
+        diagnosticsStartMs = System.currentTimeMillis()
+    }
+    private fun measuredModel(reference: DoubleArray, fs: Int, n: Int, t: PathTiming): DoubleArray? {
+        val start = System.nanoTime()
+        val result = if (mode == "MODEL") NoisePowerModel.reference(reference, fs, n) else reference
+        if (mode == "MODEL") {
+            val elapsed = System.nanoTime() - start
+            t.fitCalls++; t.fitNs += elapsed; t.maxFitNs = maxOf(t.maxFitNs, elapsed)
+        }
+        if (result == null) t.fallback++
+        else if (result.any { !it.isFinite() || it < 0.0 }) t.invalidReference++
+        return result
+    }
     fun currentMode(): String = synchronized(mutex) { if (!enabled) "OFF" else mode }
     private fun selectedReference(measured: DoubleArray, fs: Int, n: Int): DoubleArray? =
         if (mode == "MODEL") NoisePowerModel.reference(measured, fs, n) else measured
@@ -70,6 +108,9 @@ internal object NoiseFloorReference {
     /** Each rolling FFT frame is 1024 bins at fs=1000 Hz (513 one-sided powers). */
     fun compensateRollingSpectrum(input: DoubleArray): DoubleArray = synchronized(mutex) {
         require(input.size == 513)
+        val tick = System.nanoTime()
+        rollingTiming.calls++; rollingTiming.lastWallMs = System.currentTimeMillis()
+        try {
         if (capturing) {
             if (rollingPowerSum.size != input.size) rollingPowerSum = DoubleArray(input.size)
             for (i in input.indices) rollingPowerSum[i] += input[i]
@@ -78,12 +119,22 @@ internal object NoiseFloorReference {
         }
         val measuredRef = rollingPower ?: return@synchronized input
         if (!enabled) return@synchronized input
-        val ref = selectedReference(measuredRef, 1000, 1024) ?: return@synchronized input
+        val ref = measuredModel(measuredRef, 1000, 1024, rollingTiming) ?: return@synchronized input
         if (ref.size != input.size) return@synchronized input
-        DoubleArray(input.size) { i ->
+        var cancelled = 0L
+        val output = DoubleArray(input.size) { i ->
             val measured = input[i]
-            if (!measured.isFinite() || measured < 0.0) measured
-            else NoisePowerSubtraction.residual(measured, ref[i])
+            if (!measured.isFinite() || measured < 0.0 || !ref[i].isFinite() || ref[i] < 0.0) measured
+            else NoisePowerSubtraction.residual(measured, ref[i]).also { if (it == 0.0) cancelled++ }
+        }
+        rollingTiming.bins += input.size
+        rollingTiming.cancelledBins += cancelled
+        if (cancelled == input.size.toLong()) rollingTiming.fullyCancelled++
+        output
+        } finally {
+            val elapsed = System.nanoTime() - tick
+            rollingTiming.processingNs += elapsed
+            rollingTiming.maxProcessingNs = maxOf(rollingTiming.maxProcessingNs, elapsed)
         }
     }
 
@@ -237,15 +288,33 @@ internal object NoiseFloorReference {
             return@synchronized s
         }
         val measuredReference=profile ?: return@synchronized s
-        val reference=if (enabled) selectedReference(measuredReference,rate,fft) ?: return@synchronized s else measuredReference
+        val tick = System.nanoTime()
+        mainTiming.calls++; mainTiming.lastWallMs = System.currentTimeMillis()
+        val reference=if (enabled) measuredModel(measuredReference,rate,fft,mainTiming) ?: return@synchronized s else measuredReference
         if (!enabled || reference.size!=s.liveDbFs.size || rate!=s.sampleRateHz ||
             fft!=s.fftSize || window!=windowName || gain!=gainDb) return@synchronized s
-        fun corrected(a: DoubleArray): DoubleArray = DoubleArray(a.size) { i ->
+        var cancelledLive = 0L
+        fun corrected(a: DoubleArray, countLive: Boolean = false): DoubleArray = DoubleArray(a.size) { i ->
             val measured = power(a[i])
-            NoisePowerSubtraction.toDisplayDb(NoisePowerSubtraction.residual(measured, reference[i]))
+            val r = reference[i]
+            if (!r.isFinite() || r < 0.0) {
+                mainTiming.invalidReference++
+                a[i] // Preserve original bin if model reference is invalid.
+            } else {
+                val residual = NoisePowerSubtraction.residual(measured, r)
+                if (countLive && residual == 0.0) cancelledLive++
+                NoisePowerSubtraction.toDisplayDb(residual)
+            }
         }
-        s.copy(liveDbFs=corrected(s.liveDbFs),averageDbFs=corrected(s.averageDbFs),
+        val result=s.copy(liveDbFs=corrected(s.liveDbFs, true),averageDbFs=corrected(s.averageDbFs),
             maxHoldDbFs=corrected(s.maxHoldDbFs))
+        mainTiming.bins += s.liveDbFs.size
+        mainTiming.cancelledBins += cancelledLive
+        if (cancelledLive == s.liveDbFs.size.toLong()) mainTiming.fullyCancelled++
+        val elapsed = System.nanoTime() - tick
+        mainTiming.processingNs += elapsed
+        mainTiming.maxProcessingNs = maxOf(mainTiming.maxProcessingNs, elapsed)
+        result
     }
     private fun power(db:Double):Double = 10.0.pow(db.coerceIn(-180.0,100.0)/10.0)
 }
