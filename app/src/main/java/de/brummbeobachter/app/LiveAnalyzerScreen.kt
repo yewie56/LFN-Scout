@@ -780,10 +780,11 @@ internal fun LiveAnalyzerScreen(
                         }
                         Text("1/f-Laufzeitdiagnose (Main und Rolling getrennt):")
                         Text(timingText)
+                        Text(NoiseFloorReference.powerComparisonDiagnostic())
                         OutlinedButton(onClick={ { NoiseFloorReference.resetTimingDiagnostic(); timingText=NoiseFloorReference.timingDiagnostic() } }) { Text("Laufzeitzähler zurücksetzen") }
                         OutlinedButton(onClick={
                             val snap = LiveAnalyzerController.snapshot()
-                            val report = timingText + "\nPCM-Alter=" + snap.signalAgeMs +
+                            val report = timingText + "\n" + NoiseFloorReference.powerComparisonDiagnostic() + "\nPCM-Alter=" + snap.signalAgeMs +
                                 "ms; FFT-Zaehler=" + snap.spectra + "; validSignal=" + snap.validSignal +
                                 "; status=" + snap.status
                             val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager

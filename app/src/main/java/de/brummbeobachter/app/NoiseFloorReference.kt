@@ -48,6 +48,47 @@ internal object NoiseFloorReference {
         var fallback: Long = 0, var cacheHits: Long = 0, var cacheMisses: Long = 0, var lastWallMs: Long = 0)
     private var mainTiming = PathTiming()
     private var rollingTiming = PathTiming()
+    // Sample the ORIGINAL live power before subtraction. Rate-limit to one per second
+    // so the diagnostic does not increase audio-thread load.
+    private data class PowerProbe(var samples: Long = 0, var allBins: Int = 0,
+        var clippedBins: Int = 0, var lastMs: Long = 0L, var text: String = "Noch keine Messung")
+    private var mainProbe = PowerProbe()
+    private var rollingProbe = PowerProbe()
+    private fun probe(power: DoubleArray, reference: DoubleArray, fs: Int, fftSize: Int,
+                      out: PowerProbe, label: String) {
+        val now = System.currentTimeMillis()
+        if (now - out.lastMs < 1000L || power.size != reference.size) return
+        out.lastMs = now
+        out.samples++
+        var clipped = 0
+        for (i in power.indices) {
+            if (power[i].isFinite() && reference[i].isFinite() &&
+                power[i] >= 0.0 && reference[i] >= 0.0 && power[i] <= reference[i]) clipped++
+        }
+        out.allBins = power.size
+        out.clippedBins = clipped
+        val targets = listOf(5, 10, 20, 50, 100)
+        val lines = targets.mapNotNull { hz ->
+            val index = (hz.toDouble() * fftSize / fs).toInt().coerceIn(0, power.lastIndex)
+            val actualHz = index.toDouble() * fs / fftSize
+            val live = power[index]; val ref = reference[index]
+            if (!live.isFinite() || !ref.isFinite() || live < 0 || ref < 0) null
+            else {
+                val rest = (live - ref).coerceAtLeast(0.0)
+                "%.1fHz live=%s ref=%s rest=%s ref-live=%s".format(
+                    java.util.Locale.US, actualHz, NoisePowerComparison.db(live),
+                    NoisePowerComparison.db(ref), NoisePowerComparison.db(rest),
+                    NoisePowerComparison.ratioDb(ref, live))
+            }
+        }
+        out.text = "$label mode=$mode bins_auf_null=$clipped/${power.size} " +
+            "(%.1f%%)".format(java.util.Locale.US, 100.0 * clipped / power.size) +
+            " | Einheiten: dB bezogen auf lineare FFT-Leistung (dBFS^2-Bezug)\n" + lines.joinToString("\n")
+    }
+    fun powerComparisonDiagnostic(): String = synchronized(mutex) {
+        "LEISTUNGSVERGLEICH (1x pro Sekunde; Live vor Abzug, 0 = -Inf):\n" +
+            "Main: " + mainProbe.text + "\nRolling: " + rollingProbe.text
+    }
     private var diagnosticsStartMs = System.currentTimeMillis()
     private fun timingString(name: String, t: PathTiming): String {
         val avgFitMs = if (t.fitCalls == 0L) 0.0 else t.fitNs.toDouble() / t.fitCalls / 1e6
@@ -64,6 +105,7 @@ internal object NoiseFloorReference {
     }
     fun resetTimingDiagnostic() = synchronized(mutex) {
         mainTiming = PathTiming(); rollingTiming = PathTiming()
+        mainProbe = PowerProbe(); rollingProbe = PowerProbe()
         diagnosticsStartMs = System.currentTimeMillis()
     }
     // Model references are immutable snapshots. Each path has an independent cache.
@@ -137,6 +179,7 @@ internal object NoiseFloorReference {
         if (!enabled) return@synchronized input
         val ref = measuredModel(measuredRef, 1000, 1024, rollingTiming, true) ?: return@synchronized input
         if (ref.size != input.size) return@synchronized input
+        probe(input, ref, 1000, 1024, rollingProbe, "Rolling")
         var cancelled = 0L
         val output = DoubleArray(input.size) { i ->
             val measured = input[i]
@@ -312,6 +355,8 @@ internal object NoiseFloorReference {
         val reference=if (enabled) measuredModel(measuredReference,rate,fft,mainTiming, false) ?: return@synchronized s else measuredReference
         if (!enabled || reference.size!=s.liveDbFs.size || rate!=s.sampleRateHz ||
             fft!=s.fftSize || window!=windowName || gain!=gainDb) return@synchronized s
+        probe(DoubleArray(s.liveDbFs.size) { i -> power(s.liveDbFs[i]) },
+            reference, s.sampleRateHz, s.fftSize, mainProbe, "Main")
         var cancelledLive = 0L
         fun corrected(a: DoubleArray, countLive: Boolean = false): DoubleArray = DoubleArray(a.size) { i ->
             val measured = power(a[i])

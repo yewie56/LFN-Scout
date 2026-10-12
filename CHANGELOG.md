@@ -1,3 +1,11 @@
+## v0.5.47 – Diagnose gemeinsamer NOISE-MESS-/1/f-Ueberkompensation
+- Original-Live-FFT-Leistung, Referenzleistung und Restleistung je 5/10/20/50/100 Hz als dB-Werte vor bzw. nach der Subtraktion dokumentiert.
+- Separate Main-/Rolling-Diagnose, Anzahl momentan unterdrueckter Bins und Leistungs-Verhaeltnis Referenz zu Live.
+- Einmal pro Sekunde aktualisierte Proben statt Protokollierung jedes FFT-Fensters; Anzeige und Zwischenablage im DIAG-Fenster.
+- Vier reine Regressionstests fuer Leistung-zu-dB und Verhaeltnis-Sonderfaelle.
+- Keine Aenderung von Subtraktionsformel, bestehendem Rauschprofil, 1/f-Cache, FAST, Cloud, Windows-Build oder GitHub-Signierung.
+- versionCode 205; versionName 0.5.47. Voller Android-/Geraetetest noch ausstehend.
+
 ## v0.5.46 – 1/f-Cache und Laufzeitdiagnose
 - Einheitliche Versionierung mit maximal zwei Punkten, Android versionCode 204.
 - Wiederverwendung der berechneten 1/f-Rauschleistungsreferenz fuer gleiche Referenzarray-Identitaet, Abtastrate und FFT-Groesse; getrennte Caches fuer Main-FFT und Rolling-FFT.
