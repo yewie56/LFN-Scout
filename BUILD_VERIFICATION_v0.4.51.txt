@@ -1,0 +1,24 @@
+LFN-Scout v0.4.51 – Verifikationsstand
+
+TDD:
+- verify_v0451_compact_headers.py wurde vor der Implementierung ausgeführt und schlug erwartungsgemäß fehl (RED): CompactInlineHeader fehlte.
+- Nach der Implementierung: PASS.
+
+Statische Prüfungen:
+- Bewertung: Titel + kleiner Zusatztext getrennt, gleiche Zeile: PASS
+- Audio aufzeichnen: Titel + kleiner WAV-Zusatztext getrennt, gleiche Zeile: PASS
+- maxLines = 1 / softWrap = false: PASS
+- Zusatztextgröße 8 sp: PASS
+- v0.4.50 Wischrichtungen unverändert: PASS
+- Wasserfall-neueste-Aufnahme-Button weiterhin entfernt: PASS
+- Einzel-Wasserfall-Button weiterhin entfernt: PASS
+- PNG/JPG/PNG+JPG erhalten: PASS
+- Zoom/Pan + Doppeltipp erhalten: PASS
+- Kotlin-Klammerbilanz MainActivity.kt: 0
+- Verbotener layout.weight-Import nicht vorhanden: PASS
+- Supabase storage_filename Regressionstest: PASS
+
+Buildversuch:
+- ./gradlew assembleDebug --offline gestartet.
+- Vollständiger Android-Build in dieser Umgebung nicht möglich, da die Gradle-8.13-Distribution nicht lokal vorhanden ist und services.gradle.org nicht aufgelöst werden kann.
+- Deshalb ist der Windows/Android-Studio-Build weiterhin die maßgebliche Compiler-Verifikation.

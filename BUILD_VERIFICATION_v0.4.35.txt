@@ -1,0 +1,32 @@
+LFN-Scout v0.4.35 – Verifikationsstand
+
+PASS: versionName 0.4.35
+PASS: versionCode 75
+PASS: AUTO source mode exists
+PASS: AUTO prefers UNPROCESSED then MIC
+PASS: forced UNPROCESSED has no fallback
+PASS: all Android input devices queried
+PASS: preferred device API used
+PASS: routed device reported
+PASS: input source persisted
+PASS: device id persisted
+PASS: source setter exists
+PASS: device setter exists
+PASS: source selector UI exists
+PASS: input selector UI exists
+PASS: refresh inputs UI exists
+PASS: missing saved input falls back Auto
+PASS: actual route UI exists
+PASS: gain 50 dB retained
+PASS: live CLIP retained
+PASS: Java v0.4.34 preparation retained
+PASS: TDD policy test present
+PASS: no Supabase schema change needed
+
+Statische Quelltext-/Regressionsprüfung: PASS.
+Klammerbilanz der geänderten Kotlin-Dateien: 0.
+
+NICHT HIER VERIFIZIERT:
+- vollständige Android/Kotlin-Kompilation mit Android SDK
+- physische Audio-Routing-Funktion auf dem Xiaomi/USB-Gerät
+- tatsächlicher Android-Studio-Build auf dem Windows-Rechner

@@ -1,0 +1,32 @@
+LFN-Scout v0.4.36 – UI-/Audio-Selbsttest
+
+1. HAUPTPANEL AUDIO
+PASS: kein AudioSource-Dropdown.
+PASS: kein Audioeingang-Dropdown.
+PASS: kein Inputs-aktualisieren-Button.
+PASS: kein Gain-Slider.
+PASS: Aufzeichnung starten bleibt sichtbar.
+PASS: während Aufnahme Zeit und CLIP sichtbar.
+PASS: während/ nach Aufnahme kurze aktive Source/Input-Anzeige.
+PASS: bei erreichtem Tageslimit klare Meldung.
+
+2. EINSTELLUNGEN AUDIO
+PASS: Sektion "Audioaufnahme" vorhanden.
+PASS: AudioSource auswählbar.
+PASS: physischer Audioeingang auswählbar.
+PASS: Inputs aktualisieren vorhanden.
+PASS: Gain 0..+50 dB einstellbar.
+PASS: Auswahl bleibt persistent.
+
+3. PAUSIERUNG
+PASS: genau zwei Buttonzeilen.
+PASS Zeile 1: 1 h, 2 h, 4 h, 8 h.
+PASS Zeile 2: 12 h, 24 h, 72 h, Ganz aus.
+PASS: Buttons kompakter als bisher.
+PASS: 12 h pausiert tatsächlich 12 Stunden.
+
+4. REGRESSION
+PASS erwartet: Auto bevorzugt UNPROCESSED.
+PASS erwartet: konkrete Eingabegeräte bleiben auswählbar.
+PASS erwartet: Live-CLIP bleibt erhalten.
+PASS erwartet: PREPARE_PROJECT.bat verwendet Java 17, globales Java 8 bleibt unverändert.

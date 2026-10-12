@@ -1,0 +1,18 @@
+LFN-Scout v0.4.39 – Verifikationsstand
+
+PASS: versionName 0.4.39
+PASS: versionCode 79
+PASS: redundant Elvis removed
+PASS: resolvedSourceMode assignment retained
+PASS: prior null guard retained
+PASS: UNPROCESSED fallback behavior retained
+PASS: preferred device retained
+PASS: routedDevice retained
+PASS: gain remains main
+PASS: Audio heute remains main
+PASS: inline CLIP retained
+PASS: pause 12h retained
+PASS: Java17 prep retained
+
+Statische Regression: 13/13 PASS.
+Nicht hier verifiziert: vollständiger Android-Studio-Build auf Windows.

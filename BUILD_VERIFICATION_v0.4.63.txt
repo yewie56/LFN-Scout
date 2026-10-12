@@ -1,0 +1,12 @@
+[PASS] versionName 0.4.63
+[PASS] versionCode 103
+[PASS] docs/project exists
+[PASS] project README exists
+[PASS] changes MD exists
+[PASS] planned extensions MD exists
+[PASS] superpowers plans retained
+[PASS] superpowers specs retained
+[PASS] .git absent from package tree
+PASS: 9/9 checks
+
+Hinweis: Diese Verifikation prüft Versionsstand und Dokumentstruktur. Ein echter Gradle-Build wird weiterhin durch GitHub Actions verifiziert.

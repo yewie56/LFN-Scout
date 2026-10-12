@@ -1,0 +1,42 @@
+LFN-Scout – VERBINDLICHER ENTWICKLUNGSAUFTRAG / Analyzer v0.7
+=============================================================
+
+Ich übergebe die vollständige ZIP LFN-Scout_Analyzer_Uebergabe_v0.7.zip.
+Bitte vor Änderungen das Root-README, docs/project/00_INDEX.md,
+docs/project/18_ABSCHLUSS_AUDIT_v0.7.md, sämtliche normativen SRD/SRS/SDS/UI-
+und Test-Dokumente sowie assets/concepts/BILDREGISTER_v0.7.md lesen.
+
+ZIEL: Neues Unterpanel „Spektrum & Mithören“ als kontinuierlicher Live-Analyzer,
+NICHT als neue Audioaufnahme. Die aktuell vorhandene separate LFN-Scout-Audioaufnahme
+muss bei Parallelbetrieb eine koordinierte, gemeinsame PCM-Quelle mit dem Analyzer
+verwenden. Analyzer und automatische PNG-Speicherung laufen beim Wechsel auf
+andere INTERNE Panels weiter. „Save aktiv“ = nur PNG. Rechte Wasserfallspalte zeigt
+wahlweise 0/1/4 reale Radiushistogramme. Eigene kleine Standalone-Testhülle darf
+ausschließlich denselben Analyzer-Kern nutzen.
+
+GUI: Spektrum UND Wasserfall auch in erweiterter Ansicht; lineare 0–100-Hz-Achse
+als Default; Inferno, rot Average, gelb Live, optional grau Rauschboden; Cursor-
+Fadenkreuz auch in Pause. Mithörfeld unten links antippen = EIN/AUS; vertikal
+wischen = Gain; Overlay horizontal verschieben; Bandbreite [Hz] im Spektrumsetup.
+Mithör-AGC/Clip nur im Output. L50/L90 separates Band 2–25 Hz / 120 s,
+Superfast/Max-Sample, optionale Mikrofonkalibrierung, Noise-Referenz und mehrere
+Setups/Recall wie spezifiziert. Bilder sind nur Designillustrationen; zwei
+ausdrücklich verworfene Bilder sind NICHT im Paket; C13 Leitbild für Mithören,
+C03 für Wasserfall-Umschaltung. Histogramm-D01 ist nur vorläufiges Schema.
+
+WICHTIGER ERSTER SCHRITT: Die aktuelle vollständige Projekt-ZIP bzw. Git-Commit
+sichten; DIRECTIVES.md, BUILD_WORKFLOWS.md, CHANGELOG.md, docs/project/ und
+vorhandene Audio-/Recorder-/Histogramm-/UI-Klassen lesen. Das Ist-/Soll-Mapping
+in docs/project/16_Repo_Mapping_und_Gates_v0.7.md mit REALEN Klassen, Raten,
+Schemata und Tests ausfüllen; keine Klassen erfinden und bestehende offizielle
+Projektdateien nicht blind überschreiben. Ein Plan in docs/superpowers/ ist
+kein Ersatz für docs/project/.
+
+Dann phasenweise Analyzer-Kern/Testhost -> PCM-Owner/Recorder-Konflikte ->
+Unterpanel -> Offscreen-PNG/Save -> echte Histos -> Gerät/CI/Testdurchlauf.
+T-01…T-71 und bestehende Regressionen mit PASS/FAIL/Testprotokoll nachweisen.
+Nach Implementierung alle betroffenen Projekt-MDs und CHANGELOG aktualisieren.
+Vollständige aktualisierte Projekt-ZIP liefern. Keine Behauptung einer fertigen APK
+oder durchgeführter Realtests, bevor diese tatsächlich nachgewiesen sind.
+
+Gültigkeitsreihenfolge und Resterfordernisse: Root README und Abschluss-Audit v0.7.

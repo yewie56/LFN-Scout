@@ -1,0 +1,23 @@
+PASS  timeout scheduler exists
+PASS  timeout policy exists
+PASS  exact alarm path schedules timeout
+PASS  WorkManager path schedules timeout
+PASS  timeout sends rating -1
+PASS  timeout sends null response time
+PASS  timeout payload is explicitly no WAV
+PASS  payload JSON always marks wav false
+PASS  timeout stops notification/audio
+PASS  rating explicitly cancels timeout
+PASS  settings pause explicitly cancels timeout
+PASS  disable explicitly cancels timeout
+PASS  notification 1h pause explicitly cancels timeout
+PASS  app-start generic engine does NOT cancel timeout
+PASS  timeout ignores disabled/paused stale delivery
+PASS  ALARM mode package behavior retained
+PASS  Android 12 direct MainActivity rate path retained
+PASS  versionName 0.4.13
+PASS  versionCode 53
+PASS  Main payload appVersion 0.4.13
+PASS  bad explicit weight import absent
+
+Hinweis: vollständiger Android-/Gradle-Build in dieser Laufzeitumgebung nicht bestätigt.

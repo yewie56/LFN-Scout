@@ -1,0 +1,90 @@
+{
+  "schemaVersion": 3,
+  "setupId": "a8ce3426-6df2-4302-b8d7-d90e9f1c805e",
+  "revision": 1,
+  "profileName": "Brummton 0–100 Hz",
+  "input": {
+    "deviceKey": "DEFAULT",
+    "preferredSource": "UNPROCESSED",
+    "rateHz": 48000,
+    "channels": 1,
+    "format": "AUTO"
+  },
+  "spectrum": {
+    "scale": "LINEAR",
+    "fMinHz": 0,
+    "fMaxHz": 100,
+    "yMinDbFs": -120,
+    "yMaxDbFs": 0,
+    "fftSize": 8192,
+    "decimations": 3,
+    "window": "BLACKMAN_HARRIS",
+    "intervalMs": 100,
+    "smoothing": 0.3,
+    "subtractDc": true,
+    "average": {
+      "enabled": true,
+      "durationSec": 120
+    },
+    "maxHold": false,
+    "peakMarker": false,
+    "cursor": {
+      "enabled": false,
+      "source": "LIVE",
+      "localReadout": true
+    }
+  },
+  "display": {
+    "waterfallSec": 120,
+    "palette": "INFERNO",
+    "waterfallFraction": 0.66,
+    "waterfallMinDbFs": -120,
+    "waterfallMaxDbFs": 0,
+    "noiseCompensationView": "RAW"
+  },
+  "statistics": {
+    "enabled": true,
+    "minHz": 2,
+    "maxHz": 25,
+    "windowSec": 120,
+    "l50Line": true,
+    "l90Line": true,
+    "numeric": true,
+    "superfast": false,
+    "maximumSample": false
+  },
+  "calibration": {
+    "enabled": false,
+    "profileId": null,
+    "displayMode": "DBFS"
+  },
+  "noiseReference": {
+    "profileId": null,
+    "showGray": false,
+    "subtract": false,
+    "target": "SPECTRUM"
+  },
+  "monitor": {
+    "fMinHz": 20,
+    "fMaxHz": 80,
+    "bandwidthHz": 60,
+    "userGainDb": 0,
+    "autoAttenuationEnabled": true,
+    "outputRoutePolicy": "HEADPHONE_ONLY"
+  },
+  "save": {
+    "automaticPngPreference": false,
+    "pngAfterFirstFullWaterfall": true,
+    "pngPeriodEqualsWaterfall": true,
+    "manualCsv": true,
+    "manualPng": true
+  },
+  "runtimeExclusions": [
+    "actualMonitorActive",
+    "actualSaveActive",
+    "autoAttenuationDb",
+    "sampleMaxValue",
+    "ringBuffer",
+    "inputClipCount"
+  ]
+}

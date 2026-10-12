@@ -1,0 +1,43 @@
+LFN-Scout v0.4.44 – Supabase
+
+Für v0.4.44 sind ZWEI Änderungen im Supabase-Dashboard erforderlich.
+
+1. SQL-Migration ausführen
+--------------------------
+
+Im SQL Editor den Inhalt dieser Datei ausführen:
+
+  supabase/migrations/20260909_add_audio_recording_comment.sql
+
+Sie ergänzt in public.audio_recordings:
+
+  comment text
+
+und eine Längenprüfung auf maximal 2000 Zeichen.
+
+2. Edge Function upload_wav aktualisieren
+------------------------------------------
+
+Diese Dateien gehören gemeinsam zur Function:
+
+  supabase/functions/upload_wav/index.ts
+  supabase/functions/upload_wav/storage_filename.js
+
+`index.ts` vollständig ersetzen und `storage_filename.js` als zweite Datei
+der Function beibehalten/hochladen.
+
+Danach die Function deployen.
+
+JWT verification bleibt OFF.
+
+Kontrolle:
+Ein GET-Aufruf der Function meldet danach:
+
+  "service": "upload_wav"
+  "version": "1.3.0"
+
+Die vorhandene WAV-Namensgebung bleibt unverändert:
+  BB001/2026-09-09_01-23-45_G30_UNP_R3.wav
+  BB001/2026-09-09_01-23-45_G30_UNP_RX.wav
+
+Neu ist nur der optionale Audio-Kommentar in der Tabelle audio_recordings.

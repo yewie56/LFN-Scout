@@ -1,0 +1,12 @@
+LFN-Scout v0.4.31
+
+PASS: versionName 0.4.31
+PASS: versionCode 71
+PASS: no reserved Home parameter
+PASS: Get-JavaMajor uses JdkHome
+PASS: Try-JavaHome uses JdkHome
+PASS: Save-JavaHome uses JdkHome
+PASS: AndroidStudioProjects search retained
+PASS: progress display retained
+
+Vollständiger Windows-/Android-Studio-Build muss auf dem Nutzerrechner erfolgen.

@@ -1,0 +1,16 @@
+LFN-Scout Android v0.4.81 - Verifikation
+================================================
+PASS: versionName 0.4.81 / versionCode 121
+PASS: verify_v0481_requirements.py (12/12 Anforderungen)
+PASS: MainActivity.kt lexikalische Klammerstruktur ausgeglichen
+PASS: WaterfallLevelPolicySelfTest
+PASS: SeismicPlotUiSelfTest (mit isoliertem SeismicEnvelopeBin-Teststub)
+PASS: WBBU- und Näheplot-Exportpfad enthalten vollständige 90°-Linksdrehung
+PASS: Seismik-Dateiname enthält lokale Speicherzeit HH-mm-ss
+PASS: Näheplot-Gain persistent 1..20, Standard 2
+PASS: Wasserfall Automatik bleibt Default; manueller 50-dB-Referenzbereich verfügbar
+PASS: normaler Audio-Aufnahmecountdown mit Abbruchbutton im Quellpfad vorhanden
+
+Vollständiger Gradle-Build: NICHT BESTÄTIGT.
+Grund: Build-Wrapper versucht Gradle 8.13 von services.gradle.org zu laden; DNS ist in dieser Umgebung nicht verfügbar:
+  curl: (6) Could not resolve host: services.gradle.org

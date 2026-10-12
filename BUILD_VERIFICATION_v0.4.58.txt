@@ -1,0 +1,39 @@
+LFN-Scout Android v0.4.58 - Verifikation
+Datum: 2026-09-14
+
+1. Neue v0.4.58-Anforderungs-/Regressionstests
+   python verify_v0458_requirements.py
+   Ergebnis: 21/21 PASS
+
+2. SeismicStationPolicy Selbsttest
+   - FDSN-Textparser
+   - GPS-Distanz / Sortierung der nächsten Station
+   - fehlerhafte Stationszeilen werden verworfen
+   Ergebnis: PASS
+
+3. SeismicLiveService Kotlin-Compilercheck mit minimalen Android-Stubs
+   Ergebnis: kompiliert; nur Warnungen wegen URL(String)-Deprecation unter lokalem JDK 21 und unbenutzten Stub-Parametern.
+
+4. MainActivity Parsercheck
+   Ergebnis: keine Kotlin-Syntax-/Parsefehler gefunden.
+   Hinweis: Ohne Android/Compose-Klassen entstehen erwartungsgemäß unresolved-reference Fehler; dieser Check ersetzt keinen Android-Build.
+
+5. Vollständiger Android-Gradle-Build
+   Versuch: ./gradlew testDebugUnitTest --no-daemon
+   Ergebnis: NICHT BIS ZUM BUILD AUSGEFÜHRT.
+   Ursache: services.gradle.org ist aus der Ausführungsumgebung nicht per DNS erreichbar; Gradle 8.13 kann daher hier nicht geladen werden.
+   Das ist kein festgestellter Quellcode-/Buildfehler.
+
+Auf dem Windows-/Android-Studio-Rechner ausführen:
+   PREPARE_PROJECT.bat
+   gradlew.bat clean
+   gradlew.bat testDebugUnitTest
+   gradlew.bat assembleDebug
+
+v0.4.58 Änderungen:
+- eigenes Panel "Seismik"
+- GPS-basierte Auswahl der nächsten verfügbaren GEOFON-Liveplot-Station
+- 24-h-Liveplot der breitbandigen Vertikalkomponente
+- Fallback auf bis zu fünf nahe Stationen
+- Logs für Start, Erfolg, Timeout, Nichtverfügbarkeit, HTTP-/Parsing-/Bildfehler
+- Wasserfall-Busy-Anzeige nur noch für die tatsächlich bearbeitete Aufnahme

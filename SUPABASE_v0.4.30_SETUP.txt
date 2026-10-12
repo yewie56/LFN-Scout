@@ -1,0 +1,5 @@
+LFN-Scout v0.4.30 – Supabase
+
+Keine Supabase-Änderung gegenüber v0.4.29.
+Wenn upload_wav aus v0.4.29 bereits deployed wurde, ist für v0.4.30
+kein erneutes Deployment und keine SQL-Migration erforderlich.

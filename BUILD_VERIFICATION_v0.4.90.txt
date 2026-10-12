@@ -1,0 +1,15 @@
+LFN-Scout v0.4.90 / versionCode 130 – Quellen- und Teiltestbericht (2026-09-20)
+Baseline: Nutzer-ZIP LFN-Scout_Android_v0.4.89(1).zip
+Status: Integrations-/Testkandidat, kein freigegebener Android-Build.
+
+PASS: tools/RUN_ANALYZER_PHASE2_SELFTEST.sh (synthetische FFT, PCM-Hub, Capture-Arbiter).
+PASS: tools/RUN_ANALYZER_LIVE_SELFTEST.sh (180-Hz-Ton bis 200 Hz, endliche FFT, gebundene Historie).
+PASS: verify_v0490_live_analyzer.py (16/16 statische Integrationsprüfungen).
+PASS: verify_analyzer_highspeed.py (12/12 Bestands-Highspeedprüfungen, Version aktualisiert).
+PASS: verify_analyzer_phase2.py (11/11 Bestandsintegrationsprüfungen, Version aktualisiert).
+PASS: Private Recovery-WAVs 53/53, 12.722.332 Bytes; Projekt-ID gleich.
+PASS: Originalkonzeptbilder 13/13 erhalten.
+
+NOT RUN: Gradle :analyzer-core:test, :app:testDebugUnitTest, assembleDebug (kein Android SDK / projektspezifisches JDK 17 in dieser Ausführungsumgebung).
+NOT RUN: Xiaomi-UI, Audio-Gleichzeitigkeit, 120-s PNG-Automatik, MediaStore, längere Hintergrund-/Screen-off-Tests.
+NICHT IM UMFANG: Impuls-Wasserfall, 48-kHz-/20-kHz-Breitband, vollständig kalibrierte SPL, Mithören im neuen Panel, Radiushistogrammspalte.

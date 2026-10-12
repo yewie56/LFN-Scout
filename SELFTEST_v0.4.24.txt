@@ -1,0 +1,17 @@
+LFN-Scout v0.4.24 – Selbstprüfung
+
+PASS direkter In-Process-Fullscreen-Controller vorhanden
+PASS schwache Referenz auf sichtbare ReminderAlarmActivity
+PASS Register/Unregister-Lifecycle vorhanden
+PASS Timeout ruft direkten Close-Controller auf
+PASS finishAndRemoveTask() auf Main-Thread
+PASS bisheriger Broadcast bleibt als Fallback
+PASS Notification/Ton/Vibration werden weiterhin gestoppt
+PASS onDestroy() bleibt ohne globales Alert-Stop
+PASS 5s-Auto-Senden aus v0.4.23 erhalten
+PASS Kommentar-/CSV-/XLSX-Funktionen erhalten
+PASS horizontale Histogramme erhalten
+PASS VersionName 0.4.24 / VersionCode 64
+
+WICHTIG:
+Der konkrete Gerätefehler gilt erst nach Test auf dem Xiaomi als bestätigt behoben.

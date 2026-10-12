@@ -1,0 +1,18 @@
+LFN-Scout v0.4.67 – Build-/Test-Verifikation
+Datum: 2026-09-17
+
+[PASS] versionName 0.4.67 / versionCode 107
+[PASS] verify_v0467_requirements.py: 14/14
+[PASS] SeismicSearchSelfTest
+[PASS] SeismicDayRoutingSelfTest
+[PASS] SeismicWaveformSelfTest: Integer/Steim1/Steim2 + SEED-konforme Kontrollnibbles + Mehrframe-Steim1
+[PASS] SeismicLiveService separat gegen Android-/App-Stubs kompiliert; keine Kotlin-Typ-/Syntaxfehler
+[PASS] ROUTE_NONE wird ohne Federator-Probeabruf übersprungen
+[PASS] keine unsichere TLS-/Zertifikatsausnahme für BGR eingebaut
+
+Android-Gesamtbuild in dieser Laufzeit:
+[BLOCKED] ./gradlew testDebugUnitTest
+Grund: Gradle-Bootstrap kann services.gradle.org in dieser Umgebung nicht per DNS auflösen:
+curl: (6) Could not resolve host: services.gradle.org
+
+Der verbindliche GitHub-Actions-Buildweg führt testDebugUnitTest und assembleDebug nach Push des vollständigen Projekts aus.

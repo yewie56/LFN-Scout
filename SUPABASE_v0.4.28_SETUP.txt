@@ -1,0 +1,67 @@
+LFN-Scout v0.4.28 – Supabase-Setup
+
+WICHTIG: zuerst die Migration ausführen, danach die Funktionen deployen.
+
+1. SQL-Migration
+   Datei:
+   supabase/migrations/20260908_audio_and_key_status.sql
+
+   Sie ergänzt:
+   - observers.status = active / paused / revoked
+   - observers.revoked_at / paused_at
+   - audio_recordings
+   - privaten Storage-Bucket brumm-audio
+
+2. Edge Functions deployen / aktualisieren
+   - upload_wav
+   - submit_observation
+   - get_recent_observations
+   - get_all_observations
+   - get_radius_histograms
+
+3. JWT-Prüfung
+   In supabase/config.toml muss für die genannten Custom-Key-Funktionen
+   verify_jwt = false gesetzt bleiben.
+
+4. Schlüssel sperren
+
+   Dauerhaft widerrufen:
+   update public.observers
+   set status = 'revoked',
+       revoked_at = now()
+   where observer_id = 'BB001';
+
+   Vorübergehend pausieren:
+   update public.observers
+   set status = 'paused',
+       paused_at = now()
+   where observer_id = 'BB001';
+
+   Wieder freigeben:
+   update public.observers
+   set status = 'active',
+       revoked_at = null,
+       paused_at = null
+   where observer_id = 'BB001';
+
+   Das vorhandene Feld enabled bleibt zusätzlich wirksam.
+   enabled = false blockiert den Schlüssel unabhängig vom status.
+
+5. Audioformat
+   Die App sendet:
+   - WAV
+   - PCM 16 Bit
+   - Mono
+   - 1000 Hz
+   - 120 Sekunden
+   - recording_id UUID
+   - gain_db 0..30
+   - clipped_samples
+
+6. Datenschutz / Speicherung
+   brumm-audio ist privat. Der Dateipfad lautet:
+   <observer_id>/<recording_id>.wav
+
+7. Entwicklermodus
+   Antwortet der Server mit key_revoked, deaktiviert die App den lokal
+   gespeicherten Entwicklermodus beim erkannten Serverkontakt.

@@ -1,0 +1,26 @@
+from pathlib import Path
+root=Path(__file__).resolve().parent
+checks=[]
+def ck(name, cond): checks.append((name, bool(cond)))
+app=(root/'app/build.gradle.kts').read_text()
+main=(root/'app/src/main/java/de/brummbeobachter/app/MainActivity.kt').read_text()
+settings=(root/'app/src/main/java/de/brummbeobachter/app/ReminderSettingsStore.kt').read_text()
+svc=(root/'app/src/main/java/de/brummbeobachter/app/SeismicLiveService.kt').read_text()
+ui=(root/'app/src/main/java/de/brummbeobachter/app/SeismicPlotUiPolicy.kt').read_text()
+exporter=(root/'app/src/main/java/de/brummbeobachter/app/SeismicPlotExporter.kt').read_text()
+waterfall=(root/'app/src/main/java/de/brummbeobachter/app/WaterfallGenerator.kt').read_text()
+ck('version 0.4.81 / 121', 'versionName = "0.4.81"' in app and 'versionCode = 121' in app)
+ck('seismic filename timestamp', 'HH-mm-ss' in ui and 'savedAt' in ui)
+ck('whole diagram rotate left', 'rotateLeft' in exporter and '-90f' in exporter)
+ck('near gain persistent setting', 'nearPlotGain' in settings and 'setNearPlotGain' in settings)
+ck('near gain applied to seismic load', 'nearPlotGain' in svc and 'plotValueGain' in svc)
+ck('waterfall auto/manual persistent', 'waterfallLevelAuto' in settings and 'setWaterfallLevelSettings' in settings)
+ck('waterfall manual refs at 50 dB', 'waterfallLevelMinDbAt50' in settings and 'waterfallLevelMaxDbAt50' in settings)
+ck('waterfall generator supports manual limits', 'levelAuto' in waterfall and 'levelMinDbAt50' in waterfall and 'levelMaxDbAt50' in waterfall)
+ck('recording remaining countdown dialog', 'Verbleibende Aufnahmezeit' in main and 'AudioRecordingPolicy.DURATION_SECONDS - elapsedSeconds' in main)
+ck('recording abort accessible', 'AUFNAHME ABBRECHEN' in main)
+ck('developer UI near gain', 'Näheplot-Messwertverstärkung' in main)
+ck('developer UI waterfall auto/manual', 'Wasserfall-Pegelbereich automatisch' in main)
+failed=[n for n,c in checks if not c]
+for n,c in checks: print(('PASS' if c else 'FAIL')+': '+n)
+raise SystemExit(1 if failed else 0)

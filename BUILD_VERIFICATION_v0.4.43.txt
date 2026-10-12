@@ -1,0 +1,9 @@
+LFN-Scout v0.4.43 – Verifikationsstand
+
+TDD BuildConfig-Test: RED vor Fix, PASS nach Fix
+Statische Regression: 10/10 PASS
+Klammerbilanz geänderter Kotlin-Dateien: 0
+
+NICHT HIER VERIFIZIERT:
+- vollständige Android/Kotlin-Kompilation mit Android SDK
+- Installation/Start auf dem Android-Zielgerät

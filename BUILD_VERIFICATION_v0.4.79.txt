@@ -1,0 +1,25 @@
+LFN-Scout / LFN-Scout Android v0.4.79
+
+PASS: versionName 0.4.79 / versionCode 119
+PASS: Master-Bitmap 6144x3456
+PASS: Render-Supersampling 4x
+PASS: 1536 Helicorder-Bins je 30-Minuten-Zeile
+PASS: pro Bin erster Wert + beide Extrema in realer Reihenfolge + letzter Wert
+PASS: kein zusätzlicher Frequenzfilter eingeführt
+PASS: SeismicAmplitudeSelfTest
+PASS: SeismicRegionalHelicorderSelfTest
+PASS: SeismicWaveformSelfTest
+PASS: SeismicDetailReductionSelfTest
+PASS: SeismicBinDetailSelfTest
+PASS: SeismicPlotUiSelfTest
+PASS: SeismicDayRoutingSelfTest
+PASS: SeismicSearchSelfTest
+PASS: tools/verify_v0_4_79.py (10/10)
+PASS: MainActivity.kt Klammerstruktur ausgeglichen
+
+Vollständiger Gradle-Build:
+VERSUCHT: ./gradlew testDebugUnitTest assembleDebug --stacktrace
+NICHT AUSFÜHRBAR in dieser Laufzeit wegen DNS/Netzwerk:
+curl: (6) Could not resolve host: services.gradle.org
+
+Daher kein vollständiger Android-/Compose-Build-PASS; Bestätigung muss über Android Studio oder GitHub Actions erfolgen.

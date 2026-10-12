@@ -1,0 +1,54 @@
+LFN-Scout v0.4.17
+Supabase Edge Function: get_radius_histograms
+
+1. Supabase Dashboard öffnen.
+2. Edge Functions öffnen.
+3. Neue Function anlegen:
+       get_radius_histograms
+4. Inhalt aus:
+       supabase/functions/get_radius_histograms/index.ts
+   einfügen.
+5. Deploy.
+6. In den Function-Einstellungen:
+       Verify JWT = OFF
+
+Funktion:
+- Authentifiziert den LFN-Scout-Key serverseitig per SHA-256.
+- Nimmt aktuellen GPS-Mittelpunkt aus der App, sofern verfügbar.
+- Falls GPS fehlt, verwendet sie den registrierten Basisstandort des
+  anfragenden Beobachters.
+- Bewertet nur Beobachtungen innerhalb des konfigurierten Radius.
+- Nutzt für fremde Beobachtungen deren Mess-GPS; bei 0.0/0.0 wird,
+  sofern verfügbar, deren Basisstandort verwendet.
+- Gibt die vier aggregierten 30-Minuten-Blöcke zurück.
+- Gibt zusätzlich die Einzelbeobachtungen im Radius zurück:
+  stabile observer_id, rating, scheduled_time, response_time,
+  latitude und longitude.
+- latitude/longitude sind die tatsächlich in der Beobachtung gespeicherten
+  Messkoordinaten. Bei nicht verfügbarem GPS bleiben sie 0.0/0.0.
+- Ein Basisstandort kann intern für die Radiusentscheidung verwendet werden,
+  ersetzt aber nicht die gespeicherte Messkoordinate in der Rohdatenantwort.
+- Zugangsschlüssel und key_hash werden niemals zurückgegeben.
+
+Bevorzugte Spalten für den Basisstandort in `observers`:
+       base_latitude
+       base_longitude
+
+Die Function akzeptiert aus Kompatibilitätsgründen außerdem:
+       basis_latitude / basis_longitude
+       registered_latitude / registered_longitude
+       home_latitude / home_longitude
+       location_latitude / location_longitude
+       latitude / longitude
+
+Falls die Tabelle andere Spaltennamen verwendet, muss nur die Funktion
+`readBasisLocation()` entsprechend ergänzt werden.
+
+Zeitblöcke:
+Die vier Blöcke sind an xx:00/xx:30 ausgerichtet. Beispiel bei 12:20:
+       10:30-11:00
+       11:00-11:30
+       11:30-12:00
+       12:00-12:30
+
+Der letzte Block ist damit der aktuelle halbstündige Auswerteblock.

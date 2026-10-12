@@ -1,0 +1,23 @@
+LFN-Scout v0.4.20 – Selbstprüfung
+
+PASS alte Textbalken entfernt
+PASS echte horizontale Balken vorhanden
+PASS jeder 30-Minuten-Block wird separat normiert
+PASS höchster Count eines Blocks = 100 % Balkenlänge
+PASS kleinere Counts proportional
+PASS rating=-1 bleibt separat
+PASS vier 30-Minuten-Blöcke bleiben erhalten
+PASS Radiusoption erhalten
+PASS Radius-Rohdaten mit stabiler observer_id erhalten
+PASS Scope-Bugfix aus v0.4.19 erhalten
+PASS 2h-Offline-Retry erhalten
+PASS automatische -1-Nichtantwort erhalten
+PASS VersionName 0.4.20 / VersionCode 60
+
+GRADLE:
+NICHT BESTÄTIGT.
+Ein frischer :app:compileDebugKotlin-Aufruf wurde versucht, konnte den
+Gradle-Wrapper aber nicht herunterladen:
+curl: (6) Could not resolve host: services.gradle.org
+
+Der vollständige Android-Build muss deshalb auf dem Build-PC erfolgen.

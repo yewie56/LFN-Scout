@@ -1,0 +1,16 @@
+LFN-Scout v0.4.37 – Verifikationsstand
+
+Die projektinterne statische Anforderungsprüfung tools/verify_v0437.py wurde ausgeführt.
+Ergebnis: 26/26 PASS.
+
+Zusätzliche Strukturprüfung:
+- MainActivity.kt Klammerbilanz 0
+- AppPanel.kt Klammerbilanz 0
+- PauseControlsPolicy.kt Klammerbilanz 0
+
+NICHT IN DIESER UMGEBUNG VERIFIZIERT:
+- vollständige Android/Kotlin-Kompilation mit Android SDK
+- Android-Studio-Build auf dem Windows-Rechner
+- visuelle Darstellung auf dem Xiaomi-Gerät
+
+Deshalb ist nach dem Entpacken wieder PREPARE_PROJECT.bat und anschließend der Android-Studio-Build auf dem Windows-Rechner auszuführen.

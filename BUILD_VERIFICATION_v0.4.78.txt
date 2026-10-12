@@ -1,0 +1,18 @@
+LFN-Scout / LFN-Scout Android v0.4.78
+
+PASS: versionName 0.4.78 / versionCode 118
+PASS: Master-Bitmap 3072x1728
+PASS: Näheplot-Anzeige verwendet SeismicPlotExporter.renderNearPlot()
+PASS: Näheplot-Speicherung kann dasselbe bereits gerenderte Bitmap wiederverwenden
+PASS: Uhrzeiten werden in den Bitmap-Renderer gezeichnet
+PASS: WBBU und Näheplot besitzen jeweils sichtbaren Plot-speichern-Button
+PASS: kein createScaledBitmap-Downscale im Näheplot-Renderer
+
+Hinweis: vollständiger Android/Gradle-Build ist separat zu prüfen; falls die Build-Umgebung keinen Netz-/Cache-Zugriff auf Gradle-Abhängigkeiten hat, darf daraus kein Build-PASS abgeleitet werden.
+
+Vollständiger Gradle-Build:
+VERSUCHT: ./gradlew testDebugUnitTest assembleDebug --stacktrace
+NICHT AUSFÜHRBAR in dieser Laufzeit wegen DNS/Netzwerk:
+curl: (6) Could not resolve host: services.gradle.org
+
+Daher kein vollständiger Android-/Compose-Build-PASS; Bestätigung muss über Android Studio oder GitHub Actions erfolgen.

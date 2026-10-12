@@ -1,0 +1,20 @@
+LFN-Scout Android v0.4.83 - Verifikation
+
+PASS: versionName 0.4.83 / versionCode 123
+PASS: sichtbarer App-Name LFN-Scout
+PASS: Projekt-/ZIP-Zielname LFN-Scout_Android_v0.4.83
+PASS: öffentlicher Speicherpfad Download/LFN-Scout/
+PASS: GitHub-Workflow/Artifact/APK-Namen LFN-Scout
+PASS: Log-Exportname LFN-Scout_Log_...
+PASS: Projekt-Dokumentdateien auf LFN-Scout umbenannt
+PASS: alte sichtbare Produktnamen in aktuellen Text-/Quelldateien entfernt
+PASS: MainActivity Klammeranzahl ausgeglichen
+PASS: Theme/App/Screen-Symbole auf LFNScout... umbenannt
+
+Kompatibilitaetsausnahme:
+- applicationId / namespace / Kotlin package bleiben de.brummbeobachter.app.
+- Deshalb bleiben auch die zugehoerigen package-Verzeichnisnamen de/brummbeobachter/app erhalten.
+- Interne persistente Preference-/WorkManager-Schluessel mit alten technischen Namen werden nicht migriert, damit bestehende Einstellungen und geplante Tasks erhalten bleiben.
+
+Gradle-Testversuch:
+NICHT AUSGEFUEHRT BIS ZUR KOMPILIERUNG: DNS-Aufloesung fuer services.gradle.org fehlgeschlagen.

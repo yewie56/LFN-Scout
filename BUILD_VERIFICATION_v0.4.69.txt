@@ -1,0 +1,30 @@
+LFN-Scout v0.4.69 – Build-/Test-Verifikation
+Datum: 2026-09-17
+
+[PASS] versionName 0.4.69 / versionCode 109
+[PASS] verify_v0469_requirements.py: 16/16
+[PASS] SeismicAmplitudeSelfTest
+[PASS] SeismicRegionalHelicorderSelfTest
+[PASS] SeismicWaveformSelfTest
+[PASS] SeismicSearchSelfTest
+[PASS] SeismicDayRoutingSelfTest
+[PASS] SeismicLiveService separat gegen Android-/App-Stubs kompiliert
+[PASS] FDSN Scale/ScaleFrequency/ScaleUnits werden geparst
+[PASS] M/S-Geschwindigkeitskanäle werden sensitivitätsbasiert in nm/s umgerechnet
+[PASS] WBBU-Referenz: 40000 nm/s ≈ 4,95 Zeilenabstände (≈8080 nm/s/Zeilenabstand)
+[PASS] physikalische WBBU-Skalierung nur bei geeigneter Geschwindigkeitssensitivität
+[PASS] Counts-Fallback bei fehlender/unpassender Sensitivität
+[PASS] gemeinsamer Helicorder-Canvas erlaubt zeilenübergreifende starke Ausschläge
+[PASS] WBBU-ähnlicher Dimensionsbalken im Näheplot
+[PASS] keine Datei aus v0.4.68 entfernt
+[PASS] MainActivity: Kotlin-Parser meldete keine Syntaxfehler vom Typ expecting/unexpected/missing brace
+
+Android-Gesamtbuild in dieser Laufzeit:
+[BLOCKED] ./gradlew testDebugUnitTest
+Grund: Gradle-Bootstrap kann services.gradle.org in dieser Umgebung nicht per DNS auflösen:
+curl: (6) Could not resolve host: services.gradle.org
+
+Hinweis zur physikalischen Skalierung:
+Die Umrechnung nutzt die FDSN-Gesamtempfindlichkeit (Scale) bei ScaleFrequency. Sie ist eine sensitivitätsbasierte nm/s-Skalierung und ausdrücklich keine vollständige frequenzabhängige Instrument-Response-Deconvolution.
+
+Der verbindliche GitHub-Actions-Buildweg führt testDebugUnitTest und assembleDebug nach Push des vollständigen Projekts aus.

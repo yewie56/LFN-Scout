@@ -1,0 +1,13 @@
+LFN-Scout v0.4.32
+
+PASS: versionName 0.4.32
+PASS: versionCode 72
+PASS: process probe
+PASS: stderr redirected
+PASS: stdout redirected
+PASS: direct probe removed
+PASS: response output suppressed
+PASS: AndroidStudioProjects search retained
+PASS: progress retained
+
+Windows-PowerShell-Ausführung und Android-Studio-Build bitte auf dem Nutzerrechner verifizieren.

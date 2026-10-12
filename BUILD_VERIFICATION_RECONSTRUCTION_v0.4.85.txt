@@ -1,0 +1,15 @@
+LFN-Scout v0.4.85 – Reconstruction/Recovery Verification
+Date: 2026-09-18
+
+PASS: versionName 0.4.85 / versionCode 125
+PASS: Supabase recovery core artifacts present and non-empty
+PASS: 53 local WAV files; verified expected total 12,722,332 bytes
+PASS: five expected Edge Function source directories present
+PASS: v0.4.84 legacy audio archive compatibility invariants retained
+PASS: targeted plaintext-token scan of configuration/source files found no obvious JWT, sb_secret, sbp_ or database-password URI
+PASS: generated supabase/recovery_manifest.json with SHA-256 for recovery artifacts and WAV files
+PASS: release cleanup removes node_modules, app/build, .gradle, .idea, .kotlin and supabase/.temp from ZIP
+
+ATTEMPTED: `bash gradlew --offline testDebugUnitTest --stacktrace`. The Gradle wrapper could not start the test task because it attempted to download Gradle 8.13 and DNS resolution for `services.gradle.org` failed (`UnknownHostException`). Therefore no Android compile/test success is claimed. This release changes version metadata and reconstruction/recovery artifacts only; no production Kotlin behavior was changed after v0.4.84.
+
+OPEN PRACTICAL VALIDATION: restore onto a brand-new empty Supabase reference project and execute end-to-end Android/backend validation.

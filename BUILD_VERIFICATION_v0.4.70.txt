@@ -1,0 +1,20 @@
+LFN-Scout v0.4.70 – Build-/Test-Verifikation
+Datum: 2026-09-17
+
+[PASS] versionName 0.4.70 / versionCode 110
+[PASS] verify_v0470_requirements.py: 11/11
+[PASS] Regression-Check RED auf v0.4.69: fehlender Box-Import / alte forEach-Schleife wurden erkannt
+[PASS] Regression-Check GREEN auf v0.4.70: Box-Import vorhanden / direkte for-Schleife vorhanden
+[PASS] Neuer JUnit-Vertragstest SeismicHelicorderComposeContractTest.kt vorhanden
+[PASS] 48-Zeilen-/30-Minuten-Helicorder unverändert erhalten
+[PASS] WBBU-nm/s-Skalierung aus v0.4.69 unverändert erhalten
+[PASS] Canvas-Zeichenschleife forEachIndexed unverändert erhalten
+[PASS] Keine Datei aus v0.4.69 entfernt
+
+Android-Gesamtbuild in dieser Laufzeit:
+[BLOCKED] ./gradlew testDebugUnitTest
+Grund: Gradle-Bootstrap kann services.gradle.org in dieser Umgebung nicht per DNS auflösen:
+curl: (6) Could not resolve host: services.gradle.org
+
+Wichtig:
+Der konkrete Android-Studio-Compilerfehler aus v0.4.69 wurde quellseitig an der betroffenen Stelle behoben. Ein vollständiger Compose/Kotlin-Android-Compile konnte in dieser Laufzeit wegen des blockierten Gradle-Bootstraps nicht ausgeführt werden. Der verbindliche GitHub-Actions-/Android-Studio-Build muss dies abschließend kompilieren.

@@ -1,0 +1,16 @@
+LFN-Scout v0.4.73 - Build/Verification
+Date: 2026-09-17
+
+Implemented:
+- Near-plot PNG final size 1536 x 864 (16:9).
+- Internal render size 3072 x 1728 (2x each axis), then filtered downsampling.
+- Amplitude scale placed at far left before time labels.
+- Scale label includes value and unit directly next to the scale: 40000 nm/s.
+- WBBU-like compact header and 0/5/10/15/20/25/30 min x-axis.
+- Storage remains Download/LFN-Scout/.
+
+Fresh verification:
+- verify_v0473_requirements.py: PASS 9/9.
+- File-set comparison against v0.4.72: 0 files removed.
+- Legacy v0.4.72 verifier is not a release criterion for v0.4.73: it intentionally checks the old version number and old export-row implementation.
+- Full Gradle testDebugUnitTest was attempted, but this runtime cannot resolve services.gradle.org (curl: (6) Could not resolve host). Therefore no claim of a complete Android/Compose build is made here.

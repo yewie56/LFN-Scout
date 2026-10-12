@@ -1,0 +1,13 @@
+{
+  "repository": "https://github.com/yewie56/LFN-IN.git",
+  "repositorySlug": "yewie56/LFN-IN",
+  "branch": "main",
+  "workDirectory": "C:\\Projekte\\LFN-IN",
+  "downloadsDirectory": "%USERPROFILE%\\Downloads",
+  "zipPattern": "LFN-Scout_Android_v*.zip",
+  "workflowFile": "build-android.yml",
+  "waitForGithubBuild": true,
+  "storeApkInRepository": true,
+  "downloadArtifactWhenNotStored": true,
+  "artifactDownloadDirectory": "%USERPROFILE%\\Downloads\\LFN-IN-Builds"
+}

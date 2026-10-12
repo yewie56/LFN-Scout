@@ -1,0 +1,25 @@
+LFN-Scout v0.4.45 – Supabase
+
+Keine neue SQL-Migration gegenüber v0.4.44.
+
+Erforderlich:
+Die Edge Function upload_wav erneut deployen mit:
+
+  supabase/functions/upload_wav/index.ts
+  supabase/functions/upload_wav/storage_filename.js
+
+GET-Kontrolle nach Deployment:
+
+  "ok": true
+  "service": "upload_wav"
+  "version": "1.4.0"
+
+Neue Storage-Namensregel:
+
+  bisher:
+  BB001/2026-09-09_01-23-45_G30_UNP_R3.wav
+
+  neu:
+  BB001/BB001_2026-09-09_01-23-45_G30_UNP_R3.wav
+
+JWT verification bleibt OFF.

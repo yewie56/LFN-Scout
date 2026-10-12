@@ -1,0 +1,34 @@
+LFN-Scout v0.4.28 – Verifikationsstand
+
+PASS: reine Kotlin-Policytests
+- Entwicklerpasswort
+- Gain 0..30 dB
+- 30-dB-Faktor
+- Tageslimit
+- Countdown/Dauer/Samplerate
+- kompakte Layoutwerte
+- WAV-RIFF/WAVE/data-Header
+
+PASS: 31 statische Regressionen
+- Version
+- Drei Panels
+- Farben
+- kompakte Abstände
+- Lautstärke
+- Audio
+- Gain
+- Countdown
+- Upload
+- Tageslimit
+- Entwicklermodus
+- Schlüsselstatus
+- In-Process-Tonpakete
+- Fullscreen-Fix
+
+PASS: ZIP-Integrität wird nach Erstellung geprüft.
+
+NICHT VERIFIZIERT:
+Vollständige Android/Kotlin-Kompilierung.
+Der Versuch `:app:compileDebugKotlin` erreicht die Kompilierung in dieser
+Umgebung nicht, weil `services.gradle.org` nicht auflösbar ist.
+Der Build muss daher in Android Studio / auf dem Build-PC bestätigt werden.

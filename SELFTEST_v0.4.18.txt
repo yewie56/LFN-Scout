@@ -1,0 +1,26 @@
+LFN-Scout v0.4.18 – Selbstprüfung
+
+PASS Radius-Rohdatenmodell RadiusRawObservation vorhanden
+PASS stabile observer_id pro Einzelbeobachtung
+PASS rating vorhanden
+PASS scheduled_time vorhanden
+PASS response_time vorhanden und nullable
+PASS latitude/longitude vorhanden
+PASS Edge Function liefert observations[] zusätzlich zu Histogrammen
+PASS gespeicherte GPS-Koordinaten bleiben unverändert
+PASS 0.0/0.0 bleibt Kennzeichnung für fehlendes GPS
+PASS Basisstandort bleibt interner Radius-Fallback
+PASS Zugangsschlüssel/key_hash werden nicht zurückgegeben
+PASS sichtbare Histogramm-Oberfläche unverändert
+PASS Radiusoption aus v0.4.17 erhalten
+PASS Raster/Offline-Retry/Warnung aus v0.4.16 erhalten
+PASS automatische -1-Nichtantwort erhalten
+PASS drei Tonpakete erhalten
+PASS VersionName 0.4.18 / VersionCode 58
+
+GRADLE:
+NICHT BESTÄTIGT.
+Ein frischer Gradle-Test wurde versucht, konnte den Wrapper aber nicht laden:
+curl: (6) Could not resolve host: services.gradle.org
+
+Der vollständige Android-Build muss deshalb auf dem Build-PC erfolgen.

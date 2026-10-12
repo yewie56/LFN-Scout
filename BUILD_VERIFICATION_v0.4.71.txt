@@ -1,0 +1,16 @@
+LFN-Scout v0.4.71 - Build-/Verifikationsstand
+Datum: 2026-09-17
+
+PASS:
+- verify_v0471_requirements.py: 15/15
+- SeismicPlotUiSelfTest: PASS
+- versionName 0.4.71 / versionCode 111
+- neue Plot-Policy fuer 2x Strichstaerke, Zoomgrenzen und Dateinamen
+- PNG-Exporter vorhanden, WBBU-Original und vollstaendiger Naeheplot werden unterstuetzt
+
+NICHT IN DIESER UMGEBUNG DURCHGEFUEHRT:
+- Vollstaendiger Gradle-/Android-Compose-Build
+Grund: Gradle-Bootstrap kann services.gradle.org wegen DNS-Sperre der Laufzeit nicht aufloesen.
+Beobachteter Fehler: curl: (6) Could not resolve host: services.gradle.org
+
+Der vollstaendige Compile-/Build-Nachweis muss deshalb ueber Android Studio bzw. GitHub Actions erfolgen.

@@ -1,0 +1,32 @@
+LFN-Scout v0.4.36 – Verifikationsstand
+
+PASS: versionName 0.4.36
+PASS: versionCode 76
+PASS: pause exactly 2 policy rows
+PASS: 12h pause included
+PASS: Ganz aus in second row via sentinel
+PASS: pause buttons compact height
+PASS: pause compact padding
+PASS: main audio has no AudioSource selector
+PASS: main audio has no Audioeingang selector
+PASS: main audio has no Inputs refresh
+PASS: main audio has no gain slider
+PASS: main audio retains start
+PASS: main audio retains recording time
+PASS: main audio retains CLIP
+PASS: main audio retains active route display
+PASS: normal Audio today removed main
+PASS: limit reached warning retained
+PASS: settings has Audioaufnahme section
+PASS: settings has AudioSource
+PASS: settings has Audioeingang
+PASS: settings has Inputs refresh
+PASS: settings has gain 0..50
+PASS: audio callbacks persist changes
+PASS: Java17 preparation retained
+
+Statische Regression: PASS.
+NICHT HIER VERIFIZIERT:
+- vollständige Android/Kotlin-Kompilation mit Android SDK
+- reale Darstellung auf dem Xiaomi
+- Android-Studio-Build auf dem Windows-Rechner

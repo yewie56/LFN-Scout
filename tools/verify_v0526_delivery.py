@@ -1,0 +1,57 @@
+from pathlib import Path
+import re, sys
+ROOT=Path(__file__).resolve().parents[1]
+checks=[]
+def txt(rel): return (ROOT/rel).read_text(encoding='utf-8')
+def check(name, cond):
+    ok=bool(cond); checks.append((name,ok)); print(('PASS' if ok else 'FAIL')+': '+name)
+
+build=txt('app/build.gradle.kts')
+mig=txt('supabase/migrations/20261008_add_measurement_statistics_v0526.sql')
+upload=txt('supabase/functions/upload_wav/index.ts')
+audio=txt('supabase/functions/submit_audio_statistics/index.ts')
+half=txt('supabase/functions/submit_half_hour_statistics/index.ts')
+cfg=txt('supabase/config.toml')
+doc=txt('docs/project/SUPABASE_STATISTICS_V0.5.26.md')
+status=txt('PROJECT_STATUS.md')
+change=txt('CHANGELOG.md')
+
+check('versionName 0.5.26', 'versionName = "0.5.26"' in build)
+check('versionCode 173', 'versionCode = 173' in build)
+check('legacy observations table not altered by migration', 'alter table public.observations' not in mig.lower())
+check('audio table extended additively', 'alter table public.audio_recordings' in mig.lower() and 'add column if not exists latitude' in mig.lower())
+check('named core audio statistics retained', all(x in mig for x in ['leq_dbfs double precision','l50_dbfs double precision','l90_dbfs double precision','crest_factor_db double precision']))
+check('P slots are additional reserve', 'p01 double precision' in mig and 'p32 double precision' in mig and 'P01...P32' in doc)
+check('overall plus up to 40 filters constrained', "set_kind='filter_statistics' and set_index between 1 and 40" in mig and "set_kind='overall_statistics' and set_index=0" in mig)
+check('half-hour table exists', 'create table if not exists public.half_hour_statistics' in mig.lower())
+check('half-hour core metrics explicit', all(x in mig for x in ['leq_dbfs double precision','l50_dbfs double precision','l90_dbfs double precision']))
+check('half-hour exact 30-minute duration', "bucket_end=bucket_start+interval '30 minutes'" in mig)
+check('half-hour aligned at 00/30', "in (0,30)" in mig and 'hhs_bucket_alignment_chk' in mig)
+check('half-hour coverage bounded 0..1800', 'coverage_seconds between 0 and 1800' in mig)
+check('half-hour quality statuses', all(x in mig for x in ["'COMPLETE'","'PARTIAL'","'NO_DATA'","'INVALID'"]))
+check('half-hour observer and location fields', all(x in mig for x in ['observer_id text not null','location_accuracy_m double precision','location_timestamp timestamptz','location_status text not null']))
+check('comment available in both statistic tables', mig.count('comment text') >= 2)
+check('upload_wav backend v1.5.0', 'version: "1.5.0"' in upload)
+check('upload_wav keeps UNP/MIC audio_source', '!["UNP", "MIC"].includes(sourceCode)' in upload)
+check('upload_wav adds capture origin separately', 'capture_origin: captureOrigin' in upload and '["OBSERVER", "ANALYZER", "LEGACY_UNKNOWN"]' in upload)
+check('upload_wav adds trigger separately', 'trigger_type: triggerType' in upload and 'ROLLING_LEVEL' in upload and 'ANALYZER_LEVEL' in upload)
+check('upload_wav legacy fields optional', 'captureOrigin' in upload and '"LEGACY_UNKNOWN"' in upload)
+check('upload_wav observer location fallback', 'FALLBACK_OBSERVER_BASE' in upload and '.select("observer_id, enabled, status, latitude, longitude")' in upload)
+check('audio statistics endpoint v1.0.0', 'service:"submit_audio_statistics",version:"1.0.0"' in audio)
+check('audio statistics verifies ownership', 'recording_not_owned' in audio and 'audio.observer_id!==observer.observer_id' in audio)
+check('audio stats inherit audio context', all(x in audio for x in ['location_status:audio.location_status','comment:audio.comment','capture_origin:audio.capture_origin','trigger_type:audio.trigger_type']))
+check('half-hour endpoint v1.0.0', 'service:"submit_half_hour_statistics",version:"1.0.0"' in half)
+check('half-hour endpoint enforces exact interval', 'ed.getTime()-sd.getTime()!==1800000' in half)
+check('half-hour endpoint observer fallback', 'FALLBACK_OBSERVER_BASE' in half and 'OBSERVER_BASE' in half)
+check('new functions configured verify_jwt false', '[functions.submit_audio_statistics]' in cfg and '[functions.submit_half_hour_statistics]' in cfg and cfg.count('verify_jwt = false') >= 7)
+check('deployment and follow-up documented', '20261010174500' in doc and 'Android-App sendet die neuen Statistikdaten' in doc)
+check('Android stats upload explicitly still disabled', 'Android-App sendet die neuen Statistikdaten' in doc and 'noch nicht produktiv' in doc)
+check('status says remote backend validated and Android still open', 'Remote-Migrationen' in status and 'submit_audio_statistics' in status and 'Android-Gradle' in status and 'nicht nachgewiesen' in status)
+norm=txt('supabase/migrations/20261010174500_normalize_parameter_lookup_semantic_keys_v0526.sql')
+check('lookup semantic names normalized additively', all(x in norm for x in ['lmin_dbfs','lmax_dbfs','mean_level_dbfs','level_stddev_db','crest_factor_db','kurtosis_excess','valid_epochs']))
+check('changelog contains v0.5.26', '# 0.5.26' in change and '20261010174500' in change)
+
+failed=[n for n,o in checks if not o]
+print(f'RESULT {len(checks)-len(failed)}/{len(checks)} PASS')
+if failed:
+    print('FAILED: '+'; '.join(failed)); sys.exit(1)

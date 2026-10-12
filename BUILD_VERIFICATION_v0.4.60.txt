@@ -1,0 +1,34 @@
+LFN-Scout v0.4.60 – Build-/CI-Verifikation
+Datum: 2026-09-17
+
+Ziel:
+- Öffentlicher App-Name: LFN-Scout
+- Repository-/Projektname: LFN-IN
+- versionName 0.4.60 / versionCode 100
+- GitHub Actions: Unit-Tests vor APK-Build
+- Testreport-Artifact bei Fehlern
+- Benannte Debug-APK als Artifact
+
+Behobene CI-Ursachen aus v0.4.59:
+1. Lokale Android-JVM-Tests verwendeten org.json-Stubklassen aus dem Android SDK.
+   v0.4.60 ergänzt deshalb testImplementation("org.json:json:20250517").
+2. FaceliftThemePolicyTest erwartete ältere Layoutwerte 10/5/10/4 statt des
+   aktuellen Produktionsstands 7/3/7/2.
+3. ReminderScheduleGridPolicyTest enthielt zwei widersprüchliche Erwartungen
+   für 30 Minuten. Der widersprüchliche 30-Minuten-Test wurde durch einen 15-Minuten-Test
+   für relative Planung ersetzt; die bestehende Produktionslogik nutzt ab
+   30 Minuten das 15/45-Minuten-Raster.
+
+Lokale statische Verifikation:
+- verify_v0460_requirements.py
+
+Vollständige Gradle-Verifikation:
+- gradlew.bat testDebugUnitTest
+- gradlew.bat assembleDebug
+bzw. identisch im GitHub-Actions-Workflow.
+
+Hinweis:
+Die isolierte lokale Ausführungsumgebung des Assistenten kann externe Gradle-
+Artefakte nicht zuverlässig per DNS laden. Der vollständige Gradle-Lauf muss
+somit auf dem Windows-PC oder GitHub Actions erfolgen. Der Workflow lädt bei
+Fehlern den Testreport als Artifact hoch.

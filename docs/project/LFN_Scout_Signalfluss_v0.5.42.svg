@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1360 990" width="1360" height="990">
+<rect width="100%" height="100%" fill="#f8fafc"/>
+<style>text{font-family:Arial,DejaVu Sans,sans-serif;fill:#172238}.head{font-size:27px;font-weight:bold}.sub{font-size:14px}.lab{font-size:17px;font-weight:bold}.small{font-size:13px}.arrow{stroke:#334155;stroke-width:2.5;fill:none;marker-end:url(#arr)}</style>
+<defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker></defs>
+<text class="head" x="30" y="45">LFN-Scout v0.5.42 · Signalfluss (technischer Quellkandidat)</text>
+<text class="sub" x="30" y="70">Gemeinsame 8-kHz-PCM-Quelle · keine zusätzliche Mikrofonaufnahme durch Filterauswahl</text>
+<rect x="35" y="110" width="230" height="95" rx="12" fill="#e2f2fd" stroke="#92a3b7"/>
+<text class="lab" x="49" y="138">AudioRecord / Gerät</text>
+<text class="small" x="49" y="159">gemeinsamer PCM-Capture</text>
+<text class="small" x="49" y="178">8 kHz FAST-Audioquelle</text>
+<rect x="340" y="110" width="230" height="95" rx="12" fill="#e2f2fd" stroke="#92a3b7"/>
+<text class="lab" x="354" y="138">Shared-Audio-Hub</text>
+<text class="small" x="354" y="159">Zeitstempel, Frames,</text>
+<text class="small" x="354" y="178">bestehende Subscriber</text>
+<path class="arrow" d="M265 158 L338 158"/>
+<rect x="650" y="105" width="680" height="105" rx="12" fill="#dbf6df" stroke="#92a3b7"/>
+<text class="lab" x="664" y="133">FAST-Filterbank · auswählbar bei STOP</text>
+<text class="small" x="664" y="154">Legacy-Biquad (bisheriger 2.-Ordnung-Bandpass)   </text>
+<text class="small" x="664" y="173">Butterworth: HP2 + LP2 (0-Hz-Band: LP2)   ·   FFT-Hann: 4096/512</text>
+<path class="arrow" d="M570 158 L648 158"/>
+<rect x="650" y="270" width="310" height="100" rx="12" fill="#fff3dc" stroke="#92a3b7"/>
+<text class="lab" x="664" y="298">Bandzeitreihe</text>
+<text class="small" x="664" y="319">dBFS / transiente Abweichung</text>
+<text class="small" x="664" y="338">FFT-Ausgabe alle 64 ms</text>
+<path class="arrow" d="M990 210 L800 268"/>
+<rect x="1020" y="270" width="310" height="100" rx="12" fill="#fff3dc" stroke="#92a3b7"/>
+<text class="lab" x="1034" y="298">Performance-Diagnose</text>
+<text class="small" x="1034" y="319">µs je Audioblock, Maximum</text>
+<text class="small" x="1034" y="338">CPU-Zeit / Audiozeit in %</text>
+<path class="arrow" d="M1180 210 L1180 268"/>
+<rect x="650" y="450" width="310" height="110" rx="12" fill="#eae7ff" stroke="#92a3b7"/>
+<text class="lab" x="664" y="478">FILTER-Wasserfall</text>
+<text class="small" x="664" y="499">10/20 bzw. 2–40 Bänder</text>
+<text class="small" x="664" y="518">Original / Filter / Gemischt</text>
+<path class="arrow" d="M800 370 L800 448"/>
+<rect x="35" y="280" width="535" height="112" rx="12" fill="#e9edf4" stroke="#92a3b7"/>
+<text class="lab" x="49" y="308">Paralleler Original-Analyzer</text>
+<text class="small" x="49" y="329">LF-Decimation, FFT, Fenster, Glättung</text>
+<text class="small" x="49" y="348">Spektrum, Original-Wasserfall, Kurven</text>
+<path class="arrow" d="M440 205 L300 278"/>
+<rect x="35" y="450" width="535" height="106" rx="12" fill="#e9edf4" stroke="#92a3b7"/>
+<text class="lab" x="49" y="478">Mess- und Statistikpfad</text>
+<text class="small" x="49" y="499">Rollingbuffer, Zeitfenster, PRE-GAIN</text>
+<text class="small" x="49" y="518">Leq / L50 / L90, weitere lokale Statistiken</text>
+<path class="arrow" d="M300 392 L300 448"/>
+<rect x="35" y="615" width="535" height="119" rx="12" fill="#eff6f7" stroke="#92a3b7"/>
+<text class="lab" x="49" y="643">Lokale Ergebnisse</text>
+<text class="small" x="49" y="664">WAV, CSV, JSON-Sidecars, Screenshots</text>
+<text class="small" x="49" y="683">lokale Impulskennwerte · kein neuer Upload</text>
+<path class="arrow" d="M300 556 L300 613"/>
+<rect x="650" y="615" width="680" height="119" rx="12" fill="#eff6f7" stroke="#92a3b7"/>
+<text class="lab" x="664" y="643">Cloud-/Upload-Pfad (unverändert)</text>
+<text class="small" x="664" y="664">bestehende WAV-/Statistikpfade und Retry</text>
+<text class="small" x="664" y="683">SENT_PENDING_DELETE: frühestens nach 24 h löschen</text>
+<path class="arrow" d="M570 675 L648 675"/>
+<rect x="35" y="800" width="1295" height="125" rx="12" fill="#fff1f2" stroke="#92a3b7"/>
+<text class="lab" x="49" y="828">Bedienung und Abnahme</text>
+<text class="small" x="49" y="849">Filterwahl + Bandgrenzen persistieren; Umschaltung bei STOP, START erzeugt neue Filterbank</text>
+<text class="small" x="49" y="868">Runtime-Kennwerte sind keine Gesamt-CPU-Messung. FFT-Fenster 512 ms ≠ 5-ms-Impulsdetektion.</text>
+<text class="small" x="49" y="887">Android-Gradle/APK/ADB für v0.5.42 noch nicht nachgewiesen.</text>
+</svg>

@@ -1,0 +1,21 @@
+LFN-Scout v0.4.21 – Selbstprüfung
+
+PASS Timeout sendet explizites Fullscreen-Schließsignal
+PASS ReminderAlarmActivity registriert Close-Receiver
+PASS Close-Receiver beendet Activity mit finish()
+PASS Receiver wird in onDestroy() abgemeldet
+PASS Timeout stoppt weiterhin Notification/Ton/Vibration
+PASS onDestroy() enthält weiterhin keinen globalen Alert-Stop
+PASS Tonpaket-Lifecycle-Fix bleibt erhalten
+PASS horizontale normierte Histogramme erhalten
+PASS Radius-Rohdaten mit stabiler observer_id erhalten
+PASS 2h-Offline-Retry erhalten
+PASS VersionName 0.4.21 / VersionCode 61
+
+GRADLE:
+NICHT BESTÄTIGT.
+Ein frischer :app:compileDebugKotlin-Aufruf wurde versucht, konnte den
+Gradle-Wrapper aber nicht herunterladen:
+curl: (6) Could not resolve host: services.gradle.org
+
+Der vollständige Android-Build muss deshalb auf dem Build-PC erfolgen.

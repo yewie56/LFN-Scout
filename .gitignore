@@ -1,0 +1,38 @@
+*.iml
+.gradle
+/local.properties
+/.idea/caches
+/.idea/libraries
+/.idea/modules.xml
+/.idea/workspace.xml
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+.cxx
+app/build/
+
+# Projektlokales JDK / Build-Werkzeuge
+.tools/
+
+# Supabase Disaster-Recovery-Daten: im privaten Release-ZIP behalten, nicht ins öffentliche Git pushen
+supabase/data_full.sql
+supabase/storage_backup/
+supabase/project_config.json
+
+# Standalone-capable JVM analyzer module build outputs
+analyzer-core/build/
+
+# Mobile GitHub publish: prevent accidental upload of local backups, user content and credentials
+supabase/storage_backup*/
+supabase/**/data_full.sql
+**/.env
+**/.env.*
+**/local.properties
+*.keystore
+*.jks
+*.p12
+*.pem
+*.key
+Builds/
+!Builds/.gitkeep

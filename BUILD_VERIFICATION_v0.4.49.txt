@@ -1,0 +1,28 @@
+LFN-Scout v0.4.49 – Verifikationsstand
+Datum: 2026-09-10
+
+TDD:
+- Neuer v0.4.49-Anforderungstest wurde vor der Implementierung ausgeführt und war RED (WaterfallOutputFormat.kt fehlte).
+- Nach Implementierung: verify_v0449_requirements.py PASS.
+
+Statische Prüfungen:
+- 14/14 zusätzliche v0.4.49-Checks PASS.
+- Klammer- und Parenthesenbilanz der geänderten Kotlin-Dateien PASS.
+- Bestehender Supabase-WAV-Dateinamentest PASS.
+
+Geprüfte neue Funktionen:
+- Wasserfall-Vorschau Pinch-Zoom 1x..5x.
+- Pan bei Zoom und Doppeltipp-Reset.
+- Einzelaufnahme-Button entfernt; Dateiinfo ist anklickbar.
+- Persistente Bildformatwahl PNG / JPG / PNG + JPG.
+- JPG-Qualität 95.
+- Panel-Wischlogik nicht zyklisch:
+  MAIN: rechts -> MORE, links -> keine Aktion.
+  MORE: links -> MAIN, rechts -> SETTINGS.
+  SETTINGS: links -> MORE, rechts -> keine Aktion.
+- Dynamisches WF<MaxFreq> bleibt erhalten.
+
+Android-Build in dieser Umgebung:
+- assembleDebug --offline wurde gestartet.
+- Nicht ausführbar, weil die Gradle-8.13-Distribution lokal fehlt und services.gradle.org in dieser Umgebung nicht auflösbar ist.
+- Daher kein behaupteter Android-Compile-PASS für v0.4.49.

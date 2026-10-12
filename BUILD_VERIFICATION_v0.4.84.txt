@@ -1,0 +1,13 @@
+LFN-Scout v0.4.84 - Build/Regression Verification
+
+PASS: versionName 0.4.84 / versionCode 124
+PASS: AudioArchiveCompatibilitySelfTest
+PASS: verify_v0484_requirements.py
+PASS: AudioArchive.kt brace balance
+PASS: legacy path Download/BrummBeobachter is read/delete-only fallback
+PASS: new writes remain Download/LFN-Scout/
+PASS: already-absent uploaded WAV can release stale metadata after retention
+PASS: real delete/query failure remains retryable
+
+GRADLE: NOT VERIFIED IN THIS ENVIRONMENT
+Reason: services.gradle.org could not be resolved (curl error 6) before compilation.

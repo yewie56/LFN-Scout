@@ -1,0 +1,25 @@
+LFN-Scout v0.4.34 – Verifikationsstand
+
+PASS: versionName 0.4.34
+PASS: versionCode 74
+PASS: JAVA_HOME set from discovered Java17
+PASS: PATH prepended with Java17
+PASS: java.exe explicit preflight check
+PASS: JAVA_HOME set before bootstrap wrapper
+PASS: PATH set before bootstrap wrapper
+PASS: java preflight before bootstrap wrapper
+PASS: safe direct bootstrap wrapper retained
+PASS: old self-overwriting wrapper call absent
+PASS: Java17 search retained
+PASS: PowerShell 5.1 probe fix retained
+PASS: download progress retained
+PASS: custom launcher template unchanged
+PASS: +50 dB retained
+PASS: live CLIP retained
+PASS: Android Studio java pin retained
+PASS: setlocal remains at top
+
+NICHT HIER VERIFIZIERT:
+- tatsächliche Ausführung von PREPARE_PROJECT.bat unter Windows
+- vollständiger Android-Studio/AGP-Build
+Diese beiden Punkte bitte auf dem Windows-Buildrechner prüfen.

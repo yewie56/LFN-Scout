@@ -1,0 +1,68 @@
+LFN-Scout v0.4.22 – Supabase-Setup
+========================================
+
+Diese Version erweitert `observations` um einen optionalen Kommentar
+und ergänzt den vollständigen Export aller eigenen Beobachtungen.
+
+REIHENFOLGE
+
+1. SQL Editor in Supabase öffnen.
+2. Datei ausführen:
+       supabase/migrations/20260903_add_observation_comment.sql
+
+   Dadurch entsteht:
+       observations.comment  text null
+
+3. Edge Function `submit_observation` mit der Datei aktualisieren:
+       supabase/functions/submit_observation/index.ts
+
+   Diese Version speichert `comment`.
+   Für rating=-1 wird comment serverseitig immer null gesetzt.
+
+4. Neue Edge Function anlegen/deployen:
+       get_all_observations
+
+   Quelltext:
+       supabase/functions/get_all_observations/index.ts
+
+5. Für die spätere Radius-Rohdatennutzung den bestehenden Endpoint
+   `get_radius_histograms` ebenfalls mit der im Projekt enthaltenen Datei
+   neu deployen:
+       supabase/functions/get_radius_histograms/index.ts
+
+   Dadurch wird `comment` auch in den Radius-Rohdaten mitgeliefert.
+
+6. Bei `get_all_observations`:
+       Verify JWT = OFF
+
+7. Bei `submit_observation` weiterhin:
+       Verify JWT = OFF
+
+8. Bei `get_radius_histograms` weiterhin:
+       Verify JWT = OFF
+
+9. `supabase/config.toml` ist im Projekt bereits entsprechend ergänzt.
+
+EXPORT
+
+Die neue Function liefert nur die Beobachtungen des mit dem
+LFN-Scout-Key authentifizierten Beobachters. Sie arbeitet
+seitenweise (standardmäßig 500 Zeilen pro Abruf), damit auch große
+Datenmengen exportiert werden können.
+
+Exportfelder:
+- observer_id
+- event_id
+- scheduled_time
+- response_time
+- rating
+- comment
+- latitude
+- longitude
+- app_version
+- wav_present
+- wav_path
+
+Die Android-App erzeugt CSV und XLSX lokal. Die CSV-Datei verwendet
+für gute deutsche Excel-Kompatibilität Semikolon als Trennzeichen und
+UTF-8 mit BOM.

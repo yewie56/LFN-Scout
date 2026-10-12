@@ -1,0 +1,13 @@
+LFN-Scout / LFN-Scout Android v0.4.76
+Date: 2026-09-17
+
+Scope:
+- WBBU save regression fix
+- WBBU original PNG bytes are stored directly
+- self-rendered near-station helicorder export retained
+
+Verification performed:
+- verify_v0476_requirements.py: PASS (8/8)
+- project file completeness against v0.4.75: PASS; no prior file missing
+- ZIP integrity: to be checked after packaging
+- Full Gradle/Compose build: attempted with `./gradlew testDebugUnitTest --no-daemon`; blocked before Gradle startup by DNS failure `curl: (6) Could not resolve host: services.gradle.org`. No full Android build success is claimed.

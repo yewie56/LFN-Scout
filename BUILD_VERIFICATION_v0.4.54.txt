@@ -1,0 +1,15 @@
+LFN-Scout Android v0.4.54 – Build/Test Verification
+Datum: 2026-09-13
+
+Ausgeführt in der ChatGPT-Linux-Arbeitsumgebung:
+- verify_v0454_requirements.py
+- standalone Kotlin Regression Harness für RollingAudioEngine.captureNext()-Cancellation
+- bestehender RollingBufferEngineSelfTest.kt via kotlinc
+
+Vollständiger Gradle-/Android-Build in dieser Umgebung NICHT möglich, weil der projektspezifische Gradle-Wrapper Gradle 8.13 von services.gradle.org laden möchte und diese Laufzeitumgebung keinen DNS/Internetzugang besitzt.
+
+Daher muss auf Windows/Android Studio zusätzlich ausgeführt werden:
+  gradlew.bat testDebugUnitTest
+  gradlew.bat assembleDebug
+
+Diese Einschränkung ist keine Aussage über den Buildstatus auf dem Zielsystem.

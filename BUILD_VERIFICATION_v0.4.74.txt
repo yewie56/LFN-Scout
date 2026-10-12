@@ -1,0 +1,30 @@
+LFN-Scout / LFN-Scout Android v0.4.74 - Build-Verifikation
+Datum: 2026-09-17
+
+Umgesetzt:
+- sichtbarer App-/Produktname LFN-Scout
+- technische Projekt-, Verzeichnis- und ZIP-Namen bleiben LFN-Scout
+- Live-Näheplot 16:9 Landscape
+- Zeitachse 0..30 min entlang der langen horizontalen Strecke
+- Uhrzeitbeschriftungen links 4 sp statt 8 sp
+- Intensitätsmaßstrecke ganz links, vertikal mit 40000 nm/s direkt an der Strecke
+- Export weiterhin 1536x864, intern 3072x1728 (2x Supersampling)
+- redundante toFloat()-Aufrufe in SeismicPlotExporter.kt entfernt
+
+Verifikation:
+- verify_v0474_requirements.py: 12/12 PASS
+- SeismicPlotUiSelfTest: PASS
+- SeismicAmplitudeSelfTest: PASS
+- SeismicDayRoutingSelfTest: PASS
+- SeismicSearchSelfTest: PASS
+- SeismicRegionalHelicorderSelfTest: PASS
+- SeismicWaveformSelfTest: PASS
+- keine Datei aus v0.4.73 entfernt
+
+Vollständiger Gradle-Build:
+VERSUCHT: ./gradlew testDebugUnitTest assembleDebug --stacktrace
+NICHT AUSFÜHRBAR in dieser Laufzeit wegen DNS/Netzwerk:
+curl: (6) Could not resolve host: services.gradle.org
+
+Daher wird kein vollständiger Android-/Compose-Build-Erfolg behauptet.
+Der vollständige Compile muss durch Android Studio oder GitHub Actions bestätigt werden.

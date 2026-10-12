@@ -1,0 +1,32 @@
+LFN-Scout v0.4.29 – Testplan
+
+1. VERSION
+PASS: versionName 0.4.29
+PASS: versionCode 69
+
+2. GAIN
+PASS: Regler 0..+50 dB
+PASS: 1-dB-Schritte
+PASS: Einstellung bleibt nach Neustart erhalten
+
+3. LIVE-CLIP
+- Aufnahme mit hohem Gain starten.
+- Für einige Sekunden deutlich ins Mikrofon sprechen.
+PASS: sobald Clipping auftritt, erscheint rot "CLIP · n Samples".
+PASS: Anzeige bleibt für diese Aufnahme sichtbar.
+PASS: Zähler nimmt bei weiterem Clipping zu.
+PASS: nach Aufnahmeende bleibt abschließender CLIP-Zähler sichtbar.
+
+4. JAVA 17
+- neue Version in neuen Ordner entpacken
+- PREPARE_PROJECT.bat einmal starten
+PASS: JDK liegt unter .tools\jdk17\current
+PASS: gradle.properties enthält org.gradle.java.home=<absoluter Projektpfad>/.tools/jdk17/current
+PASS: gradlew.bat --version zeigt Java 17
+PASS: Android Studio Build funktioniert ohne erneute manuelle Gradle-JDK-Auswahl
+PASS: globales Java 8 bleibt unverändert
+
+5. WARNUNGEN
+PASS erwartet: keine Divider-Deprecated-Warnung.
+PASS erwartet: keine alte LinearProgressIndicator-progress-Warnung.
+PASS erwartet: kein unnötiger safe-call bei recorder.stop().

@@ -1,0 +1,5 @@
+LFN-Scout v0.4.35 – Supabase
+
+Keine Supabase-Änderung gegenüber v0.4.34.
+Kein neues SQL und kein neues Edge-Function-Deployment erforderlich.
+Die Input-/AudioSource-Auswahl ist lokal in der Android-App.

@@ -1,0 +1,13 @@
+LFN-Scout v0.4.61 – Build-/Updater-Verifikation
+
+Geprüft in der Erstellungsumgebung:
+- versionName 0.4.61 / versionCode 101
+- Vorhandensein der Windows-Updater-Dateien
+- gültige settings.json
+- ausführliche Updater-Anleitung
+- Workflow enthält Artifact-Upload und optionale Ablage nach Builds/debug
+- Workflow liest Versionsnummer dynamisch aus app/build.gradle.kts
+- ZIP-Strukturprüfung wird vor Auslieferung durchgeführt
+
+Hinweis:
+Ein echter GitHub-Actions-Lauf ist nach dem Push dieser Version die maßgebliche End-to-End-Prüfung von Unit-Tests, Android-Build, Artifact-Upload und Variante-B-APK-Commit.

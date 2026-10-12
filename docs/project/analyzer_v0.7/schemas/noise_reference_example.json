@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "referenceId": "noise-example-not-valid",
+  "label": "Beispiel Raumhintergrund",
+  "measurementDurationSec": 120,
+  "deviceKey": "REFERENCE_DEVICE_ID",
+  "route": "INTERNAL_MIC",
+  "audioSource": "UNPROCESSED",
+  "sampleRateHz": 48000,
+  "fftSize": 8192,
+  "decimations": 3,
+  "window": "BLACKMAN_HARRIS",
+  "psdDefinition": "ONE_SIDED_POWER_PER_HZ",
+  "unit": "DBFS2_PER_HZ",
+  "calibrationProfileId": null,
+  "frequencyHz": [
+    2,
+    3,
+    4,
+    5
+  ],
+  "psdLinear": [
+    1e-10,
+    8e-11,
+    7e-11,
+    6e-11
+  ],
+  "createdUtc": "2026-09-19T12:00:00Z",
+  "comment": "DEMONSTRATION ONLY; an actual profile requires observed data and validated bin alignment"
+}

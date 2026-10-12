@@ -1,0 +1,31 @@
+LFN-Scout v0.4.64 – Build-/Test-Verifikation
+Stand: 2026-09-17
+
+[PASS] versionName 0.4.64 / versionCode 104
+[PASS] verify_v0464_requirements.py: 26/26 PASS
+[PASS] SeismicWaveformSelfTest.kt via lokalem kotlinc: PASS
+       - MiniSEED 32-bit integer
+       - MiniSEED Steim1
+       - MiniSEED Steim2
+       - Seismik-Hüllkurve
+       - FDSN-Z-Kanal-Auswahl / HHZ-Priorität
+[PASS] Fester GEOFON-PNG-Pfad waveform/data/<NET>_<STA>.png entfernt.
+[PASS] Neue Datenquellen im Code: fdsnws-station, fdsnws-availability, fdsnws-dataselect.
+[PASS] Nativer Compose-Seismogramm-Plot aus dekodierten MiniSEED-Daten vorhanden.
+[PASS] Regressionstest app/src/test/java/de/brummbeobachter/app/SeismicWaveformPolicyTest.kt vorhanden.
+[PASS] CHANGELOG.md, README.md und docs/project/ aktualisiert.
+
+[BLOCKED – Umgebung, kein Projekttestfehler]
+Der vollständige Gradle/JVM-Testlauf konnte in der ChatGPT-Ausführungsumgebung nicht gestartet werden.
+Befehl:
+    ./gradlew testDebugUnitTest
+Ergebnis:
+    curl: (6) Could not resolve host: services.gradle.org
+    Exit-Code 6
+
+Dadurch konnte hier weder testDebugUnitTest noch assembleDebug vollständig ausgeführt werden.
+Der verbindliche GitHub-Actions-Buildweg C führt diese Tests und den APK-Build nach dem Push aus.
+Alternativ lokal unter Windows:
+    PREPARE_PROJECT.bat
+    gradlew.bat testDebugUnitTest
+    gradlew.bat assembleDebug

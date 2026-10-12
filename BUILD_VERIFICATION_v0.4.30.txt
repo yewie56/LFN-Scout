@@ -1,0 +1,27 @@
+LFN-Scout v0.4.30 – Verifikationsstand
+
+PASS: 25 statische Regressionen/Vertragsprüfungen.
+
+Java-17-Logik:
+- vorhandenes JDK17 im aktuellen Projekt bevorzugt
+- Suche in anderen AndroidStudioProjects
+- Suche in .jdks und .gradle/jdks
+- Suche in Android-Studio-JBR, aber nur wenn tatsächlich Java 17
+- Suche in üblichen JDK-Installationspfaden
+- JAVA_HOME nur verwenden, wenn es Java 17 ist
+- Download von Temurin 17 ausschließlich als letzte Möglichkeit
+- Downloadanzeige mit 40-Zeichen-Balken, Prozent und MB
+- gefundener Pfad wird in .tools/java17.path gespeichert
+- gradle.properties wird projektlokal auf das gefundene JDK gesetzt
+- globales Java 8 wird nicht verändert
+
+Regression:
+- Gain 0..+50 dB bleibt erhalten
+- Live-CLIP bleibt erhalten
+- upload_wav akzeptiert weiterhin bis +50 dB
+- Audioquellenauswahl ist weiterhin bewusst nicht implementiert
+
+NICHT HIER VERIFIZIERT:
+Vollständiger Android/AGP-Build und tatsächliche Windows-Ausführung der
+PowerShell-Suche. Bitte PREPARE_PROJECT.bat und anschließend Android Studio
+auf dem Windows-Buildrechner ausführen.

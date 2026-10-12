@@ -1,0 +1,13 @@
+﻿low_hz;high_hz;method;tone_hz;burst_start_s;burst_end_s;steady_rms;rise90_s;decay10_s;impulse_1percent_support_s;impulse_peak;impulse_energy_centroid_s;fft_window_s;fft_hop_s;notes
+0.0;10.0;Legacy-IIR;5.0;4;16;0.09487223045101996;0.0;0.0;0.073;0.06089863257570738;0.0074682163750297015;4.096;1.024;"causal filter; sample impulse at 1s"
+0.0;10.0;Butterworth4;5.0;4;16;0.10585986818556214;0.0;1.0;0.229;0.023971709628693008;0.048728651408656454;4.096;1.024;"causal filter; sample impulse at 1s"
+0.0;10.0;FFT-Hann;5.0;4;16;0.10606601696013034;1.12;0.38400000000000034;4.096;nan;nan;4.096;1.024;FFT frame-energy response: not a physical impulse waveform
+10.0;20.0;Legacy-IIR;15.0;4;16;0.06843231265081662;0.0;0.0;0.073;0.1108971861174326;0.004844402162781591;4.096;1.024;"causal filter; sample impulse at 1s"
+10.0;20.0;Butterworth4;15.0;4;16;0.10602558924595887;0.0;1.0;0.265;0.02668522198874191;0.04504355750492928;4.096;1.024;"causal filter; sample impulse at 1s"
+10.0;20.0;FFT-Hann;15.0;4;16;0.10606601679459438;1.12;0.38400000000000034;4.096;nan;nan;4.096;1.024;FFT frame-energy response: not a physical impulse waveform
+0.5;2.0;Legacy-IIR;1.25;10;100;0.08335926883816674;0.0;1.0;1.118;0.012448573633240331;0.06316524970274728;4.096;1.024;"causal filter; sample impulse at 1s"
+0.5;2.0;Butterworth4;1.25;10;100;0.10551144383112818;1.0;1.0;2.524;0.003615437980122267;0.30010983752791764;4.096;1.024;"causal filter; sample impulse at 1s"
+0.5;2.0;FFT-Hann;1.25;10;100;0.1060649688639223;1.2639999999999993;0.35200000000000387;4.096;nan;nan;4.096;1.024;FFT frame-energy response: not a physical impulse waveform
+30.0;40.0;Legacy-IIR;35.0;4;16;0.05518394115206228;0.0;0.0;0.029;0.18405373733145194;0.0018649203571463602;4.096;1.024;"causal filter; sample impulse at 1s"
+30.0;40.0;Butterworth4;35.0;4;16;0.10606472344462993;0.0;1.0;0.248;0.02769438529296192;0.04504355750493083;4.096;1.024;"causal filter; sample impulse at 1s"
+30.0;40.0;FFT-Hann;35.0;4;16;0.10606601685225528;1.12;0.38400000000000034;4.096;nan;nan;4.096;1.024;FFT frame-energy response: not a physical impulse waveform

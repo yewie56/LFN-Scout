@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "profileId": "mic-example-not-valid-for-real-device",
+  "deviceKey": "REFERENCE_DEVICE_ID",
+  "route": "INTERNAL_MIC",
+  "audioSource": "UNPROCESSED",
+  "sampleRateHz": 48000,
+  "reference": {
+    "kind": "RELATIVE_ONLY",
+    "absoluteSplDb": null,
+    "referenceFrequencyHz": null
+  },
+  "validMinHz": 20,
+  "validMaxHz": 200,
+  "correctionDbPoints": [
+    {
+      "frequencyHz": 20,
+      "correctionDb": 3
+    },
+    {
+      "frequencyHz": 50,
+      "correctionDb": 0
+    },
+    {
+      "frequencyHz": 100,
+      "correctionDb": -1
+    },
+    {
+      "frequencyHz": 200,
+      "correctionDb": -2
+    }
+  ],
+  "comment": "DEMONSTRATION ONLY; NOT A REAL CALIBRATION"
+}

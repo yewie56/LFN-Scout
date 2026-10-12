@@ -1,0 +1,21 @@
+LFN-Scout v0.4.68 – Build-/Test-Verifikation
+Datum: 2026-09-17
+
+[PASS] versionName 0.4.68 / versionCode 108
+[PASS] verify_v0468_requirements.py: 15/15
+[PASS] SeismicRegionalHelicorderSelfTest
+[PASS] SeismicDayRoutingSelfTest
+[PASS] SeismicSearchSelfTest
+[PASS] SeismicWaveformSelfTest
+[PASS] SeismicLiveService separat gegen Android-/App-Stubs kompiliert
+[PASS] WBBU-Sonderzone: 30 km um 49.62294 / 8.49384
+[PASS] Valencia liegt außerhalb der Sonderzone und verwendet ausschließlich das Näheprinzip
+[PASS] klassischer Rohdaten-Plot: 48 Halb­stundenzeilen, alternierend blau/rot
+[PASS] zukünftige Halb­stundenzeilen des heutigen Tages bleiben leer
+
+Android-Gesamtbuild in dieser Laufzeit:
+[BLOCKED] ./gradlew testDebugUnitTest
+Grund: Gradle-Bootstrap kann services.gradle.org in dieser Umgebung nicht per DNS auflösen:
+curl: (6) Could not resolve host: services.gradle.org
+
+Der verbindliche GitHub-Actions-Buildweg führt testDebugUnitTest und assembleDebug nach Push des vollständigen Projekts aus.

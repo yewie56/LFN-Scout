@@ -1,0 +1,22 @@
+LFN-Scout v0.4.19 – Selbstprüfung
+
+PASS Scopefehler aus v0.4.18 reproduziert
+PASS radiusAnalysisEnabled wird an LFNScoutScreen übergeben
+PASS radiusHistogramStatus wird an LFNScoutScreen übergeben
+PASS radiusHistogramResult wird an LFNScoutScreen übergeben
+PASS LFNScoutScreen greift nicht mehr direkt auf reminderSettings zu
+PASS Radius-Rohdaten aus v0.4.18 erhalten
+PASS Radius-Edge-Function erhalten
+PASS 2h-Offline-Retry erhalten
+PASS Warnung bei dauerhafter Datenübertragungsstörung erhalten
+PASS Raster ab 30 Minuten erhalten
+PASS automatische -1-Nichtantwort erhalten
+PASS VersionName 0.4.19 / VersionCode 59
+
+GRADLE:
+NICHT BESTÄTIGT.
+Ein frischer :app:compileDebugKotlin-Aufruf wurde versucht, konnte den
+Gradle-Wrapper aber nicht herunterladen:
+curl: (6) Could not resolve host: services.gradle.org
+
+Der vollständige Android-Build muss deshalb auf dem Build-PC erfolgen.

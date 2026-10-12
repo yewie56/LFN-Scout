@@ -1,0 +1,27 @@
+LFN-Scout / LFN-Scout Android v0.4.75 - Build-Verifikation
+Datum: 2026-09-17
+
+Umgesetzt:
+- Reiner Build-Fix auf Basis von v0.4.74.
+- Fehlende schließende Klammer am Ende von SeismicScreen ergänzt.
+- Dadurch liegen PanelHeader, MoreFunctionsScreen und nachfolgende private Funktionen wieder außerhalb von SeismicScreen.
+- Keine funktionale Änderung an Landscape-Seismikplot, Zoom, Export, WBBU-Sonderlogik oder Näheprinzip.
+
+Verifikation:
+- verify_v0475_requirements.py: 8/8 PASS
+- Kotlin-Klammerstruktur MainActivity.kt: ausgeglichen
+- Kotlin-Parsercheck MainActivity.kt: keine "Expecting '}'"- oder "local function"-Diagnosen mehr
+- SeismicPlotUiSelfTest: PASS
+- SeismicAmplitudeSelfTest: PASS
+- SeismicDayRoutingSelfTest: PASS
+- SeismicSearchSelfTest: PASS
+- SeismicRegionalHelicorderSelfTest: PASS
+- SeismicWaveformSelfTest: PASS
+
+Vollständiger Gradle-Build:
+VERSUCHT: ./gradlew testDebugUnitTest assembleDebug --stacktrace
+NICHT AUSFÜHRBAR in dieser Laufzeit wegen DNS/Netzwerk:
+curl: (6) Could not resolve host: services.gradle.org
+
+Daher wird kein vollständiger Android-/Compose-Build-Erfolg behauptet.
+Der vollständige Compile muss durch Android Studio oder GitHub Actions bestätigt werden.

@@ -1,0 +1,34 @@
+LFN-Scout v0.4.62 – Build-/Workflow-Verifikation
+Datum: 2026-09-17
+
+PASS – statische Verifikation
+- versionName 0.4.62 / versionCode 102
+- PREPARE_PROJECT.bat zeigt v0.4.62
+- GitHub-Actions-Workflow vorhanden und enthält Push, Pull Request und workflow_dispatch
+- Unit-Test-Schritt vor assembleDebug vorhanden
+- Variante B mit Ablage unter Builds/debug vorhanden
+- BUILD_WORKFLOWS.md vorhanden
+- Buildwege A, B und C vollständig beschrieben
+- Android-only-Voraussetzungen ChatGPT-App, GitSync, Dateimanager und Webbrowser beschrieben
+- Schutz von .git/ und Builds/ beschrieben
+- vollständige Projekt-ZIP als verbindliche Übergabe beschrieben
+
+Ausgeführte statische Prüfung:
+  python verify_v0462_workflows.py
+Ergebnis:
+  PASS v0.4.62 workflow verification
+
+NICHT LOKAL AUSFÜHRBAR – Gradle-Build in dieser isolierten Prüfungsumgebung
+Versuch:
+  ./gradlew --version
+Ergebnis:
+  curl: (6) Could not resolve host: services.gradle.org
+
+Kontrollprüfung der DNS-Auflösung in derselben Umgebung:
+- services.gradle.org: DNS_FAIL
+- github.com: DNS_FAIL
+- example.com: DNS_FAIL
+
+Damit ist die Einschränkung nicht spezifisch für Gradle.org, sondern betrifft die externe DNS-Auflösung dieser Prüfungsumgebung. Der reale Gradle-/Android-Build muss daher wie vorgesehen durch GitHub Actions oder lokal auf einem normal vernetzten Windows-System verifiziert werden.
+
+App-Logik wurde in v0.4.62 nicht geändert; die Version enthält Dokumentations-/Workflow-Festlegungen und den Versionssprung.

@@ -1,0 +1,18 @@
+LFN-Scout v0.2.1
+Supabase Edge Function: get_recent_observations
+
+1. Supabase Dashboard öffnen.
+2. Edge Functions öffnen.
+3. Neue Function anlegen:
+       get_recent_observations
+4. Inhalt aus:
+       supabase/functions/get_recent_observations/index.ts
+   einfügen.
+5. Deploy.
+6. In den Function-Einstellungen:
+       Verify JWT = OFF
+7. Danach Android-App v0.2.1 testen.
+
+Die Function benötigt KEINEN zusätzlichen Client-Schlüssel.
+Sie nutzt serverseitig die Supabase-Umgebungsvariablen und prüft den
+LFN-Scout-Schlüssel über SHA-256 gegen observers.key_hash.

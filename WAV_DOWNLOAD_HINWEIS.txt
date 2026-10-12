@@ -1,0 +1,19 @@
+LFN-Scout – WAV-Dateien gesammelt herunterladen
+
+Empfehlung: rclone über die S3-kompatible Schnittstelle von Supabase Storage.
+
+Warum rclone:
+- portabel als einzelne Windows-EXE/ZIP nutzbar
+- kein Python erforderlich
+- rekursiver Download kompletter Buckets oder einzelner BBxxx-Ordner
+- vorhandene Ordner- und Dateinamen bleiben erhalten
+- für spätere automatisierte Backups gut geeignet
+
+Alternative mit grafischer Oberfläche:
+- Cyberduck
+
+Für den produktiven Zugriff werden die S3-Zugangsdaten des Supabase-
+Storage benötigt. Diese NICHT in die Android-App einbauen.
+
+Später kann dafür ein separates portables Windows-Downloadpaket erstellt
+werden, ohne die Android-App zu verändern.

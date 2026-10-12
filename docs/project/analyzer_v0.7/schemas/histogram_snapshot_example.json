@@ -1,0 +1,29 @@
+{
+  "_note": "Illustratives Interface-Beispiel, KEINE Aussage über bestehende Radius-Einheit/Bins.",
+  "schemaVersion": 1,
+  "snapshotId": "example-histo-0004",
+  "sourceRevision": "TO_MAP",
+  "createdAtUtc": "2026-09-19T12:00:00Z",
+  "windowStartUtc": null,
+  "windowEndUtc": null,
+  "binAxis": {
+    "name": "SOURCE_DEFINED_RADIUS",
+    "unit": "TO_MAP",
+    "edges": [
+      0,
+      1,
+      2,
+      3
+    ]
+  },
+  "values": {
+    "unit": "TO_MAP",
+    "items": [
+      2,
+      4,
+      1
+    ]
+  },
+  "quality": "COMPLETE",
+  "sourceLabel": "LFN-Scout existing histogram"
+}

@@ -1,0 +1,19 @@
+LFN-Scout_BASE_ASSETS_R1.zip
+SHA-256: 3f662bd281689c67c00f7fb1720dbef38a3252d22b8a9e18eeed85071ed95d08
+
+Zweck:
+Dieses BASE-Paket enthaelt grosse, selten veraenderte Referenz-, Rekonstruktions- und Supabase-Storage-Recovery-Artefakte. Es ist fuer den normalen Android-Build des ACTIVE-Projekts nicht erforderlich.
+
+Ausgelagerte Pfade:
+- docs/project/analyzer_v0.7/assets/
+- docs/project/analyzer_v0.7/references/
+- docs/project/handoff_assets/
+- docs/project/FILTERBANK_UI_REFERENCE/
+- docs/reconstruction/
+- supabase/storage_backup/
+
+Regel:
+Das BASE-Paket wird nur bei einer Aenderung dieser Inhalte als neue Revision R2, R3, ... erzeugt. Das aktuelle ACTIVE-Paket verweist immer auf die benoetigte BASE-Revision und deren SHA-256.
+
+Datenschutz:
+Das BASE-Paket kann private Supabase-Recovery-Daten enthalten. Nicht in ein oeffentliches Repository oder an Dritte weitergeben.

@@ -1,0 +1,6 @@
+PASS: version 0.4.82
+PASS: recording dialog removed
+PASS: transparent countdown overlay marker
+PASS: large remaining-seconds text
+PASS: yellow abort button still present
+PASS: clip indicator still present

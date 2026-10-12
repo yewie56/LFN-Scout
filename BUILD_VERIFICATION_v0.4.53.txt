@@ -1,0 +1,30 @@
+LFN-Scout Android v0.4.53 - Build/Regression Verification
+Date: 2026-09-11
+
+Purpose
+- Explicitly preserve continuous 30-minute rolling-buffer semantics.
+- Only the initial fill period grows from 0 to 30 minutes.
+- Once full, the buffer always contains the latest 30 minutes.
+- Saving is a non-destructive snapshot and must not clear/restart the ring buffer.
+
+Verification performed
+1. verify_v0453_requirements.py: 19/19 PASS.
+2. RollingBufferContinuitySelfTest.kt: PASS.
+3. RollingBufferEngineSelfTest.kt: PASS.
+   - partial 8-minute buffer
+   - snapshot does not clear partial buffer
+   - full 30-minute buffer
+   - rollover keeps size at 30 minutes
+   - oldest sample advances exactly as new samples overwrite old samples
+   - snapshot does not clear full buffer
+4. Full Gradle unit-test attempt was made with:
+   ./gradlew :app:testDebugUnitTest --offline
+   It could not start because the local Gradle 8.13 distribution is absent and this environment cannot resolve services.gradle.org.
+   Therefore no full Android/Gradle build is claimed here.
+
+Visible behavior change
+- While filling: e.g. "Rolling-Buffer: 8:00 / 30:00 min"
+- Once full: "Rolling-Buffer: letzte 30:00 min"
+- Foreground notification uses the same wording.
+
+No Supabase migration or Edge Function deployment is required.

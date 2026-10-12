@@ -1,0 +1,17 @@
+LFN-Scout v0.4.52 – Verifikationsstand
+Datum: 2026-09-11
+
+PASS: TDD-RED ausgeführt: verify_v0452_requirements.py schlug vor Implementierung mit 1/15 PASS fehl.
+PASS: TDD-GREEN: verify_v0452_requirements.py 15/15 PASS.
+PASS: RollingAudioEngine separat mit Kotlin-Compiler kompiliert.
+PASS: RollingAudioEngine Laufzeittest: Teilfüllung/Snapshot und gemeinsamer Future-Capture.
+PASS: AndroidManifest.xml per XML-Parser geprüft.
+PASS: Kotlin Klammer-/Parenthesen-Balance über alle App-Quelldateien.
+PASS: Supabase storage_filename.test.mjs unverändert erfolgreich.
+PASS: korrigierte nichtzyklische Swipe-Richtung aus v0.4.51 weiterhin vorhanden.
+PASS: kompakte Einzeilen-Header aus v0.4.51 weiterhin vorhanden.
+PASS: Wasserfall-Zoom/Pan, PNG/JPG/PNG+JPG und direkte Datei-Auswahl weiterhin vorhanden.
+
+NICHT AUSGEFÜHRT: Vollständiger Android/Gradle-Build in dieser Umgebung.
+Grund: Projekt-Wrapper versucht Gradle 8.13 von services.gradle.org zu laden; DNS/Internet ist hier nicht verfügbar.
+Daher ist die Android-Kompilierung auf dem Windows/Android-Studio-System des Nutzers noch zu bestätigen.

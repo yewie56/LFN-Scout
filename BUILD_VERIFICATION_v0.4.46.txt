@@ -1,0 +1,15 @@
+LFN-Scout v0.4.46 – Verifikationsstand
+
+Statische Anforderungs-/Regressionstests: 19/19 PASS
+TDD-Anforderungstest: initial RED, final PASS
+Bestehender Supabase-WAV-Dateinamentest: PASS
+Klammerbilanz geänderter Kotlin-Dateien: 0
+
+Buildversuch in dieser Umgebung:
+- Gradle-Wrapper gestartet.
+- Vollständige Kompilation konnte nicht ausgeführt werden, weil die lokale Gradle-8.13-Distribution fehlt und services.gradle.org in dieser Umgebung nicht erreichbar ist.
+
+Daher noch auf Windows/Android Studio zu verifizieren:
+- vollständiger Kotlin/Android-Build
+- Wasserfallberechnung auf realer 120-s-WAV
+- Vorschau und PNG-Speicherung auf Android 12

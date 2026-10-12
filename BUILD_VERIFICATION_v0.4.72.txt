@@ -1,0 +1,18 @@
+LFN-Scout v0.4.72 - Build-/Verifikationsstand
+Datum: 2026-09-17
+
+PASS:
+- verify_v0472_requirements.py: 11/11
+- SeismicPlotUiSelfTest: PASS
+- versionName 0.4.72 / versionCode 112
+- WBBU-nahe kompakte 48-Zeilen-Darstellung mit dichterem Min/Max-Rendering
+- vertikale Intensitätslegende links vor Uhrzeiten
+- 5-Minuten-X-Achse 0..30 min
+- PNG-Speicherziel Download/LFN-Scout/
+
+NICHT IN DIESER UMGEBUNG DURCHGEFUEHRT:
+- Vollstaendiger Gradle-/Android-Compose-Build
+Grund: Gradle-Bootstrap kann services.gradle.org wegen DNS-Sperre der Laufzeit nicht aufloesen.
+Beobachteter Fehler: curl: (6) Could not resolve host: services.gradle.org
+
+Der vollstaendige Compile-/Build-Nachweis muss deshalb ueber Android Studio bzw. GitHub Actions erfolgen.

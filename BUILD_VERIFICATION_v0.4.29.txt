@@ -1,0 +1,26 @@
+LFN-Scout v0.4.29 – Verifikationsstand
+
+PASS: reine Kotlin-Kompilation/Runtime-Test:
+- normalizeGainDb(99) = 50
+- +50 dB Faktor ~316.23
+- CLIP-Latch bleibt nach erstem Clip gesetzt
+- Projekt-Java-Policy = Java 17 / .tools/jdk17/current
+
+PASS: 19 statische Regressionen:
+- Version 0.4.29 / 69
+- Gain 0..50 dB, 1-dB-Schritte
+- Live-CLIP-Callback und Anzeige
+- upload_wav akzeptiert bis +50 dB
+- JDK17 fester Projektpfad
+- PREPARE stellt Custom-gradlew nach wrapper task wieder her
+- PREPARE schreibt org.gradle.java.home projektlokal
+- globales Java wird nicht geändert
+- Compose-Warnungsbereinigungen
+- In-Process-Tonpakete und Fullscreen-Fix erhalten
+- kein expliziter weight-Import
+- Audioquellenauswahl bewusst noch NICHT implementiert
+
+NICHT HIER VERIFIZIERT:
+Vollständiger Android/AGP-Build. Der vorherige v0.4.28-Build wurde auf dem
+Build-PC des Nutzers erfolgreich erstellt; v0.4.29 muss dort erneut mit
+Android Studio gebaut werden.

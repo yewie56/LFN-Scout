@@ -1,0 +1,27 @@
+LFN-Scout v0.4.17 – Selbstprüfung
+
+PASS Option Radius-Auswertung standardmäßig AUS
+PASS Standardradius 600 km
+PASS Radius persistent konfigurierbar
+PASS Mittelpunkt GPS, sonst serverseitiger Basisstandort-Fallback
+PASS Edge Function get_radius_histograms enthalten
+PASS Edge Function authentifiziert LFN-Scout-Key
+PASS Radiusfilter per Haversine
+PASS vier 30-Minuten-Blöcke
+PASS Histogramm Ratings 0..5
+PASS rating=-1 separat
+PASS nur aggregierte Ergebnisse an Android
+PASS Beobachter-/Beobachtungszahl enthalten
+PASS v0.4.16 Raster ab 30 min erhalten
+PASS 2h-Offline-Retry erhalten
+PASS Warnung dauerhafte Datenübertragungsstörung erhalten
+PASS automatische -1-Nichtantwort erhalten
+PASS drei Tonpakete erhalten
+PASS VersionName 0.4.17 / VersionCode 57
+
+GRADLE:
+NICHT BESTÄTIGT.
+Gradle-Aufruf wurde frisch versucht, konnte aber den Wrapper nicht laden:
+curl: (6) Could not resolve host: services.gradle.org
+
+Der vollständige Android-Build muss deshalb auf dem Build-PC erfolgen.

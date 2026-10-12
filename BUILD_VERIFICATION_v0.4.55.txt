@@ -1,0 +1,16 @@
+LFN-Scout v0.4.55 – Verification
+Date: 2026-09-13
+
+PASS 18/18 verify_v0455_requirements.py
+PASS V0.4.55 POLICY SELFTEST
+PASS RollingBufferEngineSelfTest
+PASS RollingBufferContinuitySelfTest
+PASS standalone Kotlin parser syntax-marker check for MainActivity.kt and WaterfallGenerator.kt
+PASS Supabase tree byte-for-byte unchanged vs v0.4.54
+
+Full Android Gradle build: NOT RUN in this offline container because gradle/wrapper/gradle-wrapper.jar is not included in the supplied project and no Gradle distribution is cached locally.
+
+Required Windows verification after PREPARE_PROJECT.bat:
+  gradlew.bat clean
+  gradlew.bat testDebugUnitTest
+  gradlew.bat assembleDebug

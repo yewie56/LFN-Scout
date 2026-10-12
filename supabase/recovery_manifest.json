@@ -1,0 +1,317 @@
+{
+  "schema_version": 1,
+  "snapshot_date": "2026-09-18",
+  "project_ref": "kbejualnruiwtnmeytif",
+  "artifacts": {
+    "schema_full.sql": {
+      "bytes": 10157,
+      "sha256": "0424aa12648fdac5ee48bbc865ed18c760b48866ef2796ad38685856b4b661b3"
+    },
+    "data_full.sql": {
+      "bytes": 103020,
+      "sha256": "c1bba8ad9ecb7148a982767e38041b4d3a65af3d91eac69412fecb12140e257d"
+    },
+    "auth_schema.sql": {
+      "bytes": 53247,
+      "sha256": "dc695b6b338472381ba7442a7d5384cfa018cff9c7d8a3c94d487436017ba806"
+    },
+    "storage_schema.sql": {
+      "bytes": 50406,
+      "sha256": "43de1112dd7060cacf9878e0bc96b886e8f3b92c875cbb8718f8ace0d7457159"
+    },
+    "roles_original.sql": {
+      "bytes": 370,
+      "sha256": "168a95a9c745af5ed4679751f90419ac9dc434240a213b03e32a06d5664c2308"
+    },
+    "roles.sql": {
+      "bytes": 373,
+      "sha256": "056517b7aee80d74f8aecd197d85c7027c794e1cafb622885ab4ee45593da785"
+    },
+    "project_config.json": {
+      "bytes": 36817,
+      "sha256": "592ceed879b465f5265dd909dcdd614be139be1733cddfcfaf404d23eccf2d1c"
+    },
+    "secret_names.txt": {
+      "bytes": 141,
+      "sha256": "60d683eeb5c1db67f19306d9b2cb9fb92f7029da4b3191951facd6ee8198e54c"
+    }
+  },
+  "storage": {
+    "wav_count": 53,
+    "total_bytes": 12722332,
+    "files": [
+      {
+        "path": "brumm-audio/brumm-audio/BB001/2026-09-09_09-18-25_G50_UNP_R4.wav",
+        "bytes": 240044,
+        "sha256": "f1b1234e55312ba2ae0cd6cb258ff859e63b23909cccb9e423f19f398e072176"
+      },
+      {
+        "path": "brumm-audio/brumm-audio/BB001/2026-09-09_11-18-07_G30_UNP_R2.wav",
+        "bytes": 240044,
+        "sha256": "030796f342da1c9ba0e34508feaefc2c4583b53910ddaf71698029a9dd635f5a"
+      },
+      {
+        "path": "brumm-audio/brumm-audio/BB001/2026-09-09_20-16-11_G30_UNP_R5.wav",
+        "bytes": 240044,
+        "sha256": "c239c4dbf90d7004d5f359fff3d5bc7733cd5a20bad677f09c81b51a69c423ea"
+      },
+      {
+        "path": "brumm-audio/brumm-audio/BB001/2026-09-09_22-49-19_G30_UNP_R5.wav",
+        "bytes": 240044,
+        "sha256": "d0f722e8d65652dcb6da477c6944638bed4828a17fcd34a523af1f87bda2d71d"
+      },
+      {
+        "path": "brumm-audio/brumm-audio/BB001/2026-09-09_22-59-51_G50_UNP_R5.wav",
+        "bytes": 240044,
+        "sha256": "29ae7edb40b11560d57b345757b313b818cfa5272c215ab74717dc21ae91bed5"
+      },
+      {
+        "path": "brumm-audio/brumm-audio/BB001/2026-09-09_23-09-54_G50_UNP_R5.wav",
+        "bytes": 240044,
+        "sha256": "9969ef801f36f74d2f726780d17b4d75c49cc3896b00f2bde5cc809a740ea7bf"
+      },
+      {
+        "path": "brumm-audio/brumm-audio/BB001/22eff2a2-5ab0-4ac7-92ea-5d9381edc8fc.wav",
+        "bytes": 240044,
+        "sha256": "a8c711f959fb4cb6b464221de676b85d1335dd29550fdea761f47e54a41f371c"
+      },
+      {
+        "path": "brumm-audio/brumm-audio/BB001/2c19877a-ce84-420a-8c6e-35e88f3ab841.wav",
+        "bytes": 240044,
+        "sha256": "e08323936ff9e375c933e35b0884965595f530c025fa02cd9db18cb84e35edc6"
+      },
+      {
+        "path": "brumm-audio/brumm-audio/BB001/373a6818-c609-4fc6-b22c-f177a2a80175.wav",
+        "bytes": 240044,
+        "sha256": "2816c416793c72a84d0757751c1c6ceda752a703b57123ef5ff743c7b01e5f36"
+      },
+      {
+        "path": "brumm-audio/brumm-audio/BB001/89292d01-79fb-42ce-8958-542c8be9ce71.wav",
+        "bytes": 240044,
+        "sha256": "a0197f5f509fa44cdd8d146007aa6bf7b4539d6408ea77016afca0149b8fa5a8"
+      },
+      {
+        "path": "brumm-audio/brumm-audio/BB001/9154fc8e-2ff0-40e1-89e6-2c10ff22f252.wav",
+        "bytes": 240044,
+        "sha256": "90b339735f9ad975e3e8e4892ca721c59b51f4a8fef84ca006ad406a54d71b3a"
+      },
+      {
+        "path": "brumm-audio/brumm-audio/BB001/BB001_2026-09-09_23-50-36_G50_UNP_R5.wav",
+        "bytes": 240044,
+        "sha256": "3692b2f6a3b89c04204619513327100b67545ba5eb6c6c4024f6f256a20e5646"
+      },
+      {
+        "path": "brumm-audio/brumm-audio/BB001/BB001_2026-09-10_00-26-29_G50_UNP_RX.wav",
+        "bytes": 240044,
+        "sha256": "d61a6ff81fb46d8fffc54b7d57c602ac14abd86ad7275bcd081f0b7221120f21"
+      },
+      {
+        "path": "brumm-audio/brumm-audio/BB001/BB001_2026-09-10_02-24-32_G50_UNP_R5.wav",
+        "bytes": 240044,
+        "sha256": "59512db997b0035a1bc1d17351f668a1d153d8962fa468ca9e795d9067765b83"
+      },
+      {
+        "path": "brumm-audio/brumm-audio/BB001/BB001_2026-09-10_06-21-34_G50_UNP_R4.wav",
+        "bytes": 240044,
+        "sha256": "5fe735f39abe9e5fd43bd1701293536a5678102653cf003194795b9ea4c2b6eb"
+      },
+      {
+        "path": "brumm-audio/brumm-audio/BB001/BB001_2026-09-10_06-29-56_G50_UNP_R4.wav",
+        "bytes": 240044,
+        "sha256": "62cdfd0c38a4743d290c364af11af48e00236f520a2750b7c247993e316faa25"
+      },
+      {
+        "path": "brumm-audio/brumm-audio/BB001/BB001_2026-09-10_07-07-21_G50_UNP_R4.wav",
+        "bytes": 240044,
+        "sha256": "9f6c0b151adb273f54789a84a29017c4a35bfbd742564332ec63708fa2d4d853"
+      },
+      {
+        "path": "brumm-audio/brumm-audio/BB001/BB001_2026-09-10_07-30-28_G50_UNP_R3.wav",
+        "bytes": 240044,
+        "sha256": "37c8819e40f7e029efa5560298bebbc12a080c252ec52a7cf2c5e3e5fb31c033"
+      },
+      {
+        "path": "brumm-audio/brumm-audio/BB001/BB001_2026-09-10_17-29-13_G50_UNP_R5.wav",
+        "bytes": 240044,
+        "sha256": "e3d675ed1b06a2a8de0609ace1b61ba06a6c5aac984a04a90bfa1d3fe94c47e0"
+      },
+      {
+        "path": "brumm-audio/brumm-audio/BB001/BB001_2026-09-11_01-16-37_G50_UNP_R3.wav",
+        "bytes": 240044,
+        "sha256": "a7a1060941c3ce4754b4ee660ff932bacfbd2d4521b0d1b058c0c391e279e357"
+      },
+      {
+        "path": "brumm-audio/brumm-audio/BB001/BB001_2026-09-12_17-00-40_G50_UNP_R0.wav",
+        "bytes": 240044,
+        "sha256": "ae8b9e6b98fe989e22eabd2666b32d54d859695006250fd7dbd688fdfe26fa8b"
+      },
+      {
+        "path": "brumm-audio/brumm-audio/BB001/BB001_2026-09-12_23-56-13_G50_UNP_R3.wav",
+        "bytes": 240044,
+        "sha256": "a64d921276d5e2caeff422766126c3180b19513f0655e014d35ee4f01830f1c1"
+      },
+      {
+        "path": "brumm-audio/brumm-audio/BB001/BB001_2026-09-13_08-46-04_G50_UNP_R1.wav",
+        "bytes": 240044,
+        "sha256": "9f91361f184fd4d34ed29a9039e44f121d7112b5af5152c93cc9e75db544ae5b"
+      },
+      {
+        "path": "brumm-audio/brumm-audio/BB001/BB001_2026-09-13_22-20-36_G50_UNP_R0.wav",
+        "bytes": 240044,
+        "sha256": "2e45e337702856c1607a14b139d0a794f9952e0c11d3547d2d4b46a709d15e5a"
+      },
+      {
+        "path": "brumm-audio/brumm-audio/BB001/BB001_2026-09-13_23-15-36_G50_UNP_R1.wav",
+        "bytes": 240044,
+        "sha256": "b258c0fa97ca7f9ed662529de6c6ab19e69beb072b77f4ac32412b6f729c1fa1"
+      },
+      {
+        "path": "brumm-audio/brumm-audio/BB001/BB001_2026-09-13_23-41-51_G50_UNP_R1.wav",
+        "bytes": 240044,
+        "sha256": "035c5b4c59b48c36845988a1998eae4f1d82bb54b5a0847f93ca13ee097499eb"
+      },
+      {
+        "path": "brumm-audio/brumm-audio/BB001/BB001_2026-09-14_00-11-19_G50_UNP_R1.wav",
+        "bytes": 240044,
+        "sha256": "e31a585e6b07f5b57c867f3326902297428d61fa65fd85a1b88a4b2f294c4fd8"
+      },
+      {
+        "path": "brumm-audio/brumm-audio/BB001/BB001_2026-09-14_00-20-23_G50_UNP_R1.wav",
+        "bytes": 240044,
+        "sha256": "719c600624e8afbf00a8b118979cbd02b1f564dd0fb7115d09776fdf5d9f1831"
+      },
+      {
+        "path": "brumm-audio/brumm-audio/BB001/BB001_2026-09-14_00-40-46_G50_UNP_R1.wav",
+        "bytes": 240044,
+        "sha256": "ca5a19a4a3f0bd505749b2537f82181f88bcd01425e0ebbdf01e60832f2a1434"
+      },
+      {
+        "path": "brumm-audio/brumm-audio/BB001/BB001_2026-09-14_03-03-17_G50_UNP_R1.wav",
+        "bytes": 240044,
+        "sha256": "b46482d490cd2fbde2fd0b455c10d465e19cc16be8e1198fe2a56233e1caee8d"
+      },
+      {
+        "path": "brumm-audio/brumm-audio/BB001/BB001_2026-09-14_21-48-32_G50_UNP_R0.wav",
+        "bytes": 240044,
+        "sha256": "719fb57f509de7fc434006406d396384e24432dafef226ebaa593ad2ac4918b1"
+      },
+      {
+        "path": "brumm-audio/brumm-audio/BB001/BB001_2026-09-15_01-08-27_G41_UNP_R0.wav",
+        "bytes": 240044,
+        "sha256": "5ee908a287d8560b94a4ad4c3af83633e3957f3f0ec8937b237370b99529fd9f"
+      },
+      {
+        "path": "brumm-audio/brumm-audio/BB001/BB001_2026-09-15_01-22-06_G50_UNP_R0.wav",
+        "bytes": 240044,
+        "sha256": "6b18e6692bd386aa7d4fc8d88de6ca186cc56fbbb527217878555e935bbdf177"
+      },
+      {
+        "path": "brumm-audio/brumm-audio/BB001/BB001_2026-09-15_01-49-54_G50_UNP_R1.wav",
+        "bytes": 240044,
+        "sha256": "85e63ef889ab9d4808991fca239676c3f77f885d6ef8c8107f43aece579c5f68"
+      },
+      {
+        "path": "brumm-audio/brumm-audio/BB001/BB001_2026-09-15_08-08-40_G50_UNP_R1.wav",
+        "bytes": 240044,
+        "sha256": "a05ae912f92a6300b5bb9314c119edec532e3fad31ebe93f14a4b1f041566b13"
+      },
+      {
+        "path": "brumm-audio/brumm-audio/BB001/BB001_2026-09-15_17-15-49_G50_UNP_R1.wav",
+        "bytes": 240044,
+        "sha256": "b3e07925527376d9873b999ccbb73db17696e1c2fe51a34d33a270e6f564b7bd"
+      },
+      {
+        "path": "brumm-audio/brumm-audio/BB001/BB001_2026-09-15_23-07-06_G50_UNP_R2.wav",
+        "bytes": 240044,
+        "sha256": "5b23bb1eee56b5931329251b2104a7e164f17573813b5c59ccf4cf5883c0340f"
+      },
+      {
+        "path": "brumm-audio/brumm-audio/BB001/BB001_2026-09-16_02-17-28_G50_UNP_R0.wav",
+        "bytes": 240044,
+        "sha256": "2839aaeae8f51a1ffe189d0aaf73995df1974903afe8f31e07e6eec237df51a5"
+      },
+      {
+        "path": "brumm-audio/brumm-audio/BB001/BB001_2026-09-16_07-30-26_G50_UNP_R4.wav",
+        "bytes": 240044,
+        "sha256": "63131ceaa7803b92a39e286a2936f3650b26c1ffaaa5d686727399f861ea7d55"
+      },
+      {
+        "path": "brumm-audio/brumm-audio/BB001/BB001_2026-09-17_00-35-32_G50_UNP_R4.wav",
+        "bytes": 240044,
+        "sha256": "797907921730d82e436d63b1c6f10e2e6e7b1b89dec201a166647fd9667f529d"
+      },
+      {
+        "path": "brumm-audio/brumm-audio/BB001/BB001_2026-09-17_17-10-59_G50_UNP_R3.wav",
+        "bytes": 240044,
+        "sha256": "cbaee8f928d73b5c661359f00c3290d20aaa8f13e4ea981dc0c6daf99eecebea"
+      },
+      {
+        "path": "brumm-audio/brumm-audio/BB001/BB001_2026-09-18_01-13-37_G50_UNP_RX.wav",
+        "bytes": 240044,
+        "sha256": "9e351f6e738343c2dd44ebc5b90c8aa613b141b32d045d823c5559f6149ed16f"
+      },
+      {
+        "path": "brumm-audio/brumm-audio/BB001/BB001_2026-09-18_04-05-15_G50_UNP_R4.wav",
+        "bytes": 240044,
+        "sha256": "9b6d0fe65348d09a1d67c86d28db4204935245e2b024ecc603aa9f91d69a4122"
+      },
+      {
+        "path": "brumm-audio/brumm-audio/BB001/BB001_2026-09-18_09-09-08_G50_UNP_R2.wav",
+        "bytes": 240044,
+        "sha256": "e593ad319b8690c01d27cd56b0ceab126edef119ce32da836c52b9d3ecf83fb2"
+      },
+      {
+        "path": "brumm-audio/brumm-audio/BB001/BB001_2026-09-18_11-17-23_G50_UNP_R2.wav",
+        "bytes": 240044,
+        "sha256": "b68c05f04bf7811dcd0490bca12e92b4cde166fc7a425a3574ca8d1cd8654711"
+      },
+      {
+        "path": "brumm-audio/brumm-audio/BB001/BB001_2026-09-18_12-13-40_G50_UNP_R2.wav",
+        "bytes": 240044,
+        "sha256": "dec913ac3cb8db505efb1b6431a9144fe7ba7331bd127135c8e98631c198920c"
+      },
+      {
+        "path": "brumm-audio/brumm-audio/BB001/BB001_2026-09-18_17-35-11_G50_UNP_R3.wav",
+        "bytes": 240044,
+        "sha256": "c9065b8ef5a07b9a0adec2fc3bff1358d151263a5a728b77f89e9c843a5753c3"
+      },
+      {
+        "path": "brumm-audio/brumm-audio/BB001/BB001_2026-09-18_17-57-23_G50_UNP_R3.wav",
+        "bytes": 240044,
+        "sha256": "a5a682ace1c617162d1ec5e105221cc7edbb3dac45b15dca04cc0929d2a22332"
+      },
+      {
+        "path": "brumm-audio/brumm-audio/BB001/BB001_2026-09-18_18-02-00_G50_UNP_R3.wav",
+        "bytes": 240044,
+        "sha256": "8539fbca4b0315ea8c85726df6b038ce58b5dd1555763a4e8ae83984936d3576"
+      },
+      {
+        "path": "brumm-audio/brumm-audio/BB001/eafc088c-62af-4cc5-ab40-1690d1cfef6c.wav",
+        "bytes": 240044,
+        "sha256": "15450b41ae0b0b0c26da8de97b0317cea8a2f545c0f3451ced01b21db0081cc0"
+      },
+      {
+        "path": "brumm-audio/brumm-audio/BB001/f16c944e-5d6d-47c3-88db-16ec3bfdf900.wav",
+        "bytes": 240044,
+        "sha256": "bc91a011a0c1c9113f5670eed503badbb075d5aff280bc809c91c6f949b62a9a"
+      },
+      {
+        "path": "brumm-audio/brummbeobachter-wav/BB001/2026-09-01/BB001_20260901_102930_R3_25e33356-5ffb-4dc9-8b5b-72c4e2c7547d.wav",
+        "bytes": 240044,
+        "sha256": "864b32e86c0da9d3155e294414aa4363c65023a8638d9b7b2ffef575a34fb8b4"
+      },
+      {
+        "path": "brumm-audio/brummbeobachter-wav/BB001/2026-09-01/BB001_20260901_123804_R4_62c4ee44-8be3-496d-be27-e8cda225d153.wav",
+        "bytes": 240044,
+        "sha256": "864b32e86c0da9d3155e294414aa4363c65023a8638d9b7b2ffef575a34fb8b4"
+      }
+    ]
+  },
+  "edge_functions": [
+    "get_all_observations",
+    "get_radius_histograms",
+    "get_recent_observations",
+    "submit_observation",
+    "upload_wav"
+  ]
+}

@@ -1,0 +1,36 @@
+from pathlib import Path
+root = Path('.')
+checks = []
+def ck(name, cond): checks.append((name, bool(cond)))
+
+build=(root/'app/build.gradle.kts').read_text(encoding='utf-8')
+policy=(root/'app/src/main/java/de/brummbeobachter/app/RollingAudioPolicy.kt').read_text(encoding='utf-8')
+engine=(root/'app/src/main/java/de/brummbeobachter/app/RollingAudioEngine.kt').read_text(encoding='utf-8')
+service=(root/'app/src/main/java/de/brummbeobachter/app/RollingAudioService.kt').read_text(encoding='utf-8')
+main=(root/'app/src/main/java/de/brummbeobachter/app/MainActivity.kt').read_text(encoding='utf-8')
+archive=(root/'app/src/main/java/de/brummbeobachter/app/AudioArchive.kt').read_text(encoding='utf-8')
+
+ck('version 0.4.53', 'versionCode = 93' in build and 'versionName = "0.4.53"' in build)
+ck('capacity remains 30 minutes', 'ROLLING_DURATION_SECONDS = 30 * 60' in policy)
+ck('status explicitly says last 30 minutes when full', '"letzte 30:00 min"' in policy)
+ck('filling status remains visible before full', '"%d:%02d / 30:00 min"' in policy)
+ck('service uses shared rolling status policy', 'RollingAudioPolicy.bufferStatusText(sec)' in service)
+ck('MORE uses shared rolling status policy', 'RollingAudioPolicy.bufferStatusText(liveRollingSeconds)' in main)
+ck('ring only increases size until capacity', 'if (size < ring.size) size++' in engine)
+ck('ring wraps write index continuously', 'writeIndex = (writeIndex + 1) % ring.size' in engine)
+ck('full snapshot starts from current write index', 'val start = if (size == ring.size) writeIndex else 0' in engine)
+ck('snapshot does not clear size', 'fun snapshot' in engine and 'size = 0' not in engine[engine.index('fun snapshot'):engine.index('suspend fun captureNext')])
+ck('snapshot does not reset write index', 'writeIndex = 0' not in engine[engine.index('fun snapshot'):engine.index('suspend fun captureNext')])
+ck('rolling remains local only', 'rollingBuffer' in archive and 'ROLLING_UPLOAD_BLOCKED' in main)
+ck('save button retained', 'Rolling-Buffer sichern' in main)
+ck('comment dialog retained', 'Kommentar zur Rolling-Aufnahme' in main)
+ck('same audio list retained', 'audioEntries' in main and 'onDeleteRolling' in main)
+ck('waterfall retained', 'onGenerateWaterfallForEntry' in main)
+ck('correct MAIN swipe', 'onSwipeLeft = { currentPanel = AppPanel.MORE },\n                onSwipeRight = { }' in main)
+ck('correct MORE swipe', 'onSwipeLeft = { currentPanel = AppPanel.SETTINGS },\n                onSwipeRight = { currentPanel = AppPanel.MAIN }' in main)
+ck('correct SETTINGS swipe', 'onSwipeLeft = { },\n                onSwipeRight = { currentPanel = AppPanel.MORE }' in main)
+
+failed=[n for n,ok in checks if not ok]
+for n,ok in checks: print(('PASS' if ok else 'FAIL')+': '+n)
+print(f'{len(checks)-len(failed)}/{len(checks)} PASS')
+raise SystemExit(1 if failed else 0)

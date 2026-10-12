@@ -1,0 +1,10 @@
+# Xiaomi-Testplan – LFN-Scout v0.5.08
+
+**Vorbedingung:** Update über bestehende Installation ohne App-Datenlöschen, `:app:testDebugUnitTest` UND `assembleDebug` jeweils `BUILD SUCCESSFUL`. Ergebnis je Prüffall PASS/FAIL aufzeichnen.
+
+1. **Tick-/Datum/Uhrzeitachse:** Im 8-kHz-Modus 120 s Historie einstellen. Farbbalken bleibt links sichtbar, rechts davon schwarzes Zeitband mit weißen zweizeiligen Angaben `dd.MM` und `HH:mm`. Neue Zeilen oben, alte Zeitmarken und Ticks wandern synchron nach unten; Sekundenachse entfällt. Sofort nach den ersten gültigen Zeilen erscheint ein aktueller Zeitstempel. Maximal fünf sichtbare Zeitstempel.
+2. **Zeitintervall:** Wasserfallzeiten 120, 600, 1200, 3600, 7200 und 14400 s anlegen (1, 5, 5, 20, 30, 60 Minuten); Test bei passenden echten Laufzeiten oder beschleunigtem reproduzierbarem Datenfixture. Ungenutzte Fläche darf keine erfundenen Minutenstempel enthalten. Zeit-/Spektrumplot beim Bereich 0–20 / 0–100 / 0–200 Hz und Breitband 0–22000 Hz geometrisch fluchten lassen. Bei langen Zeiten Reaktionsfähigkeit und Speicher prüfen.
+3. **Grenzen:** Bei START, PAUSE, erneutem RUN, STOP sowie Akt/MW/MAX-Umschaltung müssen Zeilen und Zeitmarken synchron bleiben; bei echter PAUSE keine rückdatierten künstlichen Zeilen. Mitternacht durch Testfixture überprüfen; Ticks dürfen an den Bildschirmrändern nicht überlappen. Echtzeit-Uhrzeit bei Zeitänderung prüfen.
+4. **Bildexport:** PNG und JPG mit identischen Zeitmarken und Ticks, schmalem Farbmaßstab und deckungsgleicher Frequenzachse prüfen. Auto-Bildzyklen und Hintergrund-Panelwechsel regressionsprüfen.
+5. **Kamera:** Langdruck meldet nach tatsächlichem Speichern per ca. 2-s-Pop-up unmittelbar oberhalb der Kamera. Bei Fehler erscheint Fehlermeldung. Kurz-Tipp schaltet Auto ohne Bild um; Langdruck genau eine Datei ohne Toggle.
+6. **Restliche Regression:** Spektrumkurven Aktuell/Average/MAX, MAX/CLR, 8-kHz-Modi, 48-kHz-STOP + Panelverlassen + Rolling-Neustart, Setup-Export, WAV, Bewertungen, Seismik und Diagnose. 16:1-Pegelabweichung ist weiterhin ein offener Befund, NICHT als bestanden deklarieren.

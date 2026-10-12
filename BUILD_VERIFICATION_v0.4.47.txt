@@ -1,0 +1,23 @@
+LFN-Scout v0.4.47 – Verifikationsstand
+
+Geändert:
+- Wasserfall nun 0–140 Hz
+- adaptive Pegelrange aus 2–140 Hz
+- L50/L90 im Bild
+- Kommentar im Bild
+- Wasserfall pro lokaler Aufnahme auswählbar
+- Anzeige aller lokalen Aufnahmen
+- PNG-Dateiname inkl. L50/L90
+
+Statische Prüfungen:
+- geänderte Kotlin-Dateien Klammerbilanz: PASS
+- Version auf 0.4.47 / Code 87: PASS
+- alte 20er-Begrenzung entfernt: PASS
+- Dialog-/UI-Texte für 0–140 Hz vorhanden: PASS
+- L50/L90-Felder vorhanden: PASS
+- Kommentar-Overlay vorhanden: PASS
+- PNG-Dateiname mit _WF140 und L50/L90: PASS
+
+Hinweis:
+- Keine neue Supabase-Migration erforderlich.
+- Vollständiger Android-Studio-Build muss weiter auf dem Windows-Rechner geprüft werden.

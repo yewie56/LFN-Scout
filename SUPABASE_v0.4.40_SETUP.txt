@@ -1,0 +1,31 @@
+LFN-Scout v0.4.40 – Supabase-Hinweis
+
+Keine neue SQL-Migration erforderlich.
+
+Es muss nur die Edge Function `upload_wav` neu deployed werden:
+  supabase/functions/upload_wav/index.ts
+
+Zusätzlich gehört zur Function jetzt:
+  supabase/functions/upload_wav/storage_filename.js
+
+JWT verification bleibt OFF.
+
+Neue Storage-Namensgebung für NEUE Uploads:
+  BB001/2026-09-09_01-23-45_G30_UNP_R3.wav
+
+Bedeutung:
+- BB001 = observer_id
+- 2026-09-09_01-23-45 = lokaler Startzeitpunkt der Aufnahme
+- G30 = Gain +30 dB
+- UNP = tatsächlich verwendete AudioSource UNPROCESSED
+- MIC = tatsächlich verwendete AudioSource MIC
+- R0..R5 = letzte gültige Bewertung des Beobachters, höchstens 30 Minuten alt
+- RX = keine gültige Bewertung 0..5 innerhalb der letzten 30 Minuten
+
+Die Bewertung für den Dateinamen wird SERVERSEITIG in `upload_wav`
+aus der Tabelle `observations` bestimmt. Die App übermittelt dafür
+keine Bewertungszahl.
+
+Wichtig:
+- Bestehende WAV-Dateien mit UUID-Namen werden nicht automatisch umbenannt.
+- Die neue Namensgebung gilt nur für neu hochgeladene WAV-Dateien.

@@ -1,0 +1,20 @@
+LFN-Scout v0.4.33 – Verifikationsstand
+
+PASS: old self-overwriting wrapper call removed
+PASS: safe bootstrap initialization uses --version
+PASS: direct bootstrap wrapper call present
+PASS: bootstrap path is Gradle 8.13
+PASS: launcher restored only after wrapper task
+PASS: custom launcher template unchanged
+PASS: Java 17 sibling-project search retained
+PASS: PowerShell 5.1 Java probe fix retained
+PASS: download progress retained
+PASS: versionName 0.4.33
+PASS: versionCode 73
+PASS: +50 dB audio retained
+PASS: live CLIP retained
+
+NICHT IN DIESER UMGEBUNG VERIFIZIERT:
+- tatsächliche Ausführung von PREPARE_PROJECT.bat unter Windows cmd/PowerShell
+- vollständiger Android-Studio/AGP-Build
+Diese beiden Punkte müssen auf dem Windows-Buildrechner geprüft werden.

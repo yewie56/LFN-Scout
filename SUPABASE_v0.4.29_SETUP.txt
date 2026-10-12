@@ -1,0 +1,13 @@
+LFN-Scout v0.4.29 – Supabase-Hinweis
+
+Keine neue SQL-Migration gegenüber v0.4.28 erforderlich.
+
+Wegen des erweiterten Gain-Bereichs muss nur diese Edge Function
+erneut deployed werden:
+
+  supabase/functions/upload_wav/index.ts
+
+JWT verification bleibt OFF.
+
+Änderung:
+- upload_wav akzeptiert gain_db jetzt 0..50 statt 0..30.

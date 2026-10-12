@@ -1,0 +1,35 @@
+LFN-Scout v0.4.86 – Build-/Teststatus (2026-09-19)
+=======================================================
+
+Ausgangsbasis: v0.4.85 Phase2H SeismikTests-Fix (unveraenderte App-Produktionsquellen).
+Aenderung: Windows-JDK-17-Vorbereitung fuer Gradle-Daemon + analyzer-core-Toolchain.
+VersionName = 0.4.86; versionCode = 126; applicationId unveraendert.
+
+Beobachtetes Nutzerergebnis fuer VORVERSION v0.4.85:
+- :analyzer-core:test BUILD SUCCESSFUL
+- :app:testDebugUnitTest BUILD SUCCESSFUL (nach Seismik-Testkorrektur)
+- assembleDebug BUILD SUCCESSFUL
+- Android Studio Gradle Sync: FAIL, JDK17-Toolchain nicht gefunden.
+Diese Ergebnisse sind NICHT als v0.4.86-Testergebnisse uebernommen.
+
+Tests fuer v0.4.86 in dieser Umgebung:
+- verify_v0486_jdk.py: statische Buildsetup-Pruefung (separates Testprotokoll).
+- verify_analyzer_highspeed.py / verify_analyzer_phase2.py: statische Integrationsregression.
+- verify_v0486_reconstruction.py / verify_reconstruction.py: Quellen- und Manifest-Pruefung.
+- ZIP-Integritaet / WAV-Gleichheit: im Abschlussbericht.
+
+NICHT AUSGEFUEHRT: PREPARE_PROJECT.bat unter Windows 11, echter Android-Studio-Gradle-Sync,
+Gradle :analyzer-core:test / :app:testDebugUnitTest / assembleDebug fuer v0.4.86,
+Xiaomi-Geraetetest und 48-kHz-Hardware-Erfassung.
+
+Windows-Pruefpfad:
+  1. PREPARE_PROJECT.bat
+  2. python verify_v0486_jdk.py
+  3. python verify_analyzer_highspeed.py
+  4. .\gradlew.bat :analyzer-core:test --stacktrace
+  5. .\gradlew.bat :app:testDebugUnitTest --stacktrace
+  6. .\gradlew.bat assembleDebug --stacktrace
+  7. Android Studio: Sync; verbundenes Xiaomi: Run.
+
+Keine APK aus dieser Umgebung erzeugt.
+PRIVATE ZIP: Supabase-Recovery-Dump + 53 WAV-Backups; nicht oeffentlich publizieren.

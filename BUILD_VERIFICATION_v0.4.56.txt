@@ -1,0 +1,18 @@
+LFN-Scout v0.4.56 – Verification
+Date: 2026-09-13
+
+PASS verify_v0456_requirements.py: 17/17
+PASS RollingBufferContinuitySelfTest
+PASS RollingSnapshotContinuitySelfTest
+PASS WaterfallTimeAxisSelfTest
+PASS CommentPolicySelfTest
+PASS supabase/ byte-identical to v0.4.55
+PASS only one MainActivity RollingAudioService.requestStop(appContext), used for explicit disable
+
+Android Gradle verification:
+NOT RUN TO COMPLETION in this offline environment.
+./gradlew testDebugUnitTest attempted, but Gradle 8.13 download failed because services.gradle.org could not be resolved.
+Run on Windows after PREPARE_PROJECT.bat:
+  gradlew.bat clean
+  gradlew.bat testDebugUnitTest
+  gradlew.bat assembleDebug

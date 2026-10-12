@@ -1,0 +1,17 @@
+LFN-Scout v0.4.48 – Verifikationsstand
+
+Statische Anforderungs-/Regressionstests: 20/20 PASS
+TDD-Anforderungstest: initial RED, final PASS
+Bestehender Supabase-WAV-Dateinamentest: PASS
+Klammerbilanz geänderter Kotlin-Dateien: 0
+
+Neue Regeln:
+- Lokale WAV: BBxxx_YYYY-MM-DD_HH-MM-SS_Gxx_UNP/MIC_Rn.wav
+- Rn nur für letzte Bewertung 0..5 <= 30 Minuten vor Aufnahmestart; 30:00 zählt.
+- sonst RX.
+- PNG: exakt WAV-Stamm + _L50..._L90..._WF<MaxFreq>.png
+- WF-Zahl dynamisch aus FREQ_MAX_HZ.
+
+Buildversuch:
+- Gradle assembleDebug --offline wurde gestartet.
+- Vollständiger Build war in dieser Umgebung nicht möglich, weil die Gradle-8.13-Distribution nicht lokal vorhanden war und services.gradle.org nicht auflösbar ist.

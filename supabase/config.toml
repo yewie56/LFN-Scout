@@ -1,0 +1,20 @@
+[functions.submit_observation]
+verify_jwt = false
+
+[functions.upload_wav]
+verify_jwt = false
+
+[functions.get_recent_observations]
+verify_jwt = false
+
+[functions.get_all_observations]
+verify_jwt = false
+
+[functions.get_radius_histograms]
+verify_jwt = false
+
+[functions.submit_audio_statistics]
+verify_jwt = false
+
+[functions.submit_half_hour_statistics]
+verify_jwt = false

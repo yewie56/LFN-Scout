@@ -1,0 +1,24 @@
+{
+  "_note": "Nur Illustrationsschema – kein reales PNG erzeugt.",
+  "schemaVersion": 1,
+  "snapshotId": "example-analyzer-0003",
+  "source": "ANALYZER_OFFSCREEN",
+  "waterfallInterval": {
+    "startMonotonicNs": 123000000000,
+    "endMonotonicNs": 243000000000
+  },
+  "captureEndUtc": "2026-09-19T12:02:00Z",
+  "exportedAtUtc": "2026-09-19T12:02:01Z",
+  "setupId": "a8ce3426-6df2-4302-b8d7-d90e9f1c805e",
+  "setupRevision": 1,
+  "histogramIds": [
+    "example-histo-0004"
+  ],
+  "histogramCreatedAtUtc": [
+    "2026-09-19T12:00:00Z"
+  ],
+  "inputClip": false,
+  "monitorClipWarning": false,
+  "saveStatus": "OK",
+  "imageLayout": "NORMAL"
+}

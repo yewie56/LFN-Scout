@@ -1,0 +1,20 @@
+LFN-Scout v0.4.27 – Selbstprüfung
+
+PASS Primärfarbe #1F8F8A (dunkleres Türkis)
+PASS Akzentfarbe #E0B000 (sattes Chromegelb)
+PASS ausgewählte Bewertung nutzt Chromegelb
+PASS Bildschirmrand kompakt 10 dp
+PASS Abschnittsabstand kompakt 5 dp
+PASS Karteninnenabstand kompakt 10 dp
+PASS Feldabstand kompakt 4 dp
+PASS Bewertungsbuttons 54 dp hoch
+PASS Kommentarfeld 1–3 Zeilen
+PASS Drei Panels erhalten
+PASS Radius-Histogramme 2×2 erhalten
+PASS In-Process-Tonpakete erhalten
+PASS Fullscreen-Timeout-Fix erhalten
+PASS versionName 0.4.27 / versionCode 67
+
+BUILD:
+Vollständiger Android-Build muss in Android Studio/auf dem Build-PC
+bestätigt werden, falls services.gradle.org in dieser Umgebung nicht erreichbar ist.

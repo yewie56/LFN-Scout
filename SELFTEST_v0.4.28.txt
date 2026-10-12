@@ -1,0 +1,76 @@
+LFN-Scout v0.4.28 – Selbsttest / Regression
+
+A. VERSION
+PASS erwartet: versionName 0.4.28
+PASS erwartet: versionCode 68
+PASS erwartet: Observation app_version 0.4.28
+
+B. FACELIFT
+PASS erwartet: 3 Panels MAIN / SETTINGS / MORE
+PASS erwartet: Türkis #1F8F8A
+PASS erwartet: Chromegelb #E0B000
+PASS erwartet: Radius-Histogramme 2×2
+PASS erwartet: Bildschirmrand 7 dp
+PASS erwartet: Abschnittsabstand 3 dp
+PASS erwartet: Karteninnenabstand 7 dp
+PASS erwartet: Feldabstand 2 dp
+
+C. REMINDER
+PASS erwartet: Paket 1 sofort
+PASS erwartet: Paket 2 bei 1/3 des Antwortfensters
+PASS erwartet: Paket 3 bei 2/3 des Antwortfensters
+PASS erwartet: Test-Erinnerung verwendet ebenfalls In-Process-Tonpakete
+PASS erwartet: Fullscreen-Timeout-Fix aus v0.4.24 bleibt erhalten
+
+D. WECKLAUTSTÄRKE
+1. Einstellungen -> Auffälligkeit & Signal.
+2. Wecklautstärke ändern.
+3. Ton testen.
+PASS: Lautstärke folgt dem Regler und bleibt nach Neustart gespeichert.
+
+E. AUDIO-GAIN
+PASS erwartet: Regler 0..+30 dB
+PASS erwartet: 1-dB-Schritte
+PASS erwartet: Gain persistent
+
+F. AUDIOAUFNAHME
+1. Aufzeichnung starten.
+2. Falls nötig Mikrofonberechtigung erteilen.
+3. Warnfenster muss erscheinen:
+   „Bitte Handy auf eine leicht gepolsterte Oberfläche
+   (zusammengefaltetes Küchentuch) legen und 2 min keine Geräusche machen.“
+4. Countdown muss 15 bis 1 laufen.
+5. Danach 120-s-Aufnahme.
+PASS: Abbrechen beendet Aufnahme.
+PASS: WAV ist PCM16 / mono / 1000 Hz.
+PASS: Clipping wird gezählt/angezeigt.
+PASS: Nach Aufnahmeende startet der Upload automatisch.
+PASS: Bei Uploadfehler bleibt WAV lokal unter files/audio_pending.
+
+G. TAGESLIMIT
+PASS erwartet: Standard 10.
+PASS erwartet: Hauptpanel zeigt n / max.
+PASS erwartet: Bei n == max wird Start gesperrt.
+PASS erwartet: Maximalwert ist nur im Entwicklermodus änderbar.
+
+H. ENTWICKLERMODUS
+Beispielschlüssel:
+BB-PP8J-MYEN-YRNX-JHWX
+Vierergruppen:
+PP8J / MYEN / YRNX / JHWX
+3. Vierergruppe = YRNX
+Passwort = XNRY
+
+PASS: falsches Passwort aktiviert nicht.
+PASS: korrektes Passwort aktiviert persistent.
+PASS: Abschalten benötigt kein Passwort.
+PASS: Rohdaten/Debug/Systemdetails erscheinen nur im Entwicklermodus.
+PASS: key_revoked deaktiviert Entwicklermodus.
+
+I. SERVER
+Vor App-Test Migration 20260908_audio_and_key_status.sql ausführen.
+upload_wav und die vier vorhandenen Edge Functions neu deployen.
+
+BUILDSTATUS
+Der vollständige Android-Build muss mit Android Studio / Build-PC bestätigt
+werden, falls services.gradle.org in dieser Umgebung nicht erreichbar ist.

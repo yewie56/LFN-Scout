@@ -1,0 +1,915 @@
+SET session_replication_role = replica;
+
+--
+-- PostgreSQL database dump
+--
+
+-- \restrict Zk4ac6fYfm2lxUtEBK74T7cgu61I3UbkabmnifPDSsiFTKPBJ3cFj4v3JmfyQhA
+
+-- Dumped from database version 17.6
+-- Dumped by pg_dump version 17.6
+
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET idle_in_transaction_session_timeout = 0;
+SET transaction_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SELECT pg_catalog.set_config('search_path', '', false);
+SET check_function_bodies = false;
+SET xmloption = content;
+SET client_min_messages = warning;
+SET row_security = off;
+
+--
+-- Data for Name: audit_log_entries; Type: TABLE DATA; Schema: auth; Owner: supabase_auth_admin
+--
+
+COPY "auth"."audit_log_entries" ("instance_id", "id", "payload", "created_at", "ip_address") FROM stdin;
+\.
+
+
+--
+-- Data for Name: custom_oauth_providers; Type: TABLE DATA; Schema: auth; Owner: supabase_auth_admin
+--
+
+COPY "auth"."custom_oauth_providers" ("id", "provider_type", "identifier", "name", "client_id", "client_secret", "acceptable_client_ids", "scopes", "pkce_enabled", "attribute_mapping", "authorization_params", "enabled", "email_optional", "issuer", "discovery_url", "skip_nonce_check", "cached_discovery", "discovery_cached_at", "authorization_url", "token_url", "userinfo_url", "jwks_uri", "created_at", "updated_at", "custom_claims_allowlist") FROM stdin;
+\.
+
+
+--
+-- Data for Name: flow_state; Type: TABLE DATA; Schema: auth; Owner: supabase_auth_admin
+--
+
+COPY "auth"."flow_state" ("id", "user_id", "auth_code", "code_challenge_method", "code_challenge", "provider_type", "provider_access_token", "provider_refresh_token", "created_at", "updated_at", "authentication_method", "auth_code_issued_at", "invite_token", "referrer", "oauth_client_state_id", "linking_target_id", "email_optional") FROM stdin;
+\.
+
+
+--
+-- Data for Name: users; Type: TABLE DATA; Schema: auth; Owner: supabase_auth_admin
+--
+
+COPY "auth"."users" ("instance_id", "id", "aud", "role", "email", "encrypted_password", "email_confirmed_at", "invited_at", "confirmation_token", "confirmation_sent_at", "recovery_token", "recovery_sent_at", "email_change_token_new", "email_change", "email_change_sent_at", "last_sign_in_at", "raw_app_meta_data", "raw_user_meta_data", "is_super_admin", "created_at", "updated_at", "phone", "phone_confirmed_at", "phone_change", "phone_change_token", "phone_change_sent_at", "email_change_token_current", "email_change_confirm_status", "banned_until", "reauthentication_token", "reauthentication_sent_at", "is_sso_user", "deleted_at", "is_anonymous") FROM stdin;
+\.
+
+
+--
+-- Data for Name: identities; Type: TABLE DATA; Schema: auth; Owner: supabase_auth_admin
+--
+
+COPY "auth"."identities" ("provider_id", "user_id", "identity_data", "provider", "last_sign_in_at", "created_at", "updated_at", "id") FROM stdin;
+\.
+
+
+--
+-- Data for Name: instances; Type: TABLE DATA; Schema: auth; Owner: supabase_auth_admin
+--
+
+COPY "auth"."instances" ("id", "uuid", "raw_base_config", "created_at", "updated_at") FROM stdin;
+\.
+
+
+--
+-- Data for Name: oauth_clients; Type: TABLE DATA; Schema: auth; Owner: supabase_auth_admin
+--
+
+COPY "auth"."oauth_clients" ("id", "client_secret_hash", "registration_type", "redirect_uris", "grant_types", "client_name", "client_uri", "logo_uri", "created_at", "updated_at", "deleted_at", "client_type", "token_endpoint_auth_method") FROM stdin;
+\.
+
+
+--
+-- Data for Name: sessions; Type: TABLE DATA; Schema: auth; Owner: supabase_auth_admin
+--
+
+COPY "auth"."sessions" ("id", "user_id", "created_at", "updated_at", "factor_id", "aal", "not_after", "refreshed_at", "user_agent", "ip", "tag", "oauth_client_id", "refresh_token_hmac_key", "refresh_token_counter", "scopes") FROM stdin;
+\.
+
+
+--
+-- Data for Name: mfa_amr_claims; Type: TABLE DATA; Schema: auth; Owner: supabase_auth_admin
+--
+
+COPY "auth"."mfa_amr_claims" ("session_id", "created_at", "updated_at", "authentication_method", "id") FROM stdin;
+\.
+
+
+--
+-- Data for Name: mfa_factors; Type: TABLE DATA; Schema: auth; Owner: supabase_auth_admin
+--
+
+COPY "auth"."mfa_factors" ("id", "user_id", "friendly_name", "factor_type", "status", "created_at", "updated_at", "secret", "phone", "last_challenged_at", "web_authn_credential", "web_authn_aaguid", "last_webauthn_challenge_data") FROM stdin;
+\.
+
+
+--
+-- Data for Name: mfa_challenges; Type: TABLE DATA; Schema: auth; Owner: supabase_auth_admin
+--
+
+COPY "auth"."mfa_challenges" ("id", "factor_id", "created_at", "verified_at", "ip_address", "otp_code", "web_authn_session_data") FROM stdin;
+\.
+
+
+--
+-- Data for Name: mfa_recovery_code_sets; Type: TABLE DATA; Schema: auth; Owner: supabase_auth_admin
+--
+
+COPY "auth"."mfa_recovery_code_sets" ("id", "user_id", "mfa_factor_id", "failed_verification_count", "verification_locked_until", "created_at", "updated_at") FROM stdin;
+\.
+
+
+--
+-- Data for Name: mfa_recovery_codes; Type: TABLE DATA; Schema: auth; Owner: supabase_auth_admin
+--
+
+COPY "auth"."mfa_recovery_codes" ("id", "mfa_recovery_code_set_id", "code_hash", "consumed_at", "created_at") FROM stdin;
+\.
+
+
+--
+-- Data for Name: oauth_authorizations; Type: TABLE DATA; Schema: auth; Owner: supabase_auth_admin
+--
+
+COPY "auth"."oauth_authorizations" ("id", "authorization_id", "client_id", "user_id", "redirect_uri", "scope", "state", "resource", "code_challenge", "code_challenge_method", "response_type", "status", "authorization_code", "created_at", "expires_at", "approved_at", "nonce") FROM stdin;
+\.
+
+
+--
+-- Data for Name: oauth_client_states; Type: TABLE DATA; Schema: auth; Owner: supabase_auth_admin
+--
+
+COPY "auth"."oauth_client_states" ("id", "provider_type", "code_verifier", "created_at") FROM stdin;
+\.
+
+
+--
+-- Data for Name: oauth_consents; Type: TABLE DATA; Schema: auth; Owner: supabase_auth_admin
+--
+
+COPY "auth"."oauth_consents" ("id", "user_id", "client_id", "scopes", "granted_at", "revoked_at") FROM stdin;
+\.
+
+
+--
+-- Data for Name: one_time_tokens; Type: TABLE DATA; Schema: auth; Owner: supabase_auth_admin
+--
+
+COPY "auth"."one_time_tokens" ("id", "user_id", "token_type", "token_hash", "relates_to", "created_at", "updated_at", "expires_at") FROM stdin;
+\.
+
+
+--
+-- Data for Name: refresh_tokens; Type: TABLE DATA; Schema: auth; Owner: supabase_auth_admin
+--
+
+COPY "auth"."refresh_tokens" ("instance_id", "id", "token", "user_id", "revoked", "created_at", "updated_at", "parent", "session_id") FROM stdin;
+\.
+
+
+--
+-- Data for Name: sso_providers; Type: TABLE DATA; Schema: auth; Owner: supabase_auth_admin
+--
+
+COPY "auth"."sso_providers" ("id", "resource_id", "created_at", "updated_at", "disabled") FROM stdin;
+\.
+
+
+--
+-- Data for Name: saml_providers; Type: TABLE DATA; Schema: auth; Owner: supabase_auth_admin
+--
+
+COPY "auth"."saml_providers" ("id", "sso_provider_id", "entity_id", "metadata_xml", "metadata_url", "attribute_mapping", "created_at", "updated_at", "name_id_format") FROM stdin;
+\.
+
+
+--
+-- Data for Name: saml_relay_states; Type: TABLE DATA; Schema: auth; Owner: supabase_auth_admin
+--
+
+COPY "auth"."saml_relay_states" ("id", "sso_provider_id", "request_id", "for_email", "redirect_to", "created_at", "updated_at", "flow_state_id") FROM stdin;
+\.
+
+
+--
+-- Data for Name: scim_tokens; Type: TABLE DATA; Schema: auth; Owner: supabase_auth_admin
+--
+
+COPY "auth"."scim_tokens" ("id", "sso_provider_id", "token_hash", "prefix", "created_at", "expires_at", "revoked_at", "last_used_at") FROM stdin;
+\.
+
+
+--
+-- Data for Name: scim_users; Type: TABLE DATA; Schema: auth; Owner: supabase_auth_admin
+--
+
+COPY "auth"."scim_users" ("id", "sso_provider_id", "user_id", "resource", "created_at", "updated_at", "deleted_at") FROM stdin;
+\.
+
+
+--
+-- Data for Name: sso_domains; Type: TABLE DATA; Schema: auth; Owner: supabase_auth_admin
+--
+
+COPY "auth"."sso_domains" ("id", "sso_provider_id", "domain", "created_at", "updated_at") FROM stdin;
+\.
+
+
+--
+-- Data for Name: webauthn_challenges; Type: TABLE DATA; Schema: auth; Owner: supabase_auth_admin
+--
+
+COPY "auth"."webauthn_challenges" ("id", "user_id", "challenge_type", "session_data", "created_at", "expires_at") FROM stdin;
+\.
+
+
+--
+-- Data for Name: webauthn_credentials; Type: TABLE DATA; Schema: auth; Owner: supabase_auth_admin
+--
+
+COPY "auth"."webauthn_credentials" ("id", "user_id", "credential_id", "public_key", "attestation_type", "aaguid", "sign_count", "transports", "backup_eligible", "backed_up", "friendly_name", "created_at", "updated_at", "last_used_at") FROM stdin;
+\.
+
+
+--
+-- Data for Name: app_config; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY "public"."app_config" ("config_id", "interval_minutes", "response_window_minutes", "active_from", "active_until", "updated_at") FROM stdin;
+default	30	10	07:00:00	23:00:00	2026-09-01 09:56:48.933983+00
+\.
+
+
+--
+-- Data for Name: observers; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY "public"."observers" ("observer_id", "latitude", "longitude", "key_hash", "enabled", "created_at", "status", "revoked_at", "paused_at") FROM stdin;
+BB001	50.11	8.68	0af6f2c612d9d0f563ce82fb49d6b2186454feb1eec2f833f897def1127d7c26	t	2026-09-01 07:19:16+00	active	\N	\N
+\.
+
+
+--
+-- Data for Name: audio_recordings; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY "public"."audio_recordings" ("recording_id", "observer_id", "recorded_at", "sample_rate_hz", "channels", "bits_per_sample", "gain_db", "clipped_samples", "storage_path", "created_at", "comment") FROM stdin;
+f16c944e-5d6d-47c3-88db-16ec3bfdf900	BB001	2026-09-08 21:30:53.865909+00	1000	1	16	9	0	BB001/f16c944e-5d6d-47c3-88db-16ec3bfdf900.wav	2026-09-08 21:30:54.931222+00	\N
+22eff2a2-5ab0-4ac7-92ea-5d9381edc8fc	BB001	2026-09-08 21:46:25.137243+00	1000	1	16	29	0	BB001/22eff2a2-5ab0-4ac7-92ea-5d9381edc8fc.wav	2026-09-08 21:46:26.06533+00	\N
+89292d01-79fb-42ce-8958-542c8be9ce71	BB001	2026-09-08 22:12:30.119207+00	1000	1	16	50	0	BB001/89292d01-79fb-42ce-8958-542c8be9ce71.wav	2026-09-08 22:12:32.247104+00	\N
+eafc088c-62af-4cc5-ab40-1690d1cfef6c	BB001	2026-09-08 22:56:07.11594+00	1000	1	16	50	199	BB001/eafc088c-62af-4cc5-ab40-1690d1cfef6c.wav	2026-09-08 22:56:08.272898+00	\N
+2c19877a-ce84-420a-8c6e-35e88f3ab841	BB001	2026-09-08 23:46:32.309984+00	1000	1	16	30	0	BB001/2c19877a-ce84-420a-8c6e-35e88f3ab841.wav	2026-09-08 23:46:33.413364+00	\N
+9154fc8e-2ff0-40e1-89e6-2c10ff22f252	BB001	2026-09-09 00:48:26.327452+00	1000	1	16	50	2	BB001/9154fc8e-2ff0-40e1-89e6-2c10ff22f252.wav	2026-09-09 00:48:27.592358+00	\N
+373a6818-c609-4fc6-b22c-f177a2a80175	BB001	2026-09-09 06:51:49.535329+00	1000	1	16	50	0	BB001/373a6818-c609-4fc6-b22c-f177a2a80175.wav	2026-09-09 06:51:51.677538+00	\N
+d52744ff-3dea-4a0c-bc0c-d47c16e272f0	BB001	2026-09-09 07:18:25.315992+00	1000	1	16	50	0	BB001/2026-09-09_09-18-25_G50_UNP_R4.wav	2026-09-09 07:20:27.832518+00	\N
+4ab28e5b-4d2a-4305-8b9f-5ec82eab229c	BB001	2026-09-09 09:18:07.896006+00	1000	1	16	30	5	BB001/2026-09-09_11-18-07_G30_UNP_R2.wav	2026-09-09 09:20:10.482329+00	\N
+4b2da3f7-f94b-4426-9cd7-b74f2152cb61	BB001	2026-09-09 18:16:11.232074+00	1000	1	16	30	0	BB001/2026-09-09_20-16-11_G30_UNP_R5.wav	2026-09-09 18:18:13.206763+00	\N
+75642cd2-2e52-4206-ba00-53cb96dbd452	BB001	2026-09-09 20:49:19.312312+00	1000	1	16	30	0	BB001/2026-09-09_22-49-19_G30_UNP_R5.wav	2026-09-09 20:51:21.199972+00	\N
+1bb56d30-22c7-41a0-bfd3-6e178c3158dd	BB001	2026-09-09 20:59:51.710325+00	1000	1	16	50	17	BB001/2026-09-09_22-59-51_G50_UNP_R5.wav	2026-09-09 21:09:23.958961+00	sehr laut
+0bf06822-1b7a-45cf-8fab-d9562151a461	BB001	2026-09-09 21:09:54.595498+00	1000	1	16	50	0	BB001/2026-09-09_23-09-54_G50_UNP_R5.wav	2026-09-09 21:12:14.698752+00	sehr laut
+cfc2abaf-0742-4249-af97-2c8d14e7584f	BB001	2026-09-09 21:50:36.982052+00	1000	1	16	50	0	BB001/BB001_2026-09-09_23-50-36_G50_UNP_R5.wav	2026-09-09 21:53:10.675051+00	sehr laut\n
+f785d0b1-2570-43ba-9fba-1a2c6a40a20b	BB001	2026-09-09 22:26:29.021839+00	1000	1	16	50	0	BB001/BB001_2026-09-10_00-26-29_G50_UNP_RX.wav	2026-09-09 22:28:45.641629+00	sehr laut
+5865bdda-d6bf-4179-8b43-6d67f3625f42	BB001	2026-09-10 00:24:32.516092+00	1000	1	16	50	0	BB001/BB001_2026-09-10_02-24-32_G50_UNP_R5.wav	2026-09-10 00:26:53.742362+00	Horror brutal laut
+44d268af-ee8f-42a3-9b18-7c2597993a19	BB001	2026-09-10 04:21:34.297986+00	1000	1	16	50	0	BB001/BB001_2026-09-10_06-21-34_G50_UNP_R4.wav	2026-09-10 04:23:45.904901+00	laut
+4cbee379-0fdb-4f8b-b2ab-b88826e74583	BB001	2026-09-10 04:29:56.788106+00	1000	1	16	50	0	BB001/BB001_2026-09-10_06-29-56_G50_UNP_R4.wav	2026-09-10 04:32:10.121805+00	\N
+60a69c82-6ee6-46d4-93bd-35b1cd225a67	BB001	2026-09-10 05:07:21.388855+00	1000	1	16	50	0	BB001/BB001_2026-09-10_07-07-21_G50_UNP_R4.wav	2026-09-10 05:09:38.33813+00	laut 
+99936d95-5b5b-4c51-9461-aa3fedc41644	BB001	2026-09-10 05:30:28.937181+00	1000	1	16	50	0	BB001/BB001_2026-09-10_07-30-28_G50_UNP_R3.wav	2026-09-10 05:32:42.161323+00	mittel
+00879840-39c9-4303-99e2-e423d0b20ee2	BB001	2026-09-10 15:29:13.81415+00	1000	1	16	50	354	BB001/BB001_2026-09-10_17-29-13_G50_UNP_R5.wav	2026-09-10 15:31:30.430547+00	Erdbeben 
+5ad9724a-8801-49ef-aa61-fb801968ebc0	BB001	2026-09-10 23:16:37.973864+00	1000	1	16	50	0	BB001/BB001_2026-09-11_01-16-37_G50_UNP_R3.wav	2026-09-10 23:18:48.456763+00	\N
+a4747bec-b710-4f69-a6d1-b736f24d5bd1	BB001	2026-09-12 15:00:40.348015+00	1000	1	16	50	0	BB001/BB001_2026-09-12_17-00-40_G50_UNP_R0.wav	2026-09-12 15:03:04.549734+00	kein BRUMM, nur am Ende etwas
+df1d7a5c-dcd3-4a61-ba0a-0de743685108	BB001	2026-09-12 21:56:13.638463+00	1000	1	16	50	0	BB001/BB001_2026-09-12_23-56-13_G50_UNP_R3.wav	2026-09-12 21:58:25.368644+00	pulsierend
+ff18b187-7ea1-4b67-9147-21013c1b1d9f	BB001	2026-09-13 06:46:04.30535+00	1000	1	16	50	0	BB001/BB001_2026-09-13_08-46-04_G50_UNP_R1.wav	2026-09-13 06:48:18.938375+00	vlt doch 2
+a812c9da-d08b-4cbd-978a-5deee20b7242	BB001	2026-09-13 20:20:36.097006+00	1000	1	16	50	0	BB001/BB001_2026-09-13_22-20-36_G50_UNP_R0.wav	2026-09-13 20:22:53.019043+00	absolute Ruhe
+a129a9b9-8bec-44e6-b203-675af098906a	BB001	2026-09-13 21:15:36.938833+00	1000	1	16	50	176	BB001/BB001_2026-09-13_23-15-36_G50_UNP_R1.wav	2026-09-13 21:17:50.799763+00	.. 
+dabdb4d6-1c25-4430-88c1-ae2264210d31	BB001	2026-09-13 21:41:51.109617+00	1000	1	16	50	0	BB001/BB001_2026-09-13_23-41-51_G50_UNP_R1.wav	2026-09-13 21:44:03.820015+00	leise
+84036ea5-cfc8-4c8c-967d-815ebc41ce3c	BB001	2026-09-13 22:11:19.761228+00	1000	1	16	50	0	BB001/BB001_2026-09-14_00-11-19_G50_UNP_R1.wav	2026-09-13 22:13:29.548411+00	\N
+3209fc99-72b6-43be-915b-c7f1fbd3799d	BB001	2026-09-13 22:20:23.346469+00	1000	1	16	50	2	BB001/BB001_2026-09-14_00-20-23_G50_UNP_R1.wav	2026-09-13 22:23:19.404567+00	\N
+296ef461-03d6-4d5e-a1d5-f23d71b76995	BB001	2026-09-13 22:40:46.848661+00	1000	1	16	50	2	BB001/BB001_2026-09-14_00-40-46_G50_UNP_R1.wav	2026-09-13 22:42:57.716123+00	\N
+81be12c0-bd2e-42e5-953e-3e79dc0445b4	BB001	2026-09-14 01:03:17.431432+00	1000	1	16	50	0	BB001/BB001_2026-09-14_03-03-17_G50_UNP_R1.wav	2026-09-14 01:05:44.093473+00	kurze kleine Impulse
+c50e0d96-bb76-4ea1-a483-3071eacde66b	BB001	2026-09-14 19:48:32.707801+00	1000	1	16	50	0	BB001/BB001_2026-09-14_21-48-32_G50_UNP_R0.wav	2026-09-14 19:51:13.634645+00	Schwarzwald
+679793db-7935-4c23-b679-6c39ab131a0d	BB001	2026-09-14 23:08:27.598264+00	1000	1	16	41	0	BB001/BB001_2026-09-15_01-08-27_G41_UNP_R0.wav	2026-09-14 23:10:48.057833+00	Menzenschwand
+7dccc7bb-9b61-4ea8-99f2-a281c5f0c010	BB001	2026-09-14 23:22:06.106554+00	1000	1	16	50	0	BB001/BB001_2026-09-15_01-22-06_G50_UNP_R0.wav	2026-09-14 23:24:25.109948+00	Menzenschwand
+b9f847ea-599f-43b3-a1f7-2fbad0d6c5d3	BB001	2026-09-14 23:49:54.142637+00	1000	1	16	50	0	BB001/BB001_2026-09-15_01-49-54_G50_UNP_R1.wav	2026-09-14 23:52:34.860436+00	Menzenschwand
+4fffe331-1bbc-4b55-b8dc-cf2d4ef1e2e8	BB001	2026-09-15 06:08:40.758293+00	1000	1	16	50	0	BB001/BB001_2026-09-15_08-08-40_G50_UNP_R1.wav	2026-09-15 06:11:09.95317+00	\nMenzenschwand
+39caf3f5-a6ec-4d58-bf60-c5539a5875a5	BB001	2026-09-15 15:15:49.659918+00	1000	1	16	50	0	BB001/BB001_2026-09-15_17-15-49_G50_UNP_R1.wav	2026-09-15 15:18:17.506722+00	Menzenschwand
+14a52d1c-5e0d-4057-b30b-1fd79cd85315	BB001	2026-09-15 21:07:06.851049+00	1000	1	16	50	0	BB001/BB001_2026-09-15_23-07-06_G50_UNP_R2.wav	2026-09-15 21:09:20.059897+00	Menzenschwand
+56ecea81-2c53-45bc-8acd-f5604033c195	BB001	2026-09-16 00:17:28.32506+00	1000	1	16	50	0	BB001/BB001_2026-09-16_02-17-28_G50_UNP_R0.wav	2026-09-16 00:19:46.085046+00	Menzenschwand
+58d72bff-3b57-4aba-b459-cc80ac9cd1a1	BB001	2026-09-16 05:30:26.490769+00	1000	1	16	50	29	BB001/BB001_2026-09-16_07-30-26_G50_UNP_R4.wav	2026-09-16 05:32:45.602636+00	Menzenschwand laut
+c7e3a503-3022-4ff1-adc6-f3204bcb4ad3	BB001	2026-09-16 22:35:32.2498+00	1000	1	16	50	0	BB001/BB001_2026-09-17_00-35-32_G50_UNP_R4.wav	2026-09-16 22:37:52.885036+00	Viernheim
+2e545414-3334-4fe4-9c29-fba98400f21d	BB001	2026-09-17 15:10:59.223855+00	1000	1	16	50	0	BB001/BB001_2026-09-17_17-10-59_G50_UNP_R3.wav	2026-09-17 15:13:07.211146+00	\N
+a18952ea-be8f-4167-aae9-9b4cb4e7a1c7	BB001	2026-09-17 23:13:37.651179+00	1000	1	16	50	0	BB001/BB001_2026-09-18_01-13-37_G50_UNP_RX.wav	2026-09-17 23:16:07.557195+00	laut in Viernheim
+3957cdec-b811-441a-97bb-69daa69e3c58	BB001	2026-09-18 02:05:15.029752+00	1000	1	16	50	0	BB001/BB001_2026-09-18_04-05-15_G50_UNP_R4.wav	2026-09-18 02:08:17.972082+00	\N
+30b5244a-4e33-48a9-9d83-cd894d9c7e76	BB001	2026-09-18 07:09:08.306118+00	1000	1	16	50	11	BB001/BB001_2026-09-18_09-09-08_G50_UNP_R2.wav	2026-09-18 07:11:17.756267+00	\N
+87002a47-c675-44c1-85a9-f56fb78e8711	BB001	2026-09-18 10:13:40.597185+00	1000	1	16	50	86	BB001/BB001_2026-09-18_12-13-40_G50_UNP_R2.wav	2026-09-18 10:16:19.595485+00	\N
+c0c47620-fe90-4a37-8ebb-4c661db1e2f0	BB001	2026-09-18 11:17:23.733+00	1000	1	16	50	0	BB001/BB001_2026-09-18_11-17-23_G50_UNP_R2.wav	2026-09-18 11:19:29.967817+00	\N
+263365a9-354b-4915-87f5-2b3baf39a383	BB001	2026-09-18 15:35:11.262479+00	1000	1	16	50	0	BB001/BB001_2026-09-18_17-35-11_G50_UNP_R3.wav	2026-09-18 15:37:33.116285+00	eigentlich schon fast eine 4
+671deef5-4080-4679-9bbd-f4e95584eb4a	BB001	2026-09-18 15:57:23.442167+00	1000	1	16	50	429	BB001/BB001_2026-09-18_17-57-23_G50_UNP_R3.wav	2026-09-18 15:59:30.711405+00	\N
+a92280ad-37fd-4b33-a38c-4148b12d5f02	BB001	2026-09-18 16:02:00.58909+00	1000	1	16	50	3	BB001/BB001_2026-09-18_18-02-00_G50_UNP_R3.wav	2026-09-18 16:04:25.240777+00	am Ende ein Auto in der Nähe
+ca56fb5a-d4dc-4cb6-be2e-69b7db3c3ca7	BB001	2026-09-18 23:46:11.733331+00	1000	1	16	50	0	BB001/BB001_2026-09-19_01-46-11_G50_UNP_R4.wav	2026-09-18 23:48:17.566116+00	\N
+795bf516-8b43-4036-996e-057d2e930f3f	BB001	2026-09-19 00:12:38.707846+00	1000	1	16	50	1	BB001/BB001_2026-09-19_02-12-38_G50_UNP_R4.wav	2026-09-19 00:15:14.661087+00	ev. Kopfhörer
+8d81fca2-37f4-4bf7-ba46-8aacb5ef1207	BB001	2026-09-19 02:35:37.20445+00	1000	1	16	50	0	BB001/BB001_2026-09-19_04-35-37_G50_UNP_R5.wav	2026-09-19 02:37:56.224613+00	sehr laut
+184175e4-cf0b-4bd9-a93d-8eb681aba0a5	BB001	2026-09-19 10:51:15.799382+00	1000	1	16	50	0	BB001/BB001_2026-09-19_12-51-15_G50_UNP_R4.wav	2026-09-19 10:53:25.490851+00	laut
+3745e35d-82de-4f8b-94e7-dc96cdcd3c51	BB001	2026-09-19 13:26:27.209989+00	1000	1	16	50	0	BB001/BB001_2026-09-19_15-26-27_G50_UNP_R5.wav	2026-09-19 13:28:45.845911+00	sehr laut, pulsierend 
+b44ae30f-9381-4595-b259-02c1b2b97842	BB001	2026-09-19 18:35:00.964424+00	1000	1	16	50	0	BB001/BB001_2026-09-19_20-35-00_G50_UNP_R5.wav	2026-09-19 18:37:24.739531+00	\N
+aa9e9561-4361-4c09-8a37-200d53b3edec	BB001	2026-09-19 21:05:51.624546+00	1000	1	16	50	0	BB001/BB001_2026-09-19_23-05-51_G50_UNP_R4.wav	2026-09-19 21:07:56.973805+00	\N
+6e9b7866-1595-49d8-bcba-cd4b35eb7c72	BB001	2026-09-19 21:09:30.850024+00	1000	1	16	50	0	BB001/BB001_2026-09-19_23-09-30_G50_UNP_R4.wav	2026-09-19 21:11:49.847482+00	Test 4.86
+d32fc6ac-4b0f-4836-93b9-f1aa3b95975d	BB001	2026-09-19 21:30:51.737573+00	1000	1	16	50	0	BB001/BB001_2026-09-19_23-30-51_G50_UNP_R3.wav	2026-09-19 21:33:03.614812+00	highspeed
+d22ae22d-aedf-45a0-a0ec-982f7c9566fe	BB001	2026-09-21 05:40:31.910532+00	1000	1	16	50	0	BB001/BB001_2026-09-21_07-40-31_G50_UNP_R5.wav	2026-09-21 05:42:44.867644+00	sehr laut
+1ed47909-8e46-4ee3-baea-1a7d0b7252e9	BB001	2026-09-24 23:05:22.046204+00	1000	1	16	50	0	BB001/BB001_2026-09-25_01-05-22_G50_UNP_R1.wav	2026-09-24 23:07:39.792085+00	\N
+3678e651-f092-40b3-9251-26f30235b4f3	BB001	2026-09-25 09:01:42.693721+00	1000	1	16	50	3	BB001/BB001_2026-09-25_11-01-42_G50_UNP_RX.wav	2026-09-25 09:03:54.639351+00	b3
+e89ac93e-688b-43b1-8ce4-785f7b10bf17	BB001	2026-09-25 09:18:46.086133+00	1000	1	16	50	0	BB001/BB001_2026-09-25_11-18-46_G50_UNP_RX.wav	2026-09-25 09:21:32.548778+00	\N
+6be15833-30e2-4a2a-b746-aaa26e0bf217	BB001	2026-09-25 12:54:18.632237+00	1000	1	16	50	0	BB001/BB001_2026-09-25_14-54-18_G50_UNP_R1.wav	2026-09-25 12:57:22.02038+00	\N
+6ef34b7d-3f71-40c7-ad4e-2b12685f66a3	BB001	2026-09-25 16:17:50.43+00	1000	1	16	0	0	BB001/BB001_2026-09-25_18-17-50_G0_UNP_R2.wav	2026-09-25 16:18:06.255654+00	sieh die impulse
+fefe1d8d-728b-487c-86c4-e7d7d7e99282	BB001	2026-09-26 11:06:05.46+00	1000	1	16	0	0	BB001/BB001_2026-09-26_13-06-05_G0_UNP_R1.wav	2026-09-26 11:06:13.434043+00	\N
+a95c50eb-2dca-4806-8a58-a32ab2d2250a	BB001	2026-09-27 21:48:15.231+00	1000	1	16	0	0	BB001/BB001_2026-09-27_23-48-15_G0_UNP_R5.wav	2026-09-27 21:48:29.992427+00	sehr laut 
+9fa2499e-ceea-41c9-bbb8-106cba476f94	BB001	2026-09-28 17:23:37.986+00	1000	1	16	0	0	BB001/BB001_2026-09-28_19-23-37_G0_UNP_RX.wav	2026-09-28 17:24:06.079272+00	ami Flieger ch
+f8d8216a-7e9f-4b5e-a9a0-d0ba7e2ffd47	BB001	2026-09-28 18:20:35.213+00	1000	1	16	0	0	BB001/BB001_2026-09-28_20-20-35_G0_UNP_RX.wav	2026-09-28 18:20:42.871559+00	\N
+b1eb0b7f-a7bb-4016-a9ae-340588ac011d	BB001	2026-09-29 00:00:08.62+00	1000	1	16	0	0	BB001/BB001_2026-09-29_02-00-08_G0_UNP_R4.wav	2026-09-29 00:00:14.394672+00	\N
+2cef478e-b057-4d6f-8bf4-0d6ff7a45be5	BB001	2026-09-30 22:47:54.551+00	1000	1	16	0	0	BB001/BB001_2026-10-01_00-47-54_G0_UNP_R1.wav	2026-09-30 22:48:05.048149+00	b1
+3a3e73fb-11c1-4add-8e2d-d976ef1a1b84	BB001	2026-09-30 22:48:59.83+00	1000	1	16	0	0	BB001/BB001_2026-10-01_00-48-59_G0_UNP_R1.wav	2026-09-30 22:49:13.917692+00	Flugzeug 
+89845cf1-a7b6-472f-a4fa-7c4cb0b100df	BB001	2026-10-01 12:24:35.305+00	1000	1	16	0	0	BB001/BB001_2026-10-01_14-24-35_G0_UNP_R5.wav	2026-10-01 12:24:50.434536+00	5 pulsierend 
+bcbfcd09-17d9-4a61-bf67-d9bb8dc59a5c	BB001	2026-10-03 22:47:14.231+00	1000	1	16	0	0	BB001/BB001_2026-10-04_00-47-14_G0_UNP_R1.wav	2026-10-03 22:47:24.724045+00	1
+b14625d0-cc55-432f-a9e4-79d396da64dd	BB001	2026-10-04 22:42:02.442+00	1000	1	16	0	0	BB001/BB001_2026-10-05_00-42-02_G0_UNP_R4.wav	2026-10-04 22:42:16.888196+00	\N
+1337099f-36f5-490b-8c16-16bdcdfaaca1	BB001	2026-10-05 02:53:11.565+00	1000	1	16	0	0	BB001/BB001_2026-10-05_04-53-11_G0_UNP_R5.wav	2026-10-05 02:53:18.442254+00	\N
+78a70d82-0b74-4c85-ac8c-cc7ae60389ab	BB001	2026-10-06 00:46:50.817+00	1000	1	16	0	0	BB001/BB001_2026-10-06_02-46-50_G0_UNP_R4.wav	2026-10-06 00:46:56.660486+00	\N
+548ef352-312c-4409-a093-01b6b928e5fe	BB001	2026-10-06 13:20:10.214+00	1000	1	16	0	0	BB001/BB001_2026-10-06_15-20-10_G0_UNP_R4.wav	2026-10-06 13:20:37.074724+00	Bad b4
+5f19b3e5-c83d-4a73-ba27-fdb01886fc70	BB001	2026-10-07 08:10:39.318+00	1000	1	16	0	0	BB001/BB001_2026-10-07_10-10-39_G0_UNP_RX.wav	2026-10-07 08:11:17.032536+00	Mini-Staubsauger
+24ea087d-3f6d-4c96-b803-4cf906b4fc6e	BB001	2026-10-07 08:44:12.732+00	1000	1	16	0	0	BB001/BB001_2026-10-07_10-44-12_G0_UNP_RX.wav	2026-10-07 08:44:56.995307+00	Straßenbahnhaltestelle LKE
+45aed006-8f07-4a95-959e-192ab004807c	BB001	2026-10-07 08:46:40.726+00	1000	1	16	0	0	BB001/BB001_2026-10-07_10-46-40_G0_UNP_RX.wav	2026-10-07 08:46:54.416933+00	Straßenbahn 
+642e5d50-da0f-4036-9f51-bc9ad3ecc228	BB001	2026-10-08 11:48:47.346+00	1000	1	16	0	0	BB001/BB001_2026-10-08_13-48-47_G0_UNP_R0.wav	2026-10-08 11:49:15.736754+00	0-1
+\.
+
+
+--
+-- Data for Name: observations; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY "public"."observations" ("id", "event_id", "observer_id", "scheduled_time", "response_time", "rating", "latitude", "longitude", "app_version", "wav_present", "wav_path", "wav_duration_sec", "wav_sample_rate", "wav_channels", "wav_bits_per_sample", "wav_size_bytes", "wav_sha256", "received_at", "comment") FROM stdin;
+1	6d0a0a79-243c-4670-9f41-0ef544b48652	BB001	2026-09-01 10:12:00+00	2026-09-01 10:12:00+00	3	0	0	python-test-1.0	f	\N	\N	\N	\N	\N	\N	\N	2026-09-01 10:12:00.787387+00	\N
+3	66b763dd-6dfd-4faf-9515-c6007068f4e4	BB001	2026-09-01 10:15:14+00	\N	-1	0	0	python-test-1.0	f	\N	\N	\N	\N	\N	\N	\N	2026-09-01 10:15:15.517663+00	\N
+4	25e33356-5ffb-4dc9-8b5b-72c4e2c7547d	BB001	2026-09-01 10:29:30+00	2026-09-01 10:29:33+00	3	0	0	python-wav-test-1.0	t	BB001/2026-09-01/BB001_20260901_102930_R3_25e33356-5ffb-4dc9-8b5b-72c4e2c7547d.wav	120	1000	1	16	240044	864b32e86c0da9d3155e294414aa4363c65023a8638d9b7b2ffef575a34fb8b4	2026-09-01 10:29:33.810409+00	\N
+5	62c4ee44-8be3-496d-be27-e8cda225d153	BB001	2026-09-01 10:38:04+00	2026-09-01 10:38:05+00	4	0	0	python-wav-test-1.0	t	BB001/2026-09-01/BB001_20260901_123804_R4_62c4ee44-8be3-496d-be27-e8cda225d153.wav	120	1000	1	16	240044	864b32e86c0da9d3155e294414aa4363c65023a8638d9b7b2ffef575a34fb8b4	2026-09-01 10:38:06.513725+00	\N
+6	ca3b023c-d44d-40c0-8227-c921281968eb	BB001	2026-09-01 21:30:27.37368+00	2026-09-01 21:30:27.37368+00	1	0	0	0.2.0	f	\N	\N	\N	\N	\N	\N	\N	2026-09-01 21:30:29.137632+00	\N
+7	b9b3ae69-2a04-4f89-9702-8f965bf514ac	BB001	2026-09-01 21:30:42.22326+00	2026-09-01 21:30:42.22326+00	2	0	0	0.2.0	f	\N	\N	\N	\N	\N	\N	\N	2026-09-01 21:30:43.194206+00	\N
+8	04ab76d4-40a3-464f-8bfb-757023188afe	BB001	2026-09-01 21:30:44.555409+00	2026-09-01 21:30:44.555409+00	3	0	0	0.2.0	f	\N	\N	\N	\N	\N	\N	\N	2026-09-01 21:30:45.040869+00	\N
+9	050ecc6d-e33d-4f01-830d-2f317ab30f2d	BB001	2026-09-01 21:30:46.407234+00	2026-09-01 21:30:46.407234+00	4	0	0	0.2.0	f	\N	\N	\N	\N	\N	\N	\N	2026-09-01 21:30:46.99233+00	\N
+10	8b27b880-e567-48a0-bd4a-dbd8fd1e7338	BB001	2026-09-01 21:30:48.075405+00	2026-09-01 21:30:48.075405+00	5	0	0	0.2.0	f	\N	\N	\N	\N	\N	\N	\N	2026-09-01 21:30:48.650415+00	\N
+11	d22e38c2-d38f-4cb3-bd08-02fcdeac0561	BB001	2026-09-01 21:33:12.307776+00	2026-09-01 21:33:12.307776+00	0	0	0	0.2.0	f	\N	\N	\N	\N	\N	\N	\N	2026-09-01 21:33:13.333656+00	\N
+12	56897af8-214b-4d87-9f9a-41a56a92d6d4	BB001	2026-09-01 21:46:33.426957+00	2026-09-01 21:46:33.426957+00	1	0	0	0.2.1	f	\N	\N	\N	\N	\N	\N	\N	2026-09-01 21:46:34.451703+00	\N
+13	7bca391d-af08-4d7c-880a-42ee4c0eff84	BB001	2026-09-01 21:46:40.29741+00	2026-09-01 21:46:40.29741+00	2	0	0	0.2.1	f	\N	\N	\N	\N	\N	\N	\N	2026-09-01 21:46:40.824816+00	\N
+14	75c42498-594f-4fbf-81b2-284e68447255	BB001	2026-09-01 21:47:44.1583+00	2026-09-01 21:47:44.1583+00	1	0	0	0.2.1	f	\N	\N	\N	\N	\N	\N	\N	2026-09-01 21:47:44.788186+00	\N
+15	5766c2ed-698a-4e7f-a4ae-82b2c44e1ac2	BB001	2026-09-01 21:51:42.183954+00	2026-09-01 21:51:42.183954+00	1	0	0	0.2.1	f	\N	\N	\N	\N	\N	\N	\N	2026-09-01 21:51:42.752283+00	\N
+16	b5870025-3852-431f-96ea-5708cea69d87	BB001	2026-09-01 21:51:49.078324+00	2026-09-01 21:51:49.078324+00	5	0	0	0.2.1	f	\N	\N	\N	\N	\N	\N	\N	2026-09-01 21:51:49.618602+00	\N
+17	4020eb11-7f50-4e69-ae7b-891da2893edf	BB001	2026-09-01 22:01:53.260674+00	2026-09-01 22:01:53.260674+00	0	0	0	0.2.2	f	\N	\N	\N	\N	\N	\N	\N	2026-09-01 22:01:53.932005+00	\N
+18	6865ab44-496d-4589-8fd0-ea3f783a7cfe	BB001	2026-09-01 22:01:57.967881+00	2026-09-01 22:01:57.967881+00	1	0	0	0.2.2	f	\N	\N	\N	\N	\N	\N	\N	2026-09-01 22:01:58.443778+00	\N
+19	f3111a71-6c79-4393-8246-32369d08bb0e	BB001	2026-09-01 22:01:59.992379+00	2026-09-01 22:01:59.992379+00	2	0	0	0.2.2	f	\N	\N	\N	\N	\N	\N	\N	2026-09-01 22:02:00.708342+00	\N
+20	783c796d-f54c-4719-96c5-8be11c7079c2	BB001	2026-09-01 22:02:01.97339+00	2026-09-01 22:02:01.97339+00	3	0	0	0.2.2	f	\N	\N	\N	\N	\N	\N	\N	2026-09-01 22:02:02.539499+00	\N
+21	ce8374c9-5ed2-49eb-bc67-cb2505f0af7f	BB001	2026-09-01 22:02:03.68948+00	2026-09-01 22:02:03.68948+00	4	0	0	0.2.2	f	\N	\N	\N	\N	\N	\N	\N	2026-09-01 22:02:04.151956+00	\N
+22	a4cc064a-1526-422e-af97-6cd5a68728a7	BB001	2026-09-01 22:02:05.171917+00	2026-09-01 22:02:05.171917+00	5	0	0	0.2.2	f	\N	\N	\N	\N	\N	\N	\N	2026-09-01 22:02:05.644685+00	\N
+23	e4f4052e-e250-42c2-acdf-a3c9f9662407	BB001	2026-09-01 22:05:01.243165+00	2026-09-01 22:05:01.243165+00	3	0	0	0.2.2	f	\N	\N	\N	\N	\N	\N	\N	2026-09-01 22:05:02.043418+00	\N
+24	f4168792-2c84-4ab3-ba26-53e51fc3bffb	BB001	2026-09-01 22:13:30.284071+00	2026-09-01 22:13:30.284071+00	1	49.5429939	8.6014271	0.3.0	f	\N	\N	\N	\N	\N	\N	\N	2026-09-01 22:13:30.968581+00	\N
+25	489ef87f-c2e5-45ce-9645-f5bcb0a976c7	BB001	2026-09-01 22:14:17.839867+00	2026-09-01 22:14:17.839867+00	3	49.5430099	8.6015173	0.3.0	f	\N	\N	\N	\N	\N	\N	\N	2026-09-01 22:14:18.41791+00	\N
+26	11d33751-ac38-464d-8c83-3006ac160a15	BB001	2026-09-01 22:19:01.098302+00	2026-09-01 22:19:01.098302+00	5	49.5430116	8.6015254	0.3.0	f	\N	\N	\N	\N	\N	\N	\N	2026-09-01 22:19:01.654278+00	\N
+27	b33bb512-b8f4-4068-87e6-bd0cfa2c3a2f	BB001	2026-09-01 22:34:15.172493+00	2026-09-01 22:34:15.172493+00	0	49.5430034	8.6015378	0.4.0	f	\N	\N	\N	\N	\N	\N	\N	2026-09-01 22:34:16.092927+00	\N
+28	107c56c6-2f92-4d25-a6c1-acad5788006e	BB001	2026-09-01 22:39:18.468154+00	2026-09-01 22:39:18.468154+00	1	49.5430059	8.6015301	0.4.0	f	\N	\N	\N	\N	\N	\N	\N	2026-09-01 22:39:18.964051+00	\N
+29	8d039916-da2b-4e4c-8dde-2bfa7d08d709	BB001	2026-09-01 22:53:38.992606+00	2026-09-01 22:53:38.992606+00	3	49.5430011	8.6015086	0.4.1	f	\N	\N	\N	\N	\N	\N	\N	2026-09-01 22:53:39.600931+00	\N
+30	c4a37bde-c72a-4991-932d-37ce3b84c26a	BB001	2026-09-01 22:56:30.508005+00	2026-09-01 22:56:30.508005+00	1	49.5430143	8.6015125	0.4.1	f	\N	\N	\N	\N	\N	\N	\N	2026-09-01 22:56:31.169943+00	\N
+31	83481a47-ad29-4c6e-9102-d5303bf933a1	BB001	2026-09-01 23:04:50.840612+00	2026-09-01 23:04:50.840612+00	3	49.5429911	8.6013357	0.4.1	f	\N	\N	\N	\N	\N	\N	\N	2026-09-01 23:04:51.492007+00	\N
+32	cc0db105-1512-4c16-99c6-bb83849d49ab	BB001	2026-09-01 23:08:12.519819+00	2026-09-01 23:08:12.519819+00	3	49.5430056	8.6015181	0.4.1	f	\N	\N	\N	\N	\N	\N	\N	2026-09-01 23:08:13.07174+00	\N
+33	81f75a43-f5ff-4864-9088-9625d7eabb3c	BB001	2026-09-01 23:22:27.141039+00	2026-09-01 23:22:27.141039+00	1	49.5430059	8.6015206	0.4.1	f	\N	\N	\N	\N	\N	\N	\N	2026-09-01 23:22:27.772602+00	\N
+34	fe180d6e-2071-410e-806f-0b048791d139	BB001	2026-09-01 23:34:56.652053+00	2026-09-01 23:34:56.652053+00	4	49.5429789	8.6015073	0.4.1	f	\N	\N	\N	\N	\N	\N	\N	2026-09-01 23:34:57.240061+00	\N
+35	b991ac55-a168-4a21-850c-890a278f69f3	BB001	2026-09-02 00:09:10.546443+00	2026-09-02 00:09:10.546443+00	4	49.5429295	8.6015349	0.4.1	f	\N	\N	\N	\N	\N	\N	\N	2026-09-02 00:09:11.127742+00	\N
+36	b090bd53-9db4-4ef4-9007-20769f5d1d0d	BB001	2026-09-02 00:43:54.549515+00	2026-09-02 00:43:54.549515+00	5	49.5429644	8.6015255	0.4.1	f	\N	\N	\N	\N	\N	\N	\N	2026-09-02 00:43:55.18294+00	\N
+37	3a240a69-f368-49c1-a963-f5c7ce57ffeb	BB001	2026-09-02 06:52:12.908004+00	2026-09-02 06:52:12.908004+00	4	49.5429227	8.601454	0.4.1	f	\N	\N	\N	\N	\N	\N	\N	2026-09-02 06:52:13.606967+00	\N
+38	7639c8da-79f8-43d6-bf86-3d9d62cba3fd	BB001	2026-09-02 06:58:35.973594+00	2026-09-02 06:58:35.973594+00	4	49.5430331	8.6013586	0.4.1	f	\N	\N	\N	\N	\N	\N	\N	2026-09-02 06:58:36.574271+00	\N
+39	1eb7cd58-229c-4111-83bc-169c97df2a28	BB001	2026-09-02 09:21:09.156715+00	2026-09-02 09:21:09.156715+00	3	49.543063	8.6013873	0.4.1	f	\N	\N	\N	\N	\N	\N	\N	2026-09-02 09:21:09.943254+00	\N
+40	c1105b42-04a5-42bf-b9d7-ad03dd0f19c9	BB001	2026-09-02 11:22:51.177284+00	2026-09-02 11:22:51.177284+00	0	49.5430069	8.6015301	0.4.3	f	\N	\N	\N	\N	\N	\N	\N	2026-09-02 11:22:51.888547+00	\N
+41	9166130b-a7ce-4426-baad-f69c3e88c009	BB001	2026-09-02 11:45:26.979799+00	2026-09-02 11:45:26.979799+00	2	49.543071	8.6013736	0.4.3	f	\N	\N	\N	\N	\N	\N	\N	2026-09-02 11:45:27.554976+00	\N
+42	e37523d8-79ca-4df4-a423-a5cc0b73b486	BB001	2026-09-02 11:46:03.918763+00	2026-09-02 11:46:03.918763+00	2	49.5430662	8.6013855	0.4.3	f	\N	\N	\N	\N	\N	\N	\N	2026-09-02 11:46:04.361444+00	\N
+43	04ac5625-786a-419d-ae37-da14ef8a2d39	BB001	2026-09-02 11:48:40.11885+00	2026-09-02 11:48:40.11885+00	2	49.5430663	8.6013336	0.4.3	f	\N	\N	\N	\N	\N	\N	\N	2026-09-02 11:48:40.687989+00	\N
+44	d43c5f8e-caa8-4cec-8b22-da3556b813ba	BB001	2026-09-02 11:50:56.181696+00	2026-09-02 11:50:56.181696+00	2	49.5430473	8.6013645	0.4.3	f	\N	\N	\N	\N	\N	\N	\N	2026-09-02 11:50:56.617258+00	\N
+45	62e741d8-cc30-4538-b2f0-2c60b89a9286	BB001	2026-09-02 11:53:06.532378+00	2026-09-02 11:53:06.532378+00	2	49.5430741	8.6013587	0.4.3	f	\N	\N	\N	\N	\N	\N	\N	2026-09-02 11:53:06.940705+00	\N
+46	68f08f2e-dc32-4f0f-b41a-5eaea83ca382	BB001	2026-09-02 14:16:57.740448+00	2026-09-02 14:16:57.740448+00	1	49.5429994	8.6015354	0.4.6	f	\N	\N	\N	\N	\N	\N	\N	2026-09-02 14:16:58.311038+00	\N
+47	f3935f43-b87d-4021-8c50-7d9cfd74dbe2	BB001	2026-09-02 14:19:16.071767+00	2026-09-02 14:19:16.071767+00	1	49.5430035	8.6015264	0.4.6	f	\N	\N	\N	\N	\N	\N	\N	2026-09-02 14:19:16.639893+00	\N
+48	c0e8cc80-e3f4-48a3-b5c4-b5171c41b972	BB001	2026-09-02 14:21:29.215525+00	2026-09-02 14:21:29.215525+00	1	49.5430419	8.6014363	0.4.6	f	\N	\N	\N	\N	\N	\N	\N	2026-09-02 14:21:29.83735+00	\N
+49	e997da6e-e94d-421b-a203-32673e51de92	BB001	2026-09-02 14:23:42.334588+00	2026-09-02 14:23:42.334588+00	1	49.543014	8.6014709	0.4.6	f	\N	\N	\N	\N	\N	\N	\N	2026-09-02 14:23:42.848042+00	\N
+50	48064fab-5e91-42e0-b86d-b1d1a17a6aa8	BB001	2026-09-02 14:25:57.678379+00	2026-09-02 14:25:57.678379+00	1	49.5429998	8.6014996	0.4.6	f	\N	\N	\N	\N	\N	\N	\N	2026-09-02 14:25:58.144772+00	\N
+51	ef975fbc-1198-4ca8-87b7-c2e2cf5a376e	BB001	2026-09-02 14:31:22.645912+00	2026-09-02 14:31:22.645912+00	1	49.5430003	8.6015363	0.4.6	f	\N	\N	\N	\N	\N	\N	\N	2026-09-02 14:31:23.375396+00	\N
+52	44a9e962-d7fc-4e60-a4a5-bd99dde1257b	BB001	2026-09-02 14:35:41.731779+00	2026-09-02 14:35:41.731779+00	1	49.543004	8.601514	0.4.6	f	\N	\N	\N	\N	\N	\N	\N	2026-09-02 14:35:42.191036+00	\N
+53	62136a88-b90a-4224-8bf5-f9db2fee998b	BB001	2026-09-02 14:37:50.962383+00	2026-09-02 14:37:50.962383+00	1	49.5430062	8.6015121	0.4.6	f	\N	\N	\N	\N	\N	\N	\N	2026-09-02 14:37:51.455431+00	\N
+54	e7627155-331f-4e6c-ac56-552db8bc909c	BB001	2026-09-02 14:39:58.392668+00	2026-09-02 14:39:58.392668+00	1	49.5432437	8.6014154	0.4.6	f	\N	\N	\N	\N	\N	\N	\N	2026-09-02 14:39:58.954869+00	\N
+55	baa95611-e7a1-4984-ae95-8bde2e105fd2	BB001	2026-09-02 14:42:05.648623+00	2026-09-02 14:42:05.648623+00	1	49.5430009	8.6015043	0.4.6	f	\N	\N	\N	\N	\N	\N	\N	2026-09-02 14:42:06.200961+00	\N
+56	de1f2ea1-aec0-4873-8235-69e226b6af5c	BB001	2026-09-02 14:44:13.16856+00	2026-09-02 14:44:13.16856+00	1	49.5429894	8.6014725	0.4.7	f	\N	\N	\N	\N	\N	\N	\N	2026-09-02 14:44:13.747069+00	\N
+57	5cd25501-ab6f-4523-9cb7-f52e5493e19a	BB001	2026-09-02 14:46:18.787848+00	2026-09-02 14:46:18.787848+00	1	49.543037	8.6014567	0.4.7	f	\N	\N	\N	\N	\N	\N	\N	2026-09-02 14:46:19.340516+00	\N
+58	b7b3724b-be4b-4d0e-bdae-11d0e16214d8	BB001	2026-09-02 14:48:23.555122+00	2026-09-02 14:48:23.555122+00	1	49.5430015	8.6013773	0.4.7	f	\N	\N	\N	\N	\N	\N	\N	2026-09-02 14:48:24.012986+00	\N
+59	17e21bbe-b3a6-4dbd-8a71-157d06788169	BB001	2026-09-02 14:50:37.101774+00	2026-09-02 14:50:37.101774+00	1	49.5430274	8.6014797	0.4.7	f	\N	\N	\N	\N	\N	\N	\N	2026-09-02 14:50:37.661791+00	\N
+60	15d8b5ac-8e2c-48c9-8f42-67b2a3c1858e	BB001	2026-09-02 14:52:43.717914+00	2026-09-02 14:52:43.717914+00	1	49.5430132	8.6014702	0.4.7	f	\N	\N	\N	\N	\N	\N	\N	2026-09-02 14:52:44.253734+00	\N
+61	c6fb6293-a33a-4814-8b19-d7e580479aa2	BB001	2026-09-02 14:54:53.036018+00	2026-09-02 14:54:53.036018+00	1	49.5430079	8.6015261	0.4.7	f	\N	\N	\N	\N	\N	\N	\N	2026-09-02 14:54:53.476668+00	\N
+62	4308bb98-8130-4f8c-8258-178deda1b3b4	BB001	2026-09-02 15:03:24.571902+00	2026-09-02 15:03:24.571902+00	1	49.5430442	8.6013463	0.4.7	f	\N	\N	\N	\N	\N	\N	\N	2026-09-02 15:03:25.136862+00	\N
+63	d2c70970-f879-4321-b1d6-496e8d1ad0cd	BB001	2026-09-02 16:19:31.111862+00	2026-09-02 16:19:31.111862+00	1	49.5430246	8.601496	0.4.8	f	\N	\N	\N	\N	\N	\N	\N	2026-09-02 16:19:31.806899+00	\N
+64	d5b98325-fa69-403f-98ea-415368691160	BB001	2026-09-02 16:34:47.559296+00	2026-09-02 16:34:47.559296+00	1	49.5430058	8.6015408	0.4.8	f	\N	\N	\N	\N	\N	\N	\N	2026-09-02 16:34:48.175864+00	\N
+65	f4160a5e-77ed-4c7a-961f-2bfcd9c60cc0	BB001	2026-09-02 16:36:41.100219+00	2026-09-02 16:36:41.100219+00	1	49.5430091	8.6015327	0.4.9	f	\N	\N	\N	\N	\N	\N	\N	2026-09-02 16:36:41.609583+00	\N
+66	a61fae51-e705-47f3-ba18-2d0127fdfbc6	BB001	2026-09-02 16:59:26.364766+00	2026-09-02 16:59:26.364766+00	1	49.5429953	8.6014945	0.4.9	f	\N	\N	\N	\N	\N	\N	\N	2026-09-02 16:59:27.058588+00	\N
+67	3f763414-d489-43dd-86e2-3610811b72a5	BB001	2026-09-02 18:10:31.20564+00	2026-09-02 18:10:31.20564+00	1	49.5430601	8.6013323	0.4.11	f	\N	\N	\N	\N	\N	\N	\N	2026-09-02 18:10:31.804114+00	\N
+68	4c4875de-bb49-4d02-acb0-d948a0e57ef8	BB001	2026-09-02 19:51:35.756923+00	2026-09-02 19:51:35.756923+00	1	49.5429994	8.6015334	0.4.12	f	\N	\N	\N	\N	\N	\N	\N	2026-09-02 19:51:36.446595+00	\N
+69	b95be3f5-73bc-4f2b-9649-4f103e1aebd2	BB001	2026-09-02 20:21:58.529368+00	2026-09-02 20:21:58.529368+00	1	49.5430171	8.6015096	0.4.12	f	\N	\N	\N	\N	\N	\N	\N	2026-09-02 20:21:59.366378+00	\N
+70	b8898e2e-d1e7-4e25-ba36-890eed2ac0f3	BB001	2026-09-02 20:36:58.379+00	\N	-1	0	0	0.4.13	f	\N	\N	\N	\N	\N	\N	\N	2026-09-02 20:42:07.50922+00	\N
+71	2eb348f7-fefa-4c22-84ab-8338a9a7e0f8	BB001	2026-09-02 20:52:23.304806+00	2026-09-02 20:52:23.304806+00	1	49.5429556	8.6012528	0.4.13	f	\N	\N	\N	\N	\N	\N	\N	2026-09-02 20:52:24.014872+00	\N
+72	b3162c26-4bcf-4d42-bc0b-5c38a8726a72	BB001	2026-09-02 21:10:10.334911+00	2026-09-02 21:10:10.334911+00	2	49.5430124	8.6015153	0.4.15	f	\N	\N	\N	\N	\N	\N	\N	2026-09-02 21:10:11.165105+00	\N
+73	89780781-7e38-497a-9b4e-f000d89197d2	BB001	2026-09-02 21:45:18.765742+00	2026-09-02 21:45:18.765742+00	2	49.5430814	8.6013775	0.4.16	f	\N	\N	\N	\N	\N	\N	\N	2026-09-02 21:45:19.411982+00	\N
+74	6169e9ae-b30a-4751-9313-80794bdae42a	BB001	2026-09-02 22:05:04.605512+00	2026-09-02 22:05:04.605512+00	2	49.5430067	8.6015251	0.4.19	f	\N	\N	\N	\N	\N	\N	\N	2026-09-02 22:05:05.335776+00	\N
+75	736f378c-9f94-4d5a-a40e-2f04bb42eb9f	BB001	2026-09-02 22:05:31.932948+00	2026-09-02 22:05:31.932948+00	2	49.5430054	8.6015275	0.4.19	f	\N	\N	\N	\N	\N	\N	\N	2026-09-02 22:05:32.490792+00	\N
+76	b9244c59-981d-4623-ac44-6ca35be03b98	BB001	2026-09-02 22:31:08.770612+00	2026-09-02 22:31:08.770612+00	2	49.5430054	8.6014264	0.4.19	f	\N	\N	\N	\N	\N	\N	\N	2026-09-02 22:31:09.781152+00	\N
+77	bcc0cc82-6ded-497a-a95e-b3376b36c589	BB001	2026-09-02 22:59:10.774835+00	2026-09-02 22:59:10.774835+00	3	49.5430054	8.6014264	0.4.19	f	\N	\N	\N	\N	\N	\N	\N	2026-09-02 22:59:11.842844+00	\N
+78	3db3b744-3808-4e22-a712-253752ec7a12	BB001	2026-09-03 03:07:33.362759+00	2026-09-03 03:07:33.362759+00	5	49.54308	8.6013627	0.4.19	f	\N	\N	\N	\N	\N	\N	\N	2026-09-03 03:07:33.943506+00	\N
+79	fce1aa16-ea33-4241-b943-94a8395ac67c	BB001	2026-09-03 04:01:40.660478+00	2026-09-03 04:01:40.660478+00	5	49.5430767	8.6013517	0.4.19	f	\N	\N	\N	\N	\N	\N	\N	2026-09-03 04:01:41.361429+00	\N
+80	01f1861f-8768-44a2-8d57-55eb79fefc20	BB001	2026-09-03 06:51:58.926542+00	2026-09-03 06:51:58.926542+00	4	49.5430436	8.6014355	0.4.19	f	\N	\N	\N	\N	\N	\N	\N	2026-09-03 06:51:59.630385+00	\N
+81	53043e4a-828d-4146-9aaa-a4d0fbf9d089	BB001	2026-09-03 07:01:51.790701+00	2026-09-03 07:01:51.790701+00	5	49.5430712	8.6013715	0.4.19	f	\N	\N	\N	\N	\N	\N	\N	2026-09-03 07:01:52.616181+00	\N
+82	dfef85c0-a4bb-499f-86db-d6d99174894b	BB001	2026-09-03 07:48:44.105832+00	2026-09-03 07:48:44.105832+00	4	49.542998	8.6014468	0.4.19	f	\N	\N	\N	\N	\N	\N	\N	2026-09-03 07:48:44.896889+00	\N
+83	16421980-c6bb-42b5-b6e8-df5b340d9829	BB001	2026-09-03 08:15:02.267+00	\N	-1	0	0	0.4.19	f	\N	\N	\N	\N	\N	\N	\N	2026-09-03 08:24:04.160355+00	\N
+84	2ca10bfb-b94d-4081-a399-be1c589b377f	BB001	2026-09-03 08:49:09.383268+00	2026-09-03 08:49:09.383268+00	4	49.5430166	8.6012842	0.4.19	f	\N	\N	\N	\N	\N	\N	\N	2026-09-03 08:49:10.129937+00	\N
+85	afe7476c-d9eb-4276-8611-88fa1575e94d	BB001	2026-09-03 09:15:42.849046+00	2026-09-03 09:15:42.849046+00	4	49.5430271	8.6012535	0.4.19	f	\N	\N	\N	\N	\N	\N	\N	2026-09-03 09:15:43.670466+00	\N
+86	6aa22ce0-8715-4811-80f4-a74006139522	BB001	2026-09-03 09:45:30.477949+00	2026-09-03 09:45:30.477949+00	3	49.5430205	8.6012645	0.4.19	f	\N	\N	\N	\N	\N	\N	\N	2026-09-03 09:45:31.256829+00	\N
+87	67099863-446b-4d7f-b6f3-b9960bf9fa11	BB001	2026-09-03 10:15:11.182201+00	2026-09-03 10:15:11.182201+00	4	49.543051	8.6013181	0.4.19	f	\N	\N	\N	\N	\N	\N	\N	2026-09-03 10:15:11.778887+00	\N
+88	b092d7c0-3269-411f-8318-456b48c4ad6a	BB001	2026-09-03 10:31:50.537293+00	2026-09-03 10:31:50.537293+00	5	49.5430506	8.6013142	0.4.19	f	\N	\N	\N	\N	\N	\N	\N	2026-09-03 10:31:51.690275+00	\N
+89	84bce873-ab15-4439-8f0f-399dd6ba47a1	BB001	2026-09-03 11:15:14.204174+00	2026-09-03 11:15:14.204174+00	3	49.5429748	8.6011587	0.4.19	f	\N	\N	\N	\N	\N	\N	\N	2026-09-03 11:15:14.684633+00	\N
+90	4eff69be-aecc-4cc7-99d3-284077430df7	BB001	2026-09-03 11:45:00.081+00	\N	-1	0	0	0.4.21	f	\N	\N	\N	\N	\N	\N	\N	2026-09-03 11:53:54.852039+00	\N
+91	83cda2b9-425f-44cd-88e3-464d66e3569a	BB001	2026-09-03 12:02:00.566866+00	2026-09-03 12:02:00.566866+00	3	49.5430053	8.6015287	0.4.22	f	\N	\N	\N	\N	\N	\N	\N	2026-09-03 12:02:02.165901+00	test
+92	64df07e7-b9c0-40aa-82aa-f11805d17623	BB001	2026-09-03 12:27:53.64+00	\N	-1	0	0	0.4.22	f	\N	\N	\N	\N	\N	\N	\N	2026-09-03 12:33:12.327913+00	\N
+93	c354f1b9-d4f7-46f1-8407-64cb27412f6f	BB001	2026-09-03 12:43:56.981+00	\N	-1	0	0	0.4.22	f	\N	\N	\N	\N	\N	\N	\N	2026-09-03 12:49:21.896926+00	\N
+94	601e0654-4a1b-4986-896f-45de4a156eb3	BB001	2026-09-03 12:58:35.418144+00	2026-09-03 12:58:35.418144+00	4	49.5430595	8.6013417	0.4.22	f	\N	\N	\N	\N	\N	\N	\N	2026-09-03 12:58:35.995711+00	\N
+95	9afb9f34-68b3-401b-ac6f-6ca036bc2068	BB001	2026-09-03 13:35:10.223739+00	2026-09-03 13:35:10.223739+00	2	49.5430556	8.6012959	0.4.22	f	\N	\N	\N	\N	\N	\N	\N	2026-09-03 13:35:10.871826+00	\N
+96	cfe2fe78-e286-44b4-9485-7c6977dac60a	BB001	2026-09-03 14:03:24.600217+00	2026-09-03 14:03:24.600217+00	4	49.5430646	8.6013003	0.4.22	f	\N	\N	\N	\N	\N	\N	\N	2026-09-03 14:03:25.281045+00	\N
+97	70d215a5-8ccf-450e-aa93-694b40670b1a	BB001	2026-09-03 14:45:15.185151+00	2026-09-03 14:45:15.185151+00	2	49.5432005	8.6012784	0.4.22	f	\N	\N	\N	\N	\N	\N	\N	2026-09-03 14:45:15.911931+00	\N
+98	4229824f-55a1-4bf1-a9bb-1b7c88fbcaf8	BB001	2026-09-03 14:54:09.465066+00	2026-09-03 14:54:09.465066+00	3	49.5429898	8.6011721	0.4.22	f	\N	\N	\N	\N	\N	\N	\N	2026-09-03 14:54:10.875264+00	\N
+99	622937d7-b01c-4c93-b103-04252d6bb565	BB001	2026-09-03 15:23:33.731376+00	2026-09-03 15:23:33.731376+00	3	49.4985696	8.4740579	0.4.22	f	\N	\N	\N	\N	\N	\N	\N	2026-09-03 15:23:34.410025+00	\N
+100	466db799-fa2a-4e02-9305-6f7e95bea086	BB001	2026-09-03 19:55:15.903358+00	2026-09-03 19:55:15.903358+00	4	48.033786	11.6151827	0.4.22	f	\N	\N	\N	\N	\N	\N	\N	2026-09-03 19:55:16.677682+00	München
+101	5ed65458-22aa-4b64-b6d3-eb548cfa0321	BB001	2026-09-03 21:01:16.061946+00	2026-09-03 21:01:16.061946+00	3	48.0337166	11.6151772	0.4.22	f	\N	\N	\N	\N	\N	\N	\N	2026-09-03 21:01:17.030065+00	München
+102	3dc8a618-0643-4dfb-88a4-2c4d7775fa7b	BB001	2026-09-03 22:13:42.294289+00	2026-09-03 22:13:42.294289+00	1	48.033821	11.6152186	0.4.22	f	\N	\N	\N	\N	\N	\N	\N	2026-09-03 22:13:43.013658+00	\N
+103	757c1e39-4a3c-4690-a3e5-7169899b64c0	BB001	2026-09-04 03:11:10.782523+00	2026-09-04 03:11:10.782523+00	2	48.0338063	11.6152163	0.4.22	f	\N	\N	\N	\N	\N	\N	\N	2026-09-04 03:11:11.558272+00	\N
+104	cc4c037a-1285-43a8-a70f-e055a0cfbf35	BB001	2026-09-04 06:14:48.201452+00	2026-09-04 06:14:48.201452+00	0	48.0338193	11.6152231	0.4.22	f	\N	\N	\N	\N	\N	\N	\N	2026-09-04 06:14:49.018042+00	\N
+105	6b5b1c62-7d99-4940-95bf-2c914130e0db	BB001	2026-09-04 06:30:27.634788+00	2026-09-04 06:30:27.634788+00	0	48.0337168	11.615177	0.4.22	f	\N	\N	\N	\N	\N	\N	\N	2026-09-04 06:30:28.727058+00	\N
+106	5e81d917-bd07-4f63-93d5-d5f1db64dbe3	BB001	2026-09-04 06:45:42.93171+00	2026-09-04 06:45:42.93171+00	0	48.0338197	11.6152202	0.4.22	f	\N	\N	\N	\N	\N	\N	\N	2026-09-04 06:45:43.74752+00	\N
+107	6ea8d223-9a25-4a06-b8b5-e2dffc7b2dc7	BB001	2026-09-04 07:01:26.630034+00	2026-09-04 07:01:26.630034+00	0	48.0338218	11.6152241	0.4.22	f	\N	\N	\N	\N	\N	\N	\N	2026-09-04 07:01:27.437683+00	\N
+108	52bf7eb5-ec11-438d-ad7d-77343812d866	BB001	2026-09-04 07:16:41.581226+00	2026-09-04 07:16:41.581226+00	0	48.0338068	11.6152186	0.4.22	f	\N	\N	\N	\N	\N	\N	\N	2026-09-04 07:16:42.587913+00	\N
+109	d53d9500-bb33-4c41-bf22-f25d75c113f3	BB001	2026-09-04 07:53:39.103861+00	2026-09-04 07:53:39.103861+00	0	48.0337167	11.6151774	0.4.22	f	\N	\N	\N	\N	\N	\N	\N	2026-09-04 07:54:00.009394+00	\N
+110	158f6fc9-d77a-4c91-aead-9e4092f9a095	BB001	2026-09-04 08:08:55.088772+00	2026-09-04 08:08:55.088772+00	0	48.033723	11.6151465	0.4.22	f	\N	\N	\N	\N	\N	\N	\N	2026-09-04 08:08:55.927786+00	\N
+111	3dbe555a-67be-4ca0-8340-a7b3d044f640	BB001	2026-09-04 08:23:53.228+00	\N	-1	0	0	0.4.22	f	\N	\N	\N	\N	\N	\N	\N	2026-09-04 08:28:55.928737+00	\N
+112	48cf8322-5634-4e58-9ad4-9caf0cc50327	BB001	2026-09-04 08:45:19.303395+00	2026-09-04 08:45:19.303395+00	0	48.0337197	11.6151807	0.4.22	f	\N	\N	\N	\N	\N	\N	\N	2026-09-04 08:45:20.452212+00	\N
+113	ea9d00b0-a66f-405d-a1d9-8f13473ef4a7	BB001	2026-09-04 08:45:29.833563+00	2026-09-04 08:45:29.833563+00	1	48.0337174	11.6151696	0.4.22	f	\N	\N	\N	\N	\N	\N	\N	2026-09-04 08:45:30.472675+00	\N
+114	6d05e11e-b857-40df-890b-43de3cdc6759	BB001	2026-09-04 09:21:40.580785+00	2026-09-04 09:21:40.580785+00	1	0	0	0.4.22	f	\N	\N	\N	\N	\N	\N	\N	2026-09-04 09:21:41.550499+00	\N
+115	2a5cb136-a91b-4e7f-ad89-aad96d9e6f59	BB001	2026-09-04 09:48:55.467+00	\N	-1	0	0	0.4.22	f	\N	\N	\N	\N	\N	\N	\N	2026-09-04 09:57:59.515577+00	\N
+116	f222aa7b-9ba3-497e-989c-b1fc4ad6c9fd	BB001	2026-09-04 11:23:56.718+00	\N	-1	0	0	0.4.22	f	\N	\N	\N	\N	\N	\N	\N	2026-09-04 11:32:58.93517+00	\N
+117	3ff58707-717d-47e9-902a-872bf47137ac	BB001	2026-09-04 11:48:54.634+00	\N	-1	0	0	0.4.22	f	\N	\N	\N	\N	\N	\N	\N	2026-09-04 11:58:54.841096+00	\N
+118	d3940a83-37a1-4778-8083-3079dbc226cd	BB001	2026-09-04 11:59:50.985782+00	2026-09-04 11:59:50.985782+00	0	48.0337119	11.6151739	0.4.22	f	\N	\N	\N	\N	\N	\N	\N	2026-09-04 11:59:51.609323+00	\N
+119	6b364cc1-9146-448a-b874-a6a6662776ff	BB001	2026-09-04 12:22:04.516837+00	2026-09-04 12:22:04.516837+00	0	48.033709	11.6151756	0.4.22	f	\N	\N	\N	\N	\N	\N	\N	2026-09-04 12:22:05.262913+00	\N
+120	be732db7-d93b-418d-a2f0-04394f53d194	BB001	2026-09-04 12:45:17.108031+00	2026-09-04 12:45:17.108031+00	0	48.0337137	11.6151775	0.4.22	f	\N	\N	\N	\N	\N	\N	\N	2026-09-04 12:45:17.751811+00	\N
+121	895e06b8-01f0-42e3-8d6d-646b53cf06b3	BB001	2026-09-04 13:15:16.378617+00	2026-09-04 13:15:16.378617+00	0	48.0337204	11.6151747	0.4.22	f	\N	\N	\N	\N	\N	\N	\N	2026-09-04 13:15:17.0602+00	\N
+122	db413997-5099-4dac-a9cf-efe4081a81d3	BB001	2026-09-04 13:45:13.211423+00	2026-09-04 13:45:13.211423+00	0	48.033709	11.6151756	0.4.22	f	\N	\N	\N	\N	\N	\N	\N	2026-09-04 13:45:13.908272+00	\N
+123	5f5233d6-623a-407d-9443-d53d8f716fdb	BB001	2026-09-04 22:04:32.110433+00	2026-09-04 22:04:32.110433+00	1	48.0337128	11.6151751	0.4.22	f	\N	\N	\N	\N	\N	\N	\N	2026-09-04 22:04:32.851709+00	\N
+124	3cf5226c-dcf9-464b-bb33-1269bf21248f	BB001	2026-09-04 23:00:16.560314+00	2026-09-04 23:00:16.560314+00	2	48.0338332	11.6151592	0.4.22	f	\N	\N	\N	\N	\N	\N	\N	2026-09-04 23:00:17.677681+00	\N
+125	e75b2ebe-22a9-46fd-8d44-7575f18b81a1	BB001	2026-09-05 07:04:32.257593+00	2026-09-05 07:04:32.257593+00	1	48.0338288	11.6151627	0.4.22	f	\N	\N	\N	\N	\N	\N	\N	2026-09-05 07:04:33.088945+00	\N
+126	63094310-d6bf-4d58-beda-dbed7e45363f	BB001	2026-09-05 07:45:24.483203+00	2026-09-05 07:45:24.483203+00	3	48.0338329	11.6151592	0.4.22	f	\N	\N	\N	\N	\N	\N	\N	2026-09-05 07:45:25.252669+00	\N
+127	97cfdf11-c0b7-4ee5-9f89-2df7956e67df	BB001	2026-09-05 08:03:47.567132+00	2026-09-05 08:03:47.567132+00	4	48.0338286	11.6151623	0.4.22	f	\N	\N	\N	\N	\N	\N	\N	2026-09-05 08:03:48.350064+00	\N
+128	eef162f4-40db-4bec-98b2-dc2311ac5d37	BB001	2026-09-05 09:11:26.843785+00	2026-09-05 09:11:26.843785+00	4	48.0337833	11.6151755	0.4.22	f	\N	\N	\N	\N	\N	\N	\N	2026-09-05 09:11:28.515836+00	\N
+129	1fb63248-01e5-4311-a5fc-f58eef9f9b69	BB001	2026-09-05 08:45:01.466+00	\N	-1	0	0	0.4.22	f	\N	\N	\N	\N	\N	\N	\N	2026-09-05 09:24:07.225314+00	\N
+130	15922ae6-7675-465d-95bd-e682436ee8e8	BB001	2026-09-05 09:49:15.003738+00	2026-09-05 09:49:15.003738+00	5	48.0337833	11.6151698	0.4.22	f	\N	\N	\N	\N	\N	\N	\N	2026-09-05 09:49:15.772948+00	\N
+131	df80e953-f5f9-44b6-ba0a-9532f5d87a25	BB001	2026-09-05 10:13:09.377386+00	2026-09-05 10:13:09.377386+00	5	48.0337258	11.6151793	0.4.22	f	\N	\N	\N	\N	\N	\N	\N	2026-09-05 10:13:10.264012+00	\N
+132	184e6461-d257-42af-b64e-dc6b557cbb80	BB001	2026-09-05 10:49:17.302474+00	2026-09-05 10:49:17.302474+00	4	48.0337213	11.6151747	0.4.22	f	\N	\N	\N	\N	\N	\N	\N	2026-09-05 10:49:18.128971+00	\N
+133	282b7d52-419c-4743-a3dc-9550c2f5e86d	BB001	2026-09-05 20:12:41.081865+00	2026-09-05 20:12:41.081865+00	4	48.0338419	11.6151353	0.4.22	f	\N	\N	\N	\N	\N	\N	\N	2026-09-05 20:12:41.782317+00	\N
+134	65cab56d-db55-44c5-af68-f16cd53ae275	BB001	2026-09-05 20:48:43.663353+00	2026-09-05 20:48:43.663353+00	4	48.0338385	11.6151602	0.4.22	f	\N	\N	\N	\N	\N	\N	\N	2026-09-05 20:48:44.384678+00	\N
+135	67112d4c-3939-4d7d-9cbb-a4753fde55bf	BB001	2026-09-05 21:15:15.919442+00	2026-09-05 21:15:15.919442+00	4	48.0338347	11.6151532	0.4.22	f	\N	\N	\N	\N	\N	\N	\N	2026-09-05 21:15:16.514537+00	\N
+136	959bbc65-cc2e-43d5-9aad-181c773690d4	BB001	2026-09-06 00:24:46.079744+00	2026-09-06 00:24:46.079744+00	5	48.0338272	11.6151476	0.4.22	f	\N	\N	\N	\N	\N	\N	\N	2026-09-06 00:24:46.72345+00	\N
+137	9376827b-8e94-4681-8208-41808242f31c	BB001	2026-09-06 03:04:45.370245+00	2026-09-06 03:04:45.370245+00	5	48.0338218	11.6151299	0.4.22	f	\N	\N	\N	\N	\N	\N	\N	2026-09-06 03:04:46.15453+00	\N
+138	55b34b17-0980-48bc-9be8-a6bc1045e0ed	BB001	2026-09-06 07:34:42.294961+00	2026-09-06 07:34:42.294961+00	4	48.0338408	11.6151609	0.4.22	f	\N	\N	\N	\N	\N	\N	\N	2026-09-06 07:34:42.85527+00	\N
+139	c6f23cb5-58b5-4be1-bab6-6a165fb69687	BB001	2026-09-06 07:53:10.525979+00	2026-09-06 07:53:10.525979+00	2	48.0338258	11.615157	0.4.22	f	\N	\N	\N	\N	\N	\N	\N	2026-09-06 07:53:11.688085+00	\N
+140	1b26e0e8-fe5f-4744-a1ca-1e6d548ab146	BB001	2026-09-06 08:22:17.055529+00	2026-09-06 08:22:17.055529+00	2	48.0336561	11.615258	0.4.22	f	\N	\N	\N	\N	\N	\N	\N	2026-09-06 08:22:17.705756+00	\N
+141	36a4b5e7-8f98-4877-88fd-82329ed3881c	BB001	2026-09-06 08:45:23.578953+00	2026-09-06 08:45:23.578953+00	1	48.0337133	11.6151749	0.4.22	f	\N	\N	\N	\N	\N	\N	\N	2026-09-06 08:45:24.225966+00	\N
+142	364585ce-ebe0-4d1c-99df-a06514eeb49c	BB001	2026-09-06 09:08:18.207944+00	2026-09-06 09:08:18.207944+00	2	48.0337218	11.6151761	0.4.22	f	\N	\N	\N	\N	\N	\N	\N	2026-09-06 09:08:18.749843+00	\N
+143	79c6cd13-80b0-446d-bd3c-386a80929383	BB001	2026-09-06 09:45:19.483592+00	2026-09-06 09:45:19.483592+00	1	48.0337128	11.615175	0.4.22	f	\N	\N	\N	\N	\N	\N	\N	2026-09-06 09:45:20.100815+00	\N
+144	418d7d65-b28d-48e4-9537-370d20e37fcc	BB001	2026-09-06 09:57:41.359632+00	2026-09-06 09:57:41.359632+00	3	48.0337161	11.6151765	0.4.22	f	\N	\N	\N	\N	\N	\N	\N	2026-09-06 09:57:41.89846+00	\N
+145	5a7856de-6cbd-409c-82cd-5d80990b2159	BB001	2026-09-06 10:18:22.581023+00	2026-09-06 10:18:22.581023+00	3	48.0337716	11.6151824	0.4.22	f	\N	\N	\N	\N	\N	\N	\N	2026-09-06 10:18:23.278522+00	\N
+146	f4ca5394-fb04-47da-81f5-520717193a99	BB001	2026-09-06 11:29:26.490576+00	2026-09-06 11:29:26.490576+00	4	48.0337189	11.615166	0.4.22	f	\N	\N	\N	\N	\N	\N	\N	2026-09-06 11:29:27.108216+00	\N
+147	4267a605-f7d0-4f1d-8207-ffa3352ff0c5	BB001	2026-09-06 19:02:19.921316+00	2026-09-06 19:02:19.921316+00	4	49.5430802	8.6013581	0.4.22	f	\N	\N	\N	\N	\N	\N	\N	2026-09-06 19:02:21.338052+00	VHM Woomernd
+148	cbf349a3-f53c-4389-9952-f572db641938	BB001	2026-09-06 19:41:04.764462+00	2026-09-06 19:41:04.764462+00	0	49.5429209	8.6014884	0.4.22	f	\N	\N	\N	\N	\N	\N	\N	2026-09-06 19:41:05.529687+00	\N
+149	1a7b262c-fde3-469c-a26a-2aa569f02a76	BB001	2026-09-06 20:15:19.107532+00	2026-09-06 20:15:19.107532+00	0	49.5430063	8.6013902	0.4.22	f	\N	\N	\N	\N	\N	\N	\N	2026-09-06 20:15:20.211556+00	\N
+150	88862970-4299-45ae-9920-a544f55319b0	BB001	2026-09-06 20:47:03.730975+00	2026-09-06 20:47:03.730975+00	3	49.5429512	8.6014692	0.4.22	f	\N	\N	\N	\N	\N	\N	\N	2026-09-06 20:47:05.07184+00	\N
+151	1af6f57b-afe8-49d9-abeb-9fb81329ccd3	BB001	2026-09-06 21:16:01.009403+00	2026-09-06 21:16:01.009403+00	2	49.5429355	8.6013944	0.4.22	f	\N	\N	\N	\N	\N	\N	\N	2026-09-06 21:16:01.757912+00	\N
+152	03ba2c97-2a13-4f51-9dbc-0288620b661d	BB001	2026-09-06 21:38:28.485827+00	2026-09-06 21:38:28.485827+00	3	49.5430205	8.601368	0.4.22	f	\N	\N	\N	\N	\N	\N	\N	2026-09-06 21:38:29.825776+00	\N
+153	400e8cf5-08f2-4811-89c6-0229a081d0c6	BB001	2026-09-07 05:16:13.122611+00	2026-09-07 05:16:13.122611+00	3	49.5429867	8.6016472	0.4.22	f	\N	\N	\N	\N	\N	\N	\N	2026-09-07 05:16:13.822695+00	\N
+154	59c0a22e-e27a-49b1-ac36-277ddc1a3b48	BB001	2026-09-07 10:30:04.035242+00	2026-09-07 10:30:04.035242+00	4	49.5430514	8.6013359	0.4.22	f	\N	\N	\N	\N	\N	\N	\N	2026-09-07 10:30:04.938732+00	\N
+155	c3b27cf8-52fb-40cd-adac-0b46f5576913	BB001	2026-09-07 11:15:13.48575+00	2026-09-07 11:15:13.48575+00	4	49.543053	8.6013004	0.4.22	f	\N	\N	\N	\N	\N	\N	\N	2026-09-07 11:15:14.221294+00	\N
+156	da138f0d-2412-4846-bb65-7b75a164b913	BB001	2026-09-07 11:45:01.251+00	\N	-1	0	0	0.4.22	f	\N	\N	\N	\N	\N	\N	\N	2026-09-07 11:53:58.825529+00	\N
+157	688b2e09-3fab-4745-9119-f5e7c111414f	BB001	2026-09-07 12:18:55.247+00	\N	-1	0	0	0.4.22	f	\N	\N	\N	\N	\N	\N	\N	2026-09-07 12:28:03.422384+00	\N
+158	9f2f859e-da19-4a4c-86a3-db3fc99fda6e	BB001	2026-09-07 13:06:00.261156+00	2026-09-07 13:06:00.261156+00	3	49.5430035	8.6015293	0.4.22	f	\N	\N	\N	\N	\N	\N	\N	2026-09-07 13:06:01.803595+00	\N
+159	20296b3c-a40c-4831-b24f-92ed112d2600	BB001	2026-09-07 13:20:58.961+00	\N	-1	0	0	0.4.22	f	\N	\N	\N	\N	\N	\N	\N	2026-09-07 13:36:16.060103+00	\N
+160	0dd9e224-2c4f-41ea-b7a4-a2775876c33c	BB001	2026-09-07 13:36:16.127+00	\N	-1	0	0	0.4.22	f	\N	\N	\N	\N	\N	\N	\N	2026-09-07 13:41:43.735144+00	\N
+161	8c5211aa-5fe7-463c-8b10-dd2c04a86b5c	BB001	2026-09-07 13:53:53.786+00	\N	-1	0	0	0.4.22	f	\N	\N	\N	\N	\N	\N	\N	2026-09-07 13:59:14.049089+00	\N
+162	dfbac795-ba1e-467c-b119-0ae91f7550c1	BB001	2026-09-07 14:13:56.204+00	\N	-1	0	0	0.4.22	f	\N	\N	\N	\N	\N	\N	\N	2026-09-07 14:19:15.488761+00	\N
+163	1bfc3cd1-efa7-4a35-99b1-4f3dc651cc5b	BB001	2026-09-07 14:32:51.358461+00	2026-09-07 14:32:51.358461+00	0	49.5430064	8.6015669	0.4.22	f	\N	\N	\N	\N	\N	\N	\N	2026-09-07 14:32:52.155503+00	\N
+164	2ade1c0b-712b-4108-acee-75575acaa50c	BB001	2026-09-07 14:47:49.93+00	\N	-1	0	0	0.4.22	f	\N	\N	\N	\N	\N	\N	\N	2026-09-07 14:52:51.861587+00	\N
+165	80c0a61f-00a8-4eb5-9c7b-cba16cd66bbf	BB001	2026-09-07 15:02:50.281+00	\N	-1	0	0	0.4.22	f	\N	\N	\N	\N	\N	\N	\N	2026-09-07 15:08:21.154547+00	\N
+166	5e63ad75-224c-4bea-9cc2-b5df62108ac3	BB001	2026-09-07 15:17:50.585+00	\N	-1	0	0	0.4.22	f	\N	\N	\N	\N	\N	\N	\N	2026-09-07 15:23:23.047312+00	\N
+167	c8483e1e-e0b1-413a-a458-8cae13d9492c	BB001	2026-09-07 15:32:53.273+00	\N	-1	0	0	0.4.22	f	\N	\N	\N	\N	\N	\N	\N	2026-09-07 16:48:38.187164+00	\N
+168	b6316fbc-c3b4-486c-8c08-a2667836b5b1	BB001	2026-09-07 21:16:14.063003+00	2026-09-07 21:16:14.063003+00	3	49.543005	8.6015735	0.4.23	f	\N	\N	\N	\N	\N	\N	\N	2026-09-07 21:16:14.816793+00	\N
+169	5e7edab4-ddd3-4d06-8dac-0be3a7fe8254	BB001	2026-09-07 21:19:39.738055+00	2026-09-07 21:19:39.738055+00	3	49.5430271	8.6014993	0.4.23	f	\N	\N	\N	\N	\N	\N	\N	2026-09-07 21:19:40.861266+00	Test
+170	975b5b57-75d2-4c33-81d2-555e79c4c18c	BB001	2026-09-07 21:38:28.813+00	\N	-1	0	0	0.4.24	f	\N	\N	\N	\N	\N	\N	\N	2026-09-07 21:44:11.638381+00	\N
+171	01c7db21-e73f-4325-9e3d-f6cdae0d1ea3	BB001	2026-09-07 21:57:47.19281+00	2026-09-07 21:57:47.19281+00	3	49.5430045	8.6015638	0.4.24	f	\N	\N	\N	\N	\N	\N	\N	2026-09-07 21:57:48.351551+00	\N
+172	dfaa825b-9b8f-40c6-93d2-63d66b3313d8	BB001	2026-09-07 22:06:44.178125+00	2026-09-07 22:06:44.178125+00	3	49.5430142	8.6015562	0.4.25	f	\N	\N	\N	\N	\N	\N	\N	2026-09-07 22:06:45.09914+00	\N
+173	ef2bb309-7f0a-4d89-bb3e-cb71b84bf5b2	BB001	2026-09-07 22:21:44.116+00	\N	-1	0	0	0.4.25	f	\N	\N	\N	\N	\N	\N	\N	2026-09-07 22:26:46.063741+00	\N
+174	e7d576d2-1bab-4a02-90b0-dab8f769ce67	BB001	2026-09-07 22:42:03.463851+00	2026-09-07 22:42:03.463851+00	3	49.5429997	8.601383	0.4.26	f	\N	\N	\N	\N	\N	\N	\N	2026-09-07 22:42:04.337443+00	\N
+175	25a38de6-8ed7-4f29-a78e-9eb74c54b497	BB001	2026-09-07 22:43:44.455225+00	2026-09-07 22:43:44.455225+00	2	49.5429965	8.6014375	0.4.26	f	\N	\N	\N	\N	\N	\N	\N	2026-09-07 22:43:45.113467+00	\N
+176	3bdb9fb8-5faa-4429-b738-b7c9ddb6fbb7	BB001	2026-09-07 23:57:51.636692+00	2026-09-07 23:57:51.636692+00	2	49.5430126	8.6015528	0.4.26	f	\N	\N	\N	\N	\N	\N	\N	2026-09-07 23:57:52.721585+00	\N
+177	fdf1c0e3-43c8-4ca9-a46c-fcefa96d9966	BB001	2026-09-08 08:09:23.556993+00	2026-09-08 08:09:23.556993+00	5	49.5430634	8.601363	0.4.26	f	\N	\N	\N	\N	\N	\N	\N	2026-09-08 08:09:24.165894+00	\N
+178	70cb16f7-babb-4f26-9a52-db926ecca422	BB001	2026-09-08 08:45:32.305411+00	2026-09-08 08:45:32.305411+00	2	49.54303	8.6012756	0.4.26	f	\N	\N	\N	\N	\N	\N	\N	2026-09-08 08:45:33.072484+00	\N
+179	8a5c478d-8d1e-4ea3-8bea-9ca51722159c	BB001	2026-09-08 09:15:00.718+00	\N	-1	0	0	0.4.26	f	\N	\N	\N	\N	\N	\N	\N	2026-09-08 09:24:02.220191+00	\N
+180	46df506e-8e9b-4407-8064-3a52c54a7505	BB001	2026-09-08 09:48:53.913+00	\N	-1	0	0	0.4.26	f	\N	\N	\N	\N	\N	\N	\N	2026-09-08 09:59:12.506739+00	\N
+181	c7964dd3-91a4-47eb-b3d2-8f67b2ec4dbb	BB001	2026-09-08 10:18:56.448+00	\N	-1	0	0	0.4.26	f	\N	\N	\N	\N	\N	\N	\N	2026-09-08 10:48:57.238798+00	\N
+182	f2863b70-8c8c-4bec-afc1-8a492a041cd9	BB001	2026-09-08 10:49:27.3523+00	2026-09-08 10:49:27.3523+00	2	49.5487362	8.6458651	0.4.26	f	\N	\N	\N	\N	\N	\N	\N	2026-09-08 10:49:28.075905+00	\N
+183	a888f5dc-bc3d-48a8-8a8a-861260fc001b	BB001	2026-09-08 11:44:47.987062+00	2026-09-08 11:44:47.987062+00	3	49.5430227	8.6012761	0.4.26	f	\N	\N	\N	\N	\N	\N	\N	2026-09-08 11:44:48.694794+00	\N
+184	79805668-aa85-4a36-a51b-e8eeb35ef9ca	BB001	2026-09-08 14:49:53.874499+00	2026-09-08 14:49:53.874499+00	5	49.5429225	8.6013652	0.4.26	f	\N	\N	\N	\N	\N	\N	\N	2026-09-08 14:49:54.442192+00	\N
+185	5b262c71-bb72-4119-a1d2-f4ba3bfe5774	BB001	2026-09-08 16:17:59.234144+00	2026-09-08 16:17:59.234144+00	4	49.5430625	8.6013465	0.4.26	f	\N	\N	\N	\N	\N	\N	\N	2026-09-08 16:17:59.968314+00	\N
+186	41026dfa-9c87-49cd-8ab3-132f80180ac4	BB001	2026-09-08 16:20:49.975458+00	2026-09-08 16:20:49.975458+00	4	49.5430643	8.6013824	0.4.26	f	\N	\N	\N	\N	\N	\N	\N	2026-09-08 16:20:50.529069+00	\N
+187	ce4a6c55-676c-4e4e-88ed-35cd058d1b04	BB001	2026-09-08 16:45:15.815728+00	2026-09-08 16:45:15.815728+00	4	49.5430508	8.6013243	0.4.26	f	\N	\N	\N	\N	\N	\N	\N	2026-09-08 16:45:16.491411+00	\N
+188	b4c07e5f-ccff-4483-8de9-dc7358b69b04	BB001	2026-09-08 17:18:04.144385+00	2026-09-08 17:18:04.144385+00	2	49.5430094	8.6015581	0.4.26	f	\N	\N	\N	\N	\N	\N	\N	2026-09-08 17:18:04.921779+00	\N
+189	377ee281-5a7e-4566-9100-2c891c2bc92f	BB001	2026-09-08 17:48:34.827464+00	2026-09-08 17:48:34.827464+00	1	49.5430102	8.6015495	0.4.26	f	\N	\N	\N	\N	\N	\N	\N	2026-09-08 17:48:36.176734+00	\N
+190	ee9935c4-f985-4646-b364-1e95dc3fa33d	BB001	2026-09-08 18:11:09.598791+00	2026-09-08 18:11:09.598791+00	1	49.5430301	8.6015233	0.4.27	f	\N	\N	\N	\N	\N	\N	\N	2026-09-08 18:11:10.691427+00	\N
+191	38ec0657-8b93-48ae-91d2-842e565f84ed	BB001	2026-09-08 18:45:00.106+00	\N	-1	0	0	0.4.27	f	\N	\N	\N	\N	\N	\N	\N	2026-09-08 18:54:19.597134+00	\N
+192	f6ec31e6-ec49-4a74-810a-b9b65967eb5d	BB001	2026-09-08 19:16:45.593+00	\N	-1	0	0	0.4.27	f	\N	\N	\N	\N	\N	\N	\N	2026-09-08 19:27:02.347843+00	\N
+193	d8f273d0-f59e-4ed5-9cdf-83b74e351368	BB001	2026-09-08 19:53:28.821448+00	2026-09-08 19:53:28.821448+00	1	49.5430191	8.6014116	0.4.27	f	\N	\N	\N	\N	\N	\N	\N	2026-09-08 19:53:29.609719+00	\N
+194	e2e8ff33-8f76-4e35-acd5-2a3f7ad708fe	BB001	2026-09-08 20:15:29.622812+00	2026-09-08 20:15:29.622812+00	2	49.5431192	8.6012719	0.4.27	f	\N	\N	\N	\N	\N	\N	\N	2026-09-08 20:15:30.299724+00	\N
+195	04ec2268-a9ae-4e90-b266-349c56048bc9	BB001	2026-09-08 20:45:00.078+00	\N	-1	0	0	0.4.27	f	\N	\N	\N	\N	\N	\N	\N	2026-09-08 20:51:47.112159+00	\N
+196	1a3d764d-a890-4a3d-8f56-f7b59cc01244	BB001	2026-09-08 20:52:17.48765+00	2026-09-08 20:52:17.48765+00	2	49.5430826	8.6012101	0.4.27	f	\N	\N	\N	\N	\N	\N	\N	2026-09-08 20:52:18.142443+00	wabernd
+197	2fcce0c7-edc5-4336-a12f-fff42f4dbb85	BB001	2026-09-08 21:31:17.878409+00	2026-09-08 21:31:17.878409+00	3	49.5430049	8.6015377	0.4.28	f	\N	\N	\N	\N	\N	\N	\N	2026-09-08 21:31:18.522667+00	\N
+198	59d1fa0e-f24a-4788-b5ec-f7954dcebdc1	BB001	2026-09-08 22:12:59.285151+00	2026-09-08 22:12:59.285151+00	4	49.5430025	8.6015348	0.4.29	f	\N	\N	\N	\N	\N	\N	\N	2026-09-08 22:12:59.949349+00	\N
+199	54aef44d-5be5-43d1-8281-bf42bf9bc451	BB001	2026-09-08 22:53:39.334899+00	2026-09-08 22:53:39.334899+00	3	49.5430048	8.6015653	0.4.34	f	\N	\N	\N	\N	\N	\N	\N	2026-09-08 22:53:39.849662+00	\N
+200	d798b20f-fdf9-48bc-a592-b5dd9dc6d6d2	BB001	2026-09-08 23:13:03.596588+00	2026-09-08 23:13:03.596588+00	3	49.5430101	8.6015616	0.4.35	f	\N	\N	\N	\N	\N	\N	\N	2026-09-08 23:13:04.405092+00	\N
+201	aacb1133-0f61-4a6b-a9ae-a130f2407e16	BB001	2026-09-08 23:42:18.526762+00	2026-09-08 23:42:18.526762+00	3	49.5430018	8.6015127	0.4.37	f	\N	\N	\N	\N	\N	\N	\N	2026-09-08 23:42:19.171374+00	\N
+202	e2b8acd8-10d5-494b-b95c-ed293a904147	BB001	2026-09-08 23:46:48.854711+00	2026-09-08 23:46:48.854711+00	3	49.5430154	8.601526	0.4.37	f	\N	\N	\N	\N	\N	\N	\N	2026-09-08 23:46:49.438279+00	\N
+203	58025ee9-f335-46c0-9e6d-d202fe5a39f7	BB001	2026-09-09 00:16:44.256052+00	2026-09-09 00:16:44.256052+00	3	49.5430151	8.6014778	0.4.37	f	\N	\N	\N	\N	\N	\N	\N	2026-09-09 00:16:44.996337+00	\N
+204	129444fa-1b8c-4113-9349-18fefa1413ca	BB001	2026-09-09 00:45:01.739+00	\N	-1	0	0	0.4.38	f	\N	\N	\N	\N	\N	\N	\N	2026-09-09 00:54:02.946748+00	\N
+205	b6d57616-ba70-4063-9c57-a160ad1e1b6f	BB001	2026-09-09 01:04:01.886341+00	2026-09-09 01:04:01.886341+00	4	49.5430146	8.6014626	0.4.37	f	\N	\N	\N	\N	\N	\N	\N	2026-09-09 01:04:02.955532+00	\N
+206	ab36a569-cbf4-41cf-a689-84bd82bded5b	BB001	2026-09-09 06:48:40.932783+00	2026-09-09 06:48:40.932783+00	4	49.5430116	8.6012941	0.4.37	f	\N	\N	\N	\N	\N	\N	\N	2026-09-09 06:48:42.078364+00	\N
+207	4a431c8f-b0a2-4ecf-b7f2-61e7e098711f	BB001	2026-09-09 07:15:41.856246+00	2026-09-09 07:15:41.856246+00	4	49.5429958	8.6011809	0.4.37	f	\N	\N	\N	\N	\N	\N	\N	2026-09-09 07:15:42.597494+00	\N
+208	97b91e98-8793-4b99-9c50-bff096b0700d	BB001	2026-09-09 07:18:01.60795+00	2026-09-09 07:18:01.60795+00	4	49.5430065	8.6015678	0.4.40	f	\N	\N	\N	\N	\N	\N	\N	2026-09-09 07:18:02.255192+00	\N
+209	3ed9c0ba-59a7-4f19-90e9-bfdd3fb5795f	BB001	2026-09-09 07:45:17.978978+00	2026-09-09 07:45:17.978978+00	4	49.5430045	8.6015626	0.4.43	f	\N	\N	\N	\N	\N	\N	\N	2026-09-09 07:45:18.668794+00	\N
+210	c102e398-ba8e-40bc-9a97-028c2870747e	BB001	2026-09-09 08:15:02.11+00	\N	-1	0	0	0.4.41	f	\N	\N	\N	\N	\N	\N	\N	2026-09-09 08:24:20.956702+00	\N
+211	0a918751-c463-4754-8046-d0a3563cb608	BB001	2026-09-09 08:47:17.89465+00	2026-09-09 08:47:17.89465+00	2	49.5430021	8.6014014	0.4.43	f	\N	\N	\N	\N	\N	\N	\N	2026-09-09 08:47:18.907274+00	\N
+212	8914cb12-4c55-4b08-bf61-7d45f054203e	BB001	2026-09-09 09:15:36.080598+00	2026-09-09 09:15:36.080598+00	2	49.5343404	8.5856415	0.4.43	f	\N	\N	\N	\N	\N	\N	\N	2026-09-09 09:15:36.869985+00	\N
+213	4a2b2a80-28e7-499c-b3ad-1c3a72bedd17	BB001	2026-09-09 09:16:45.294016+00	2026-09-09 09:16:45.294016+00	2	49.5343343	8.5856452	0.4.43	f	\N	\N	\N	\N	\N	\N	\N	2026-09-09 09:16:46.149398+00	im Auti
+214	f9caa755-33f0-4561-a847-764ef7ee647b	BB001	2026-09-09 10:51:11.485+00	\N	-1	0	0	0.4.41	f	\N	\N	\N	\N	\N	\N	\N	2026-09-09 10:57:04.634055+00	\N
+215	b6deb94f-447b-4c3d-9481-6ec90c608f31	BB001	2026-09-09 11:20:37.545099+00	2026-09-09 11:20:37.545099+00	2	49.5430206	8.6013556	0.4.43	f	\N	\N	\N	\N	\N	\N	\N	2026-09-09 11:20:38.37337+00	\N
+216	5f9cdff3-0096-4ba4-9267-4f8c0292c1b1	BB001	2026-09-09 11:45:01.144+00	\N	-1	0	0	0.4.41	f	\N	\N	\N	\N	\N	\N	\N	2026-09-09 11:54:03.084378+00	\N
+217	8a6fa99a-fb8d-45ef-ad3e-dca89daad94c	BB001	2026-09-09 12:16:45.785+00	\N	-1	0	0	0.4.41	f	\N	\N	\N	\N	\N	\N	\N	2026-09-09 13:47:18.276147+00	\N
+218	83bf5f16-6867-49bc-a54f-e8a02bb7ee88	BB001	2026-09-09 14:52:33.877309+00	2026-09-09 14:52:33.877309+00	4	49.5430027	8.6013013	0.4.43	f	\N	\N	\N	\N	\N	\N	\N	2026-09-09 14:52:35.590528+00	\N
+219	ea7812f8-f194-43ca-a6b8-ac98d818314d	BB001	2026-09-09 12:47:16.489+00	\N	-1	0	0	0.4.41	f	\N	\N	\N	\N	\N	\N	\N	2026-09-09 18:15:33.574958+00	\N
+220	1334e9e4-5fae-4be3-ae1f-56be4ccd0d70	BB001	2026-09-09 13:17:15.888+00	\N	-1	0	0	0.4.41	f	\N	\N	\N	\N	\N	\N	\N	2026-09-09 18:15:34.338553+00	\N
+221	a64fd6f1-b804-4473-b7f6-39aa7c7b357a	BB001	2026-09-09 18:15:45.435333+00	2026-09-09 18:15:45.435333+00	5	49.5430329	8.6013648	0.4.43	f	\N	\N	\N	\N	\N	\N	\N	2026-09-09 18:15:46.366983+00	extrem
+222	69c20d8e-a672-403d-837e-74c959c6c73d	BB001	2026-09-09 20:48:55.208459+00	2026-09-09 20:48:55.208459+00	5	49.5430375	8.6013859	0.4.43	f	\N	\N	\N	\N	\N	\N	\N	2026-09-09 20:48:55.969814+00	\N
+223	568a35b3-4e95-4d1f-9269-5c6097b30502	BB001	2026-09-09 20:56:24.017818+00	2026-09-09 20:56:24.017818+00	5	49.5429894	8.601364	0.4.44	f	\N	\N	\N	\N	\N	\N	\N	2026-09-09 20:56:24.671264+00	\N
+224	e28f2554-cdde-44b7-8098-5231dc22aa2b	BB001	2026-09-09 21:50:07.012167+00	2026-09-09 21:50:07.012167+00	5	49.5430136	8.6015544	0.4.45	f	\N	\N	\N	\N	\N	\N	\N	2026-09-09 21:50:08.099845+00	sehr la
+225	30c47339-6684-4ba9-a95b-ec3231e6074d	BB001	2026-09-10 00:23:45.959399+00	2026-09-10 00:23:45.959399+00	5	49.5430075	8.6015352	0.4.47	f	\N	\N	\N	\N	\N	\N	\N	2026-09-10 00:23:46.819336+00	horror
+226	5b613fe8-3c5e-4fd2-a190-33d0304b65e7	BB001	2026-09-10 04:21:13.028858+00	2026-09-10 04:21:13.028858+00	4	49.543021	8.6015317	0.4.47	f	\N	\N	\N	\N	\N	\N	\N	2026-09-10 04:21:14.018013+00	\N
+227	39da8c39-1fe9-4379-973d-afec88b30f64	BB001	2026-09-10 04:49:53.812563+00	2026-09-10 04:49:53.812563+00	4	49.5430024	8.6013895	0.4.48	f	\N	\N	\N	\N	\N	\N	\N	2026-09-10 04:49:55.093168+00	\N
+228	7f956031-ca58-42ef-8cbb-0e21b2f981a0	BB001	2026-09-10 05:01:36.766013+00	2026-09-10 05:01:36.766013+00	4	49.5430333	8.6013998	0.4.49	f	\N	\N	\N	\N	\N	\N	\N	2026-09-10 05:01:37.66219+00	\N
+229	16eb684d-110e-4d86-b3cc-8e03594dcada	BB001	2026-09-10 05:30:10.850134+00	2026-09-10 05:30:10.850134+00	3	49.5430152	8.6015161	0.4.49	f	\N	\N	\N	\N	\N	\N	\N	2026-09-10 05:30:11.694015+00	\N
+230	cce4d38e-a910-4944-bd4f-3aed45b9202a	BB001	2026-09-10 15:25:29.965108+00	2026-09-10 15:25:29.965108+00	4	49.5430144	8.6013784	0.4.49	f	\N	\N	\N	\N	\N	\N	\N	2026-09-10 15:25:30.840392+00	\N
+231	821bae6c-13f5-4b5f-afd7-43759bb36bc3	BB001	2026-09-10 15:29:02.421258+00	2026-09-10 15:29:02.421258+00	5	49.5429149	8.6012989	0.4.49	f	\N	\N	\N	\N	\N	\N	\N	2026-09-10 15:29:03.014507+00	\N
+232	515c9ab2-272a-4d07-846e-b1c20c7f84a0	BB001	2026-09-10 20:57:52.663844+00	2026-09-10 20:57:52.663844+00	5	49.5428973	8.601372	0.4.49	f	\N	\N	\N	\N	\N	\N	\N	2026-09-10 20:57:53.579314+00	\N
+233	a5c6c7dd-d00d-4fa4-8fb3-f5a13393509f	BB001	2026-09-10 23:16:25.971249+00	2026-09-10 23:16:25.971249+00	3	49.5430058	8.6014629	0.4.52	f	\N	\N	\N	\N	\N	\N	\N	2026-09-10 23:16:27.173927+00	\N
+234	7126738e-f4f7-4130-8231-f482892c61f4	BB001	2026-09-12 09:27:57.950376+00	2026-09-12 09:27:57.950376+00	1	49.5430801	8.6013267	0.4.53	f	\N	\N	\N	\N	\N	\N	\N	2026-09-12 09:27:58.820934+00	\N
+235	9671ddda-6539-4702-b348-5f432b3feb71	BB001	2026-09-12 09:45:00.39+00	\N	-1	0	0	0.4.41	f	\N	\N	\N	\N	\N	\N	\N	2026-09-12 09:54:02.209348+00	\N
+236	86ffd5cd-e589-4d5d-a678-02dc1af2c45d	BB001	2026-09-12 10:15:01.508+00	\N	-1	0	0	0.4.41	f	\N	\N	\N	\N	\N	\N	\N	2026-09-12 10:24:02.801537+00	\N
+237	a670b932-d8d0-48cc-9db3-281925742f1e	BB001	2026-09-12 10:46:46.441+00	\N	-1	0	0	0.4.41	f	\N	\N	\N	\N	\N	\N	\N	2026-09-12 10:56:47.935222+00	\N
+238	6e5f9c8f-5517-45e6-b6dd-262bc8284143	BB001	2026-09-12 11:16:46.432+00	\N	-1	0	0	0.4.41	f	\N	\N	\N	\N	\N	\N	\N	2026-09-12 11:25:47.168737+00	\N
+239	bab29b20-6463-496e-9223-61d76b3a9fb8	BB001	2026-09-12 11:45:00.08+00	\N	-1	0	0	0.4.41	f	\N	\N	\N	\N	\N	\N	\N	2026-09-12 11:54:02.332641+00	\N
+240	d42d12db-37e7-4216-aa5f-81fda1f7bfb0	BB001	2026-09-12 12:15:00.171+00	\N	-1	0	0	0.4.41	f	\N	\N	\N	\N	\N	\N	\N	2026-09-12 12:24:02.162983+00	\N
+241	1c68b244-86e4-461a-b221-2fa305a38542	BB001	2026-09-12 12:45:33.501905+00	2026-09-12 12:45:33.501905+00	1	49.5429569	8.6013805	0.4.53	f	\N	\N	\N	\N	\N	\N	\N	2026-09-12 12:45:34.053193+00	\N
+242	51a8efe0-3d28-4ac4-b2c8-f540dc0e5436	BB001	2026-09-12 13:15:13.174287+00	2026-09-12 13:15:13.174287+00	2	49.5430379	8.6013014	0.4.53	f	\N	\N	\N	\N	\N	\N	\N	2026-09-12 13:15:14.381425+00	\N
+243	4dfe0b50-1a56-4de8-8d40-31caca9576c8	BB001	2026-09-12 13:45:19.40449+00	2026-09-12 13:45:19.40449+00	2	49.5430282	8.6012335	0.4.53	f	\N	\N	\N	\N	\N	\N	\N	2026-09-12 13:45:19.94932+00	\N
+244	90898b9b-a14a-45bd-b138-73f1717849d6	BB001	2026-09-12 14:15:07.927225+00	2026-09-12 14:15:07.927225+00	2	49.5430146	8.60127	0.4.53	f	\N	\N	\N	\N	\N	\N	\N	2026-09-12 14:15:09.118548+00	\N
+245	eef3f544-6dd4-4731-a066-eba6c48778e6	BB001	2026-09-12 14:45:00.115+00	\N	-1	0	0	0.4.41	f	\N	\N	\N	\N	\N	\N	\N	2026-09-12 14:51:47.82747+00	\N
+246	0da506a3-56c7-488f-8289-57301440a504	BB001	2026-09-12 14:58:48.447006+00	2026-09-12 14:58:48.447006+00	1	49.5430437	8.6012874	0.4.53	f	\N	\N	\N	\N	\N	\N	\N	2026-09-12 14:58:49.394762+00	\N
+247	0ce82f4b-146d-4bcf-ac9c-59053d5b1564	BB001	2026-09-12 14:59:52.466093+00	2026-09-12 14:59:52.466093+00	0	49.543061	8.6013239	0.4.53	f	\N	\N	\N	\N	\N	\N	\N	2026-09-12 14:59:53.221955+00	\N
+248	1a0fbbda-eb82-4546-80e3-2f321a5f398b	BB001	2026-09-12 15:15:13.100886+00	2026-09-12 15:15:13.100886+00	1	49.54308	8.6013331	0.4.53	f	\N	\N	\N	\N	\N	\N	\N	2026-09-12 15:15:13.633146+00	\N
+249	1a762a4c-38dc-4dbd-8e94-230f678f6a96	BB001	2026-09-12 15:45:16.175955+00	2026-09-12 15:45:16.175955+00	2	49.54308	8.6013331	0.4.53	f	\N	\N	\N	\N	\N	\N	\N	2026-09-12 15:45:16.834025+00	\N
+250	9aabdb18-b08d-426b-a82a-cdc81b6cbfa7	BB001	2026-09-12 20:05:55.16+00	\N	-1	0	0	0.4.41	f	\N	\N	\N	\N	\N	\N	\N	2026-09-12 20:11:48.097818+00	\N
+251	ff9639e8-6aa4-4976-8909-f88217460894	BB001	2026-09-12 20:46:46.457+00	\N	-1	0	0	0.4.41	f	\N	\N	\N	\N	\N	\N	\N	2026-09-12 20:56:47.962928+00	\N
+252	f9708100-c29b-4b95-bb2c-47d735ac4fa4	BB001	2026-09-12 21:49:44.48689+00	2026-09-12 21:49:44.48689+00	3	49.5430308	8.6014162	0.4.53	f	\N	\N	\N	\N	\N	\N	\N	2026-09-12 21:49:45.068578+00	\N
+253	ed9ce51b-7b7d-423e-849f-1c084689201e	BB001	2026-09-12 21:55:01.117589+00	2026-09-12 21:55:01.117589+00	3	49.5430765	8.601342	0.4.53	f	\N	\N	\N	\N	\N	\N	\N	2026-09-12 21:55:10.083984+00	\N
+254	585f06ba-0785-46d5-8fe1-0759f40dadc1	BB001	2026-09-12 21:55:47.726532+00	2026-09-12 21:55:47.726532+00	3	49.5430371	8.6013856	0.4.53	f	\N	\N	\N	\N	\N	\N	\N	2026-09-12 21:55:48.643529+00	\N
+255	9b13ed11-eae0-474e-abbc-063c763c223d	BB001	2026-09-13 06:45:29.888357+00	2026-09-13 06:45:29.888357+00	1	49.5431534	8.6012684	0.4.53	f	\N	\N	\N	\N	\N	\N	\N	2026-09-13 06:45:30.78515+00	\N
+256	13896680-b604-43cd-9af6-7a61a2ae03a9	BB001	2026-09-13 13:27:03.457029+00	2026-09-13 13:27:03.457029+00	0	49.5430464	8.6014193	0.4.53	f	\N	\N	\N	\N	\N	\N	\N	2026-09-13 13:27:04.725045+00	\N
+257	5a5e286a-d726-4049-954e-65c52cf4da8c	BB001	2026-09-13 13:42:55.231008+00	2026-09-13 13:42:55.231008+00	2	49.5430345	8.6014095	0.4.53	f	\N	\N	\N	\N	\N	\N	\N	2026-09-13 13:42:56.742888+00	\N
+258	1c989590-918c-4e19-b72e-9c286c9d4ec5	BB001	2026-09-13 14:15:01.629+00	\N	-1	0	0	0.4.41	f	\N	\N	\N	\N	\N	\N	\N	2026-09-13 16:17:56.836268+00	\N
+259	52ef6615-ea2c-497c-9720-8fca31741358	BB001	2026-09-13 14:47:16.76+00	\N	-1	0	0	0.4.41	f	\N	\N	\N	\N	\N	\N	\N	2026-09-13 16:18:17.644144+00	\N
+260	a989e305-89b9-4dd4-a7d3-93207cb7de9c	BB001	2026-09-13 17:18:33.351+00	\N	-1	0	0	0.4.41	f	\N	\N	\N	\N	\N	\N	\N	2026-09-13 17:27:58.846347+00	\N
+261	e90f9358-cdc7-4fbc-acef-87c079872b85	BB001	2026-09-13 20:19:38.112702+00	2026-09-13 20:19:38.112702+00	0	49.543007	8.6015306	0.4.54	f	\N	\N	\N	\N	\N	\N	\N	2026-09-13 20:19:38.681799+00	\N
+262	a45764e5-92fc-48f1-9d60-b665aa7d5905	BB001	2026-09-13 20:36:29.452158+00	2026-09-13 20:36:29.452158+00	0	49.5430081	8.6015304	0.4.54	f	\N	\N	\N	\N	\N	\N	\N	2026-09-13 20:36:30.488854+00	Ganz kurz
+263	522bac10-42cd-4438-be07-a81b698c24bd	BB001	2026-09-13 20:37:31.152752+00	2026-09-13 20:37:31.152752+00	0	49.543009	8.6015179	0.4.54	f	\N	\N	\N	\N	\N	\N	\N	2026-09-13 20:37:32.150061+00	seltene
+264	f4858e00-6f20-40c2-a43c-05ca3a47c1d0	BB001	2026-09-13 20:45:30.743038+00	2026-09-13 20:45:30.743038+00	0	49.543021	8.6015035	0.4.54	f	\N	\N	\N	\N	\N	\N	\N	2026-09-13 20:45:31.281881+00	\N
+265	9f54250f-34d5-4734-90a2-528b53d5b3ed	BB001	2026-09-13 21:15:23.751965+00	2026-09-13 21:15:23.751965+00	1	49.5430137	8.6015361	0.4.55	f	\N	\N	\N	\N	\N	\N	\N	2026-09-13 21:15:24.361435+00	\N
+266	cac2c16c-60eb-4c74-9b08-4ef206cdc5b5	BB001	2026-09-13 21:41:25.24647+00	2026-09-13 21:41:25.24647+00	1	49.5430031	8.6015088	0.4.55	f	\N	\N	\N	\N	\N	\N	\N	2026-09-13 21:41:25.814854+00	\N
+267	4884b92d-d64c-49f3-b60a-b78cf3605f78	BB001	2026-09-13 22:09:37.128582+00	2026-09-13 22:09:37.128582+00	1	49.5430131	8.6013479	0.4.56	f	\N	\N	\N	\N	\N	\N	\N	2026-09-13 22:09:37.792753+00	.
+268	bc0411d4-c59f-4557-997e-764be1840002	BB001	2026-09-13 22:32:32.63678+00	2026-09-13 22:32:32.63678+00	1	49.5430372	8.6013591	0.4.56	f	\N	\N	\N	\N	\N	\N	\N	2026-09-13 22:32:34.037046+00	\N
+269	ebb7e77e-e99f-4c0b-a738-bc49180241a2	BB001	2026-09-13 22:40:27.672259+00	2026-09-13 22:40:27.672259+00	1	49.5429852	8.6013618	0.4.57	f	\N	\N	\N	\N	\N	\N	\N	2026-09-13 22:40:28.19305+00	\N
+270	075a7b21-36f8-4c3f-873e-9d812cc3a94a	BB001	2026-09-13 22:45:02.534247+00	2026-09-13 22:45:02.534247+00	1	49.5430114	8.6015405	0.4.57	f	\N	\N	\N	\N	\N	\N	\N	2026-09-13 22:45:08.932378+00	\N
+271	43f20d02-b95b-4e60-bfa2-6a4e4454555f	BB001	2026-09-13 22:45:23.792625+00	2026-09-13 22:45:23.792625+00	1	49.5430145	8.6015352	0.4.57	f	\N	\N	\N	\N	\N	\N	\N	2026-09-13 22:45:24.318812+00	\N
+272	3bde9752-3a6a-45fc-b093-c68a08cd2968	BB001	2026-09-13 22:49:20.316802+00	2026-09-13 22:49:20.316802+00	0	49.5430089	8.6015333	0.4.57	f	\N	\N	\N	\N	\N	\N	\N	2026-09-13 22:49:21.011709+00	\N
+273	8c0adbea-aa14-4c46-a6f4-2b8c7552c077	BB001	2026-09-13 23:04:58.257324+00	2026-09-13 23:04:58.257324+00	1	49.5430112	8.6015153	0.4.57	f	\N	\N	\N	\N	\N	\N	\N	2026-09-13 23:04:59.491064+00	\N
+274	77db83e8-6134-4f6f-94b2-15a573b45b15	BB001	2026-09-14 01:02:23.364014+00	2026-09-14 01:02:23.364014+00	1	49.5429755	8.6013131	0.4.57	f	\N	\N	\N	\N	\N	\N	\N	2026-09-14 01:02:24.319787+00	\N
+275	9fe8d305-4759-4caa-9081-e0ef6fc00573	BB001	2026-09-14 01:02:48.762491+00	2026-09-14 01:02:48.762491+00	1	49.5429944	8.60145	0.4.57	f	\N	\N	\N	\N	\N	\N	\N	2026-09-14 01:02:49.280315+00	kurze kleine Impulse
+276	61bc4ca7-2a66-4af4-98e1-b23385080ad1	BB001	2026-09-14 02:53:23.994837+00	2026-09-14 02:53:23.994837+00	3	49.5430458	8.6011586	0.4.57	f	\N	\N	\N	\N	\N	\N	\N	2026-09-14 02:53:24.560845+00	\N
+277	82bb37d1-e8e6-4b01-b1c4-172e6bc84616	BB001	2026-09-14 05:05:15.936376+00	2026-09-14 05:05:15.936376+00	1	49.5430211	8.6015142	0.4.57	f	\N	\N	\N	\N	\N	\N	\N	2026-09-14 05:05:16.901872+00	\N
+278	9a49a666-0e80-456c-a192-0afc47a5b53b	BB001	2026-09-14 19:47:58.576044+00	2026-09-14 19:47:58.576044+00	0	47.8222182	8.0718233	0.4.57	f	\N	\N	\N	\N	\N	\N	\N	2026-09-14 19:47:59.45655+00	\N
+279	9883c6b9-11f7-4799-87ea-ca430f2a1233	BB001	2026-09-14 20:15:21.261867+00	2026-09-14 20:15:21.261867+00	1	47.8222172	8.0718229	0.4.57	f	\N	\N	\N	\N	\N	\N	\N	2026-09-14 20:15:22.561456+00	\N
+280	9792c59a-aa93-48de-919c-61e85ade2064	BB001	2026-09-14 20:15:54.700449+00	2026-09-14 20:15:54.700449+00	1	47.8222159	8.0718202	0.4.57	f	\N	\N	\N	\N	\N	\N	\N	2026-09-14 20:15:55.310405+00	Menzenschwand
+281	5cd8c119-44ca-4ffc-bfb1-563c2b320335	BB001	2026-09-14 23:07:42.387128+00	2026-09-14 23:07:42.387128+00	0	47.8222189	8.0718233	0.4.57	f	\N	\N	\N	\N	\N	\N	\N	2026-09-14 23:07:43.913218+00	\N
+282	7be5c54b-e3ff-4a0e-9b5d-78442a624c81	BB001	2026-09-14 23:21:13.611695+00	2026-09-14 23:21:13.611695+00	0	47.8222191	8.0718261	0.4.57	f	\N	\N	\N	\N	\N	\N	\N	2026-09-14 23:21:14.860582+00	Menzenschwand
+283	8cb2fd3c-997c-4ea0-b95d-8936bd353929	BB001	2026-09-14 23:49:23.8417+00	2026-09-14 23:49:23.8417+00	1	47.8222199	8.0718245	0.4.57	f	\N	\N	\N	\N	\N	\N	\N	2026-09-14 23:49:25.230521+00	Menzenschwand
+284	06773502-1327-4f98-ae4f-1ec3f94d4827	BB001	2026-09-15 06:08:28.108654+00	2026-09-15 06:08:28.108654+00	1	47.8222201	8.0718223	0.4.57	f	\N	\N	\N	\N	\N	\N	\N	2026-09-15 06:08:28.718915+00	\N
+285	4e6dfefa-7694-46ce-acb6-4a1ef55ac88b	BB001	2026-09-15 15:15:26.830642+00	2026-09-15 15:15:26.830642+00	1	47.8222208	8.0718216	0.4.57	f	\N	\N	\N	\N	\N	\N	\N	2026-09-15 15:15:27.561085+00	Menzenschwand
+286	0a6abea8-c383-4dad-907a-11e62605ac2c	BB001	2026-09-15 15:15:31.929196+00	2026-09-15 15:15:31.929196+00	1	47.8222284	8.0718392	0.4.57	f	\N	\N	\N	\N	\N	\N	\N	2026-09-15 15:15:32.927109+00	Menzenschwand
+287	8ef2601b-74e1-4eb6-b228-ba9ab9e6c06d	BB001	2026-09-15 21:06:24.27741+00	2026-09-15 21:06:24.27741+00	2	47.8222202	8.0718224	0.4.57	f	\N	\N	\N	\N	\N	\N	\N	2026-09-15 21:06:24.914925+00	\N
+288	66e8984c-caeb-432c-9880-c06a88dacc51	BB001	2026-09-15 21:06:44.958675+00	2026-09-15 21:06:44.958675+00	2	47.8222192	8.071826	0.4.57	f	\N	\N	\N	\N	\N	\N	\N	2026-09-15 21:06:45.565883+00	Menzenschwand
+289	c784e1e1-689e-47fc-91b7-4735aba848cc	BB001	2026-09-15 21:15:42.813427+00	2026-09-15 21:15:42.813427+00	3	47.8222198	8.0718226	0.4.57	f	\N	\N	\N	\N	\N	\N	\N	2026-09-15 21:15:43.799771+00	Menzenschwand
+290	ddfbc953-73b0-4c8a-a7c8-5f34f8d5fd11	BB001	2026-09-15 21:15:44.104003+00	2026-09-15 21:15:44.104003+00	3	47.8222198	8.0718226	0.4.57	f	\N	\N	\N	\N	\N	\N	\N	2026-09-15 21:15:44.676794+00	Menzenschwand
+291	fe28832f-25d1-44ad-bfcd-f101cab0007a	BB001	2026-09-16 00:17:14.814012+00	2026-09-16 00:17:14.814012+00	0	47.8222201	8.0718237	0.4.57	f	\N	\N	\N	\N	\N	\N	\N	2026-09-16 00:17:16.485803+00	\N
+292	a5cfa07e-ea0a-40ff-8adf-ae1e2cd60167	BB001	2026-09-16 05:28:02.037773+00	2026-09-16 05:28:02.037773+00	4	47.8222203	8.0718224	0.4.57	f	\N	\N	\N	\N	\N	\N	\N	2026-09-16 05:28:03.651623+00	Menzenschwand
+293	fb0d3a49-5681-4137-8d29-ee5bcd2d1e9b	BB001	2026-09-16 22:33:43.061152+00	2026-09-16 22:33:43.061152+00	4	49.5430155	8.6011824	0.4.57	f	\N	\N	\N	\N	\N	\N	\N	2026-09-16 22:33:43.700167+00	\N
+294	fc243d2b-9bb4-4fcf-97b5-7f0742e11e7a	BB001	2026-09-17 15:09:14.262494+00	2026-09-17 15:09:14.262494+00	3	49.543026	8.6014677	0.4.57	f	\N	\N	\N	\N	\N	\N	\N	2026-09-17 15:09:15.152156+00	\N
+295	8800855e-449e-45b2-9f94-8df46f253b33	BB001	2026-09-17 22:22:26.994115+00	2026-09-17 22:22:26.994115+00	3	49.5429733	8.6011803	0.4.80	f	\N	\N	\N	\N	\N	\N	\N	2026-09-17 22:22:28.165195+00	\N
+296	a3395192-ae71-43e1-a5f2-2b5d46c6263b	BB001	2026-09-18 02:04:56.085432+00	2026-09-18 02:04:56.085432+00	4	49.5429967	8.6011572	0.4.80	f	\N	\N	\N	\N	\N	\N	\N	2026-09-18 02:04:56.746124+00	\N
+297	8ca4922b-6435-413b-bc8c-9ac4fb87b915	BB001	2026-09-18 07:08:51.937079+00	2026-09-18 07:08:51.937079+00	2	49.5429688	8.6011728	0.4.80	f	\N	\N	\N	\N	\N	\N	\N	2026-09-18 07:08:53.317653+00	\N
+298	3eb87b61-46f5-4926-acf8-dc97182e55eb	BB001	2026-09-18 09:33:19.92649+00	2026-09-18 09:33:19.92649+00	1	49.5430023	8.6011876	0.4.81	f	\N	\N	\N	\N	\N	\N	\N	2026-09-18 09:33:21.257178+00	\N
+299	0abc48a2-6ed3-4f0d-916f-ff0d1f53173f	BB001	2026-09-18 09:47:01.907217+00	2026-09-18 09:47:01.907217+00	1	49.5430168	8.6012376	0.4.82	f	\N	\N	\N	\N	\N	\N	\N	2026-09-18 09:47:02.670448+00	\N
+300	287c0488-29c9-4c51-a5ab-13e440d23a67	BB001	2026-09-18 10:12:43.957137+00	2026-09-18 10:12:43.957137+00	2	49.5430163	8.6011777	0.4.83	f	\N	\N	\N	\N	\N	\N	\N	2026-09-18 10:12:45.439284+00	\N
+301	ee9254c4-8507-48e7-bc71-2fe129926705	BB001	2026-09-18 10:26:29.899648+00	2026-09-18 10:26:29.899648+00	1	49.5429801	8.6012145	0.4.83	f	\N	\N	\N	\N	\N	\N	\N	2026-09-18 10:26:31.493838+00	\N
+302	30407ddc-0e12-4e3b-abbf-6487de45ea65	BB001	2026-09-18 10:45:29.885037+00	2026-09-18 10:45:29.885037+00	2	49.5429701	8.6011833	0.4.83	f	\N	\N	\N	\N	\N	\N	\N	2026-09-18 10:45:30.651473+00	\N
+303	9a2f9eb1-3339-4c92-b746-c69646ea3a29	BB001	2026-09-18 11:15:59.422+00	2026-09-18 11:15:59.422+00	2	0	0	0.4.83	f	\N	\N	\N	\N	\N	\N	\N	2026-09-18 11:16:00.39294+00	\N
+304	7fdc428d-67a6-47bd-aab5-9d39186ebd76	BB001	2026-09-18 11:16:22.158+00	2026-09-18 11:16:22.158+00	2	37.4219983	-122.084	0.4.83	f	\N	\N	\N	\N	\N	\N	\N	2026-09-18 11:16:22.870842+00	\N
+305	bc3e8d9e-0676-4fe9-980b-18a2c45f017a	BB001	2026-09-18 11:16:52.189+00	2026-09-18 11:16:52.189+00	2	37.4219983	-122.084	0.4.83	f	\N	\N	\N	\N	\N	\N	\N	2026-09-18 11:16:53.019515+00	\N
+306	36c78462-3db1-457e-9122-13d66c8def47	BB001	2026-09-18 11:18:13.951843+00	2026-09-18 11:18:13.951843+00	2	49.5430395	8.6011996	0.4.83	f	\N	\N	\N	\N	\N	\N	\N	2026-09-18 11:18:14.864102+00	\N
+307	582d4d8f-74d5-4121-a735-6181c9f9b3fa	BB001	2026-09-18 11:45:00.235+00	\N	-1	0	0	0.4.41	f	\N	\N	\N	\N	\N	\N	\N	2026-09-18 11:54:01.816863+00	\N
+308	2e0e31a1-d618-488b-ab5f-e395da6505ae	BB001	2026-09-18 12:16:47.595+00	\N	-1	0	0	0.4.41	f	\N	\N	\N	\N	\N	\N	\N	2026-09-18 12:25:49.059998+00	\N
+309	531554a6-cdfe-4b27-8392-0cbe7ac93d98	BB001	2026-09-18 12:46:47.583+00	\N	-1	0	0	0.4.41	f	\N	\N	\N	\N	\N	\N	\N	2026-09-18 12:55:49.348385+00	\N
+310	8e03fcf8-8476-422e-b4f7-e1aac788538a	BB001	2026-09-18 13:16:47.6+00	\N	-1	0	0	0.4.41	f	\N	\N	\N	\N	\N	\N	\N	2026-09-18 13:25:49.51592+00	\N
+311	49cf2b5c-8c46-4b58-a1c4-1997cf7e9ee0	BB001	2026-09-18 13:47:01.932465+00	2026-09-18 13:47:01.932465+00	0	49.5430532	8.6013116	0.4.83	f	\N	\N	\N	\N	\N	\N	\N	2026-09-18 13:47:02.663596+00	\N
+312	967a1b30-e56d-491f-814a-3bb941dded81	BB001	2026-09-18 14:15:00.116+00	\N	-1	0	0	0.4.41	f	\N	\N	\N	\N	\N	\N	\N	2026-09-18 14:24:01.738737+00	\N
+313	f6ff7f10-6c43-4444-ae40-ed9bdf271dc9	BB001	2026-09-18 15:34:43.880968+00	2026-09-18 15:34:43.880968+00	3	49.5430954	8.6012116	0.4.83	f	\N	\N	\N	\N	\N	\N	\N	2026-09-18 15:34:45.433589+00	\N
+314	eb4f9276-b3ea-41a0-99ff-b225af09c569	BB001	2026-09-18 17:50:23.811974+00	2026-09-18 17:50:23.811974+00	3	49.5429914	8.601181	0.4.84	f	\N	\N	\N	\N	\N	\N	\N	2026-09-18 17:50:24.669783+00	\N
+315	545d0497-9fc9-4afd-8af2-33bbd7938607	BB001	2026-09-18 18:15:18.829774+00	2026-09-18 18:15:18.829774+00	3	49.5430199	8.6011612	0.4.84	f	\N	\N	\N	\N	\N	\N	\N	2026-09-18 18:15:19.613064+00	\N
+316	59922751-59ec-4386-83cb-a6c618a2f7ef	BB001	2026-09-18 19:45:05.173+00	\N	-1	0	0	0.4.41	f	\N	\N	\N	\N	\N	\N	\N	2026-09-18 19:54:07.347767+00	\N
+317	f30ec579-c9c9-421b-9654-0e308e2dfece	BB001	2026-09-18 20:15:13.791838+00	2026-09-18 20:15:13.791838+00	3	49.5430528	8.6011949	0.4.84	f	\N	\N	\N	\N	\N	\N	\N	2026-09-18 20:15:14.770948+00	\N
+318	cffe1a7f-d718-4070-bfc9-31d79612dfac	BB001	2026-09-18 21:45:23.769259+00	2026-09-18 21:45:23.769259+00	4	49.5430935	8.6012701	0.4.84	f	\N	\N	\N	\N	\N	\N	\N	2026-09-18 21:45:24.538559+00	\N
+319	5efa9716-a150-4444-8a78-f245aba5c51a	BB001	2026-09-18 22:15:25.073499+00	2026-09-18 22:15:25.073499+00	3	49.5430381	8.6012935	0.4.84	f	\N	\N	\N	\N	\N	\N	\N	2026-09-18 22:15:25.985858+00	\N
+320	dac7dabf-4cd4-40e0-8976-03f3e03934f1	BB001	2026-09-18 22:45:00.871+00	\N	-1	0	0	0.4.41	f	\N	\N	\N	\N	\N	\N	\N	2026-09-18 22:54:17.723452+00	\N
+321	b22a8c6e-ffb5-4bd5-b7df-0c810b643b27	BB001	2026-09-18 23:15:39.748308+00	2026-09-18 23:15:39.748308+00	4	49.543	8.6011731	0.4.84	f	\N	\N	\N	\N	\N	\N	\N	2026-09-18 23:15:40.637194+00	\N
+322	2868f90b-c0cd-4f07-b4de-980ca69faef0	BB001	2026-09-18 23:45:11.740187+00	2026-09-18 23:45:11.740187+00	4	49.5430015	8.6011477	0.4.84	f	\N	\N	\N	\N	\N	\N	\N	2026-09-18 23:45:12.600038+00	\N
+323	7817206e-f845-49bf-b312-7a3cbed62538	BB001	2026-09-19 02:35:12.274539+00	2026-09-19 02:35:12.274539+00	5	49.5429884	8.6011792	0.4.84	f	\N	\N	\N	\N	\N	\N	\N	2026-09-19 02:35:12.794539+00	\N
+324	6fb4d6dd-fd8f-4df5-b9aa-f3c661224921	BB001	2026-09-19 08:08:47.737+00	\N	-1	0	0	0.4.41	f	\N	\N	\N	\N	\N	\N	\N	2026-09-19 08:18:18.343726+00	\N
+325	f0d0efaf-da54-4d5b-b9d5-5fd32a44c116	BB001	2026-09-19 08:41:36.072655+00	2026-09-19 08:41:36.072655+00	4	49.5430147	8.6012008	0.4.84	f	\N	\N	\N	\N	\N	\N	\N	2026-09-19 08:41:36.666876+00	\N
+326	fb7ff46e-a958-4465-9625-174aa109c367	BB001	2026-09-19 09:15:00.094+00	\N	-1	0	0	0.4.41	f	\N	\N	\N	\N	\N	\N	\N	2026-09-19 09:24:08.708602+00	\N
+327	1f317227-e727-43bf-8a0c-29af4a1d1af0	BB001	2026-09-19 09:46:47.893+00	\N	-1	0	0	0.4.41	f	\N	\N	\N	\N	\N	\N	\N	2026-09-19 09:57:11.9708+00	\N
+328	d54f59d2-e395-40be-93a0-4ff0579f3ce9	BB001	2026-09-19 10:17:25.735992+00	2026-09-19 10:17:25.735992+00	2	49.5433039	8.6011935	0.4.84	f	\N	\N	\N	\N	\N	\N	\N	2026-09-19 10:17:33.431402+00	\N
+329	494d6fb0-a4f5-45e3-9952-ac67e95b542a	BB001	2026-09-19 10:47:05.042162+00	2026-09-19 10:47:05.042162+00	4	49.5430541	8.6012035	0.4.84	f	\N	\N	\N	\N	\N	\N	\N	2026-09-19 10:47:05.640082+00	\N
+330	2e7ff742-fc77-44ad-b3dc-af5fe9d9ca51	BB001	2026-09-19 11:15:29.340644+00	2026-09-19 11:15:29.340644+00	3	49.5430289	8.6015052	0.4.84	f	\N	\N	\N	\N	\N	\N	\N	2026-09-19 11:15:49.831991+00	\N
+331	0d9d4aa4-42f3-44d2-b86a-06e198f06cc8	BB001	2026-09-19 11:46:47.926+00	\N	-1	0	0	0.4.41	f	\N	\N	\N	\N	\N	\N	\N	2026-09-19 11:55:49.604419+00	\N
+332	bda962bc-0ba0-4d7e-a290-31db34a84787	BB001	2026-09-19 12:17:30.046403+00	2026-09-19 12:17:30.046403+00	2	49.5430681	8.6011144	0.4.84	f	\N	\N	\N	\N	\N	\N	\N	2026-09-19 12:17:30.791966+00	\N
+333	59c5f941-baa9-476c-b2a7-8c5de2b770c0	BB001	2026-09-19 13:26:06.036285+00	2026-09-19 13:26:06.036285+00	5	49.5430603	8.6012018	0.4.84	f	\N	\N	\N	\N	\N	\N	\N	2026-09-19 13:26:06.730773+00	\N
+334	4ab0d972-992e-4983-902f-bbf4028121cf	BB001	2026-09-19 13:46:06.963768+00	2026-09-19 13:46:06.963768+00	5	49.5430611	8.6013145	0.4.84	f	\N	\N	\N	\N	\N	\N	\N	2026-09-19 13:46:07.618525+00	\N
+335	d4e33134-3ab0-47fc-becf-adc84e115e67	BB001	2026-09-19 14:14:17.953461+00	2026-09-19 14:14:17.953461+00	4	49.5430716	8.6012143	0.4.84	f	\N	\N	\N	\N	\N	\N	\N	2026-09-19 14:14:19.226482+00	\N
+336	3897454b-5d40-4aa2-aaa6-2ee8d7253926	BB001	2026-09-19 14:45:14.981619+00	2026-09-19 14:45:14.981619+00	4	49.5429642	8.6011005	0.4.84	f	\N	\N	\N	\N	\N	\N	\N	2026-09-19 14:45:15.639727+00	\N
+337	e377d1e7-c13e-4ddd-aa9f-3db9da79b716	BB001	2026-09-19 15:15:12.927572+00	2026-09-19 15:15:12.927572+00	4	49.543017	8.6011223	0.4.84	f	\N	\N	\N	\N	\N	\N	\N	2026-09-19 15:15:13.591995+00	\N
+338	a3d5526d-a763-4cec-b8d1-3307dc0cd0aa	BB001	2026-09-19 16:15:15.97+00	\N	-1	0	0	0.4.41	f	\N	\N	\N	\N	\N	\N	\N	2026-09-19 16:21:51.273162+00	\N
+339	37878589-c9c5-4097-8ff8-0cd53c19efc1	BB001	2026-09-19 16:51:04.935756+00	2026-09-19 16:51:04.935756+00	2	49.543183	8.6009768	0.4.84	f	\N	\N	\N	\N	\N	\N	\N	2026-09-19 16:51:05.915812+00	\N
+340	ec14715c-926e-43f5-ad15-32b7d258fc4b	BB001	2026-09-19 16:58:12.90933+00	2026-09-19 16:58:12.90933+00	3	49.543216	8.6010627	0.4.84	f	\N	\N	\N	\N	\N	\N	\N	2026-09-19 16:58:14.061318+00	\N
+341	17de85e5-895b-4046-98c3-e5ecc51f3272	BB001	2026-09-19 17:15:17.037492+00	2026-09-19 17:15:17.037492+00	3	49.5430131	8.6011856	0.4.84	f	\N	\N	\N	\N	\N	\N	\N	2026-09-19 17:15:17.769128+00	\N
+342	2cecaf34-6305-4eda-871e-0bc582b29e91	BB001	2026-09-19 17:45:13.945463+00	2026-09-19 17:45:13.945463+00	3	49.5430551	8.6013085	0.4.84	f	\N	\N	\N	\N	\N	\N	\N	2026-09-19 17:45:14.663495+00	\N
+343	09930764-27e7-452e-a4a6-d5054cada529	BB001	2026-09-19 18:10:46.984382+00	2026-09-19 18:10:46.984382+00	4	49.5430635	8.6011847	0.4.84	f	\N	\N	\N	\N	\N	\N	\N	2026-09-19 18:10:47.712044+00	\N
+344	21f78504-35dc-47b7-8c14-84d642a8d797	BB001	2026-09-19 18:34:06.885615+00	2026-09-19 18:34:06.885615+00	5	49.5431443	8.6011751	0.4.84	f	\N	\N	\N	\N	\N	\N	\N	2026-09-19 18:34:07.657698+00	\N
+345	b9097915-5c3a-4a5d-bb4b-6f4128e98ef8	BB001	2026-09-19 20:53:02.888351+00	2026-09-19 20:53:02.888351+00	4	49.5430254	8.6011647	0.4.84	f	\N	\N	\N	\N	\N	\N	\N	2026-09-19 20:53:03.652758+00	\N
+346	fda5612e-9a7f-44ab-94cd-f7d55c626a14	BB001	2026-09-19 21:04:24.968104+00	2026-09-19 21:04:24.968104+00	4	49.5430244	8.601167	0.4.86	f	\N	\N	\N	\N	\N	\N	\N	2026-09-19 21:04:25.785341+00	\N
+347	518464a5-780b-4af9-a1eb-b90d553a9bb2	BB001	2026-09-19 21:26:18.080432+00	2026-09-19 21:26:18.080432+00	3	49.543013	8.6011784	0.4.87	f	\N	\N	\N	\N	\N	\N	\N	2026-09-19 21:26:18.896877+00	\N
+348	fc41e929-c424-495b-afbf-7da160831143	BB001	2026-09-19 21:45:21.869332+00	2026-09-19 21:45:21.869332+00	3	49.5430322	8.6011842	0.4.87	f	\N	\N	\N	\N	\N	\N	\N	2026-09-19 21:45:22.93414+00	\N
+349	fae972d3-77ef-4454-985c-fa05e214237d	BB001	2026-09-19 21:48:46.86274+00	2026-09-19 21:48:46.86274+00	3	49.5430315	8.6011854	0.4.87	f	\N	\N	\N	\N	\N	\N	\N	2026-09-19 21:48:47.755692+00	\N
+350	0ddce275-3bab-45e5-b596-55b3a45666d9	BB001	2026-09-19 22:45:24.869317+00	2026-09-19 22:45:24.869317+00	3	49.5430018	8.6012081	0.4.89	f	\N	\N	\N	\N	\N	\N	\N	2026-09-19 22:45:25.75086+00	\N
+351	f9cb2aaa-d61e-4ce5-92fa-e9f0bdd27bfa	BB001	2026-09-19 23:15:22.855291+00	2026-09-19 23:15:22.855291+00	2	49.5430064	8.6011995	0.4.90	f	\N	\N	\N	\N	\N	\N	\N	2026-09-19 23:15:23.646948+00	\N
+352	1a89a467-82e0-49cf-92f3-c7fab6694c6d	BB001	2026-09-20 00:11:09.882737+00	2026-09-20 00:11:09.882737+00	2	49.5429971	8.6011778	0.4.90	f	\N	\N	\N	\N	\N	\N	\N	2026-09-20 00:11:10.838897+00	\N
+353	a486b733-7499-4e52-a13f-b7ea6d795d23	BB001	2026-09-20 07:25:48.491231+00	2026-09-20 07:25:48.491231+00	4	49.5430584	8.6013126	0.4.90	f	\N	\N	\N	\N	\N	\N	\N	2026-09-20 07:25:49.355555+00	\N
+354	0fb952a6-144d-4684-8949-2f69625a58d4	BB001	2026-09-20 07:45:32.784857+00	2026-09-20 07:45:32.784857+00	4	49.5430615	8.6012333	0.4.90	f	\N	\N	\N	\N	\N	\N	\N	2026-09-20 07:45:33.608384+00	\N
+355	0a1de37c-7311-48a9-b868-52c2740a747a	BB001	2026-09-20 08:15:00.073+00	\N	-1	0	0	0.4.41	f	\N	\N	\N	\N	\N	\N	\N	2026-09-20 08:24:16.474069+00	\N
+356	1f873cc8-681f-435f-81fb-948b98b3fe9a	BB001	2026-09-20 08:45:51.764779+00	2026-09-20 08:45:51.764779+00	3	49.5430381	8.6011864	0.4.90	f	\N	\N	\N	\N	\N	\N	\N	2026-09-20 08:45:52.71168+00	\N
+357	ce220e4d-c60e-4763-a325-b3a41fcb5874	BB001	2026-09-20 09:15:25.761109+00	2026-09-20 09:15:25.761109+00	2	49.5430295	8.6011823	0.4.90	f	\N	\N	\N	\N	\N	\N	\N	2026-09-20 09:15:26.623956+00	\N
+358	ab836045-013b-4afd-bc96-1c2bb5f74c6a	BB001	2026-09-20 09:45:15.737079+00	2026-09-20 09:45:15.737079+00	2	49.542996	8.6012002	0.4.90	f	\N	\N	\N	\N	\N	\N	\N	2026-09-20 09:45:16.659153+00	\N
+359	5daec0c7-e396-4ce8-ac45-ade6fbd89674	BB001	2026-09-20 10:15:32.743196+00	2026-09-20 10:15:32.743196+00	2	49.5429948	8.6012004	0.4.90	f	\N	\N	\N	\N	\N	\N	\N	2026-09-20 10:15:33.644301+00	\N
+360	a4a5e440-8179-43f7-9e40-ab1c1fa3563d	BB001	2026-09-20 10:46:14.753693+00	2026-09-20 10:46:14.753693+00	2	49.5430149	8.6012079	0.4.90	f	\N	\N	\N	\N	\N	\N	\N	2026-09-20 10:46:15.693571+00	\N
+361	c2f5dda0-de45-402c-ae71-7e969c5b2ff2	BB001	2026-09-20 11:15:27.76605+00	2026-09-20 11:15:27.76605+00	2	49.5430118	8.6012106	0.4.90	f	\N	\N	\N	\N	\N	\N	\N	2026-09-20 11:15:28.696606+00	\N
+362	dfe26cbf-bf84-45b3-b609-36ed76efec91	BB001	2026-09-20 11:45:00.111+00	\N	-1	0	0	0.4.41	f	\N	\N	\N	\N	\N	\N	\N	2026-09-20 11:54:01.793531+00	\N
+363	7e757b5b-1513-40eb-ad6e-48e1fc0de214	BB001	2026-09-20 12:15:00.106+00	\N	-1	0	0	0.4.41	f	\N	\N	\N	\N	\N	\N	\N	2026-09-20 12:21:49.699859+00	\N
+364	6e57f067-7ff4-4569-b6fd-67f02c6a4843	BB001	2026-09-20 12:46:47.89+00	\N	-1	0	0	0.4.41	f	\N	\N	\N	\N	\N	\N	\N	2026-09-20 12:55:49.705184+00	\N
+365	ca16934d-ee4f-404d-bde6-5613935dc43c	BB001	2026-09-20 13:17:48.681774+00	2026-09-20 13:17:48.681774+00	0	49.5430099	8.601216	0.4.93	f	\N	\N	\N	\N	\N	\N	\N	2026-09-20 13:17:49.659491+00	\N
+366	980adaac-fc8a-4ff6-9d48-802e9fe11db8	BB001	2026-09-20 13:45:32.687277+00	2026-09-20 13:45:32.687277+00	2	49.5430097	8.6011814	0.4.94	f	\N	\N	\N	\N	\N	\N	\N	2026-09-20 13:45:33.98914+00	\N
+367	c0ba6041-7bd1-4d44-95f3-dd301d0bf914	BB001	2026-09-20 15:15:12.689119+00	2026-09-20 15:15:12.689119+00	1	49.5430014	8.6011893	0.4.95.1	f	\N	\N	\N	\N	\N	\N	\N	2026-09-20 15:15:13.569899+00	\N
+368	7ae78c0b-fad7-4ebc-b387-4851085c0dea	BB001	2026-09-20 15:45:15.057021+00	2026-09-20 15:45:15.057021+00	1	49.5430014	8.6011893	0.4.95.1	f	\N	\N	\N	\N	\N	\N	\N	2026-09-20 15:45:16.238441+00	\N
+369	7de6e7cb-a401-41c6-8d1d-0bcd3c3395c5	BB001	2026-09-20 19:39:35.047659+00	2026-09-20 19:39:35.047659+00	5	49.5430352	8.6012548	0.5.00	f	\N	\N	\N	\N	\N	\N	\N	2026-09-20 19:39:35.739892+00	\N
+370	2d1bb1ba-b1ce-4237-afbe-13183e4b4318	BB001	2026-09-20 20:15:34.001982+00	2026-09-20 20:15:34.001982+00	4	49.5429926	8.6011602	0.5.00	f	\N	\N	\N	\N	\N	\N	\N	2026-09-20 20:15:34.551205+00	\N
+371	d6666c20-b6fc-4d3e-9f7f-91a11fe0811b	BB001	2026-09-20 20:45:16.030765+00	2026-09-20 20:45:16.030765+00	3	49.5430028	8.6011658	0.5.01	f	\N	\N	\N	\N	\N	\N	\N	2026-09-20 20:45:16.707841+00	\N
+372	3ac825a8-d097-4ba3-8053-3fa8afd19ecb	BB001	2026-09-21 01:15:25.017301+00	2026-09-21 01:15:25.017301+00	4	49.5430106	8.6013794	0.5.03	f	\N	\N	\N	\N	\N	\N	\N	2026-09-21 01:15:25.715456+00	\N
+373	a1160a95-a284-44da-bcb1-32480b3a1281	BB001	2026-09-21 02:31:48.039755+00	2026-09-21 02:31:48.039755+00	5	49.5429994	8.6013937	0.5.03	f	\N	\N	\N	\N	\N	\N	\N	2026-09-21 02:31:48.61737+00	\N
+374	e383d829-d5a1-4e5a-9cf2-4979add1120d	BB001	2026-09-21 05:40:11.027146+00	2026-09-21 05:40:11.027146+00	5	49.5430023	8.6012485	0.5.03	f	\N	\N	\N	\N	\N	\N	\N	2026-09-21 05:40:11.833397+00	\N
+375	5420e3b4-a497-4343-805f-12187d089817	BB001	2026-09-21 05:40:12.207864+00	2026-09-21 05:40:12.207864+00	5	49.5430023	8.6012485	0.5.03	f	\N	\N	\N	\N	\N	\N	\N	2026-09-21 05:40:13.006705+00	\N
+376	0091fa45-40d1-4a4e-b8d8-809282bac58b	BB001	2026-09-24 21:30:50.975358+00	2026-09-24 21:30:50.975358+00	2	49.5430217	8.6011855	0.5.17	f	\N	\N	\N	\N	\N	\N	\N	2026-09-24 21:30:51.691332+00	\N
+377	14599fc9-20aa-4f55-a159-51d4ca6ccbe3	BB001	2026-09-24 21:31:15.944398+00	2026-09-24 21:31:15.944398+00	1	49.5430221	8.601205	0.5.17	f	\N	\N	\N	\N	\N	\N	\N	2026-09-24 21:31:16.611331+00	\N
+378	4e0c172b-5952-4bc0-8eb9-9529a30fc444	BB001	2026-09-24 23:04:51.917259+00	2026-09-24 23:04:51.917259+00	1	49.5430522	8.6012704	0.5.17	f	\N	\N	\N	\N	\N	\N	\N	2026-09-24 23:04:53.431462+00	\N
+379	c5dde78c-d726-4d19-8346-a4aacd18e0db	BB001	2026-09-24 23:04:55.754836+00	2026-09-24 23:04:55.754836+00	0	49.5430522	8.6012704	0.5.17	f	\N	\N	\N	\N	\N	\N	\N	2026-09-24 23:04:56.734134+00	\N
+380	d31f5b1d-5684-4110-bf03-91ad97f9bf01	BB001	2026-09-24 23:04:59.629137+00	2026-09-24 23:04:59.629137+00	1	49.5430522	8.6012704	0.5.17	f	\N	\N	\N	\N	\N	\N	\N	2026-09-24 23:05:00.349741+00	\N
+381	7c2cda99-ab72-4dc0-a6d6-9125d11d458c	BB001	2026-09-25 09:47:07.767888+00	2026-09-25 09:47:07.767888+00	3	49.5430205	8.6011561	0.5.18.3	f	\N	\N	\N	\N	\N	\N	\N	2026-09-25 09:47:09.151446+00	\N
+382	46fa4f81-5689-4ecd-ab9d-0b0d3eb98077	BB001	2026-09-25 12:43:43.081959+00	2026-09-25 12:43:43.081959+00	1	49.5430447	8.6011791	0.5.19	f	\N	\N	\N	\N	\N	\N	\N	2026-09-25 12:43:43.987828+00	\N
+383	d86234d5-df6d-4f9d-bfad-e98b6932a9ed	BB001	2026-09-25 14:22:05.06889+00	2026-09-25 14:22:05.06889+00	1	49.5430421	8.6011555	0.5.22	f	\N	\N	\N	\N	\N	\N	\N	2026-09-25 14:22:06.227481+00	\N
+384	03f58bed-9a0e-46e9-bfe3-6a095ed407ef	BB001	2026-09-25 14:42:25.006883+00	2026-09-25 14:42:25.006883+00	4	49.5429983	8.6011707	0.5.22	f	\N	\N	\N	\N	\N	\N	\N	2026-09-25 14:42:26.561031+00	\N
+385	ca7afc2f-3597-49f3-aac7-d99b3eea3554	BB001	2026-09-25 16:15:42.002798+00	2026-09-25 16:15:42.002798+00	2	49.5430133	8.6011828	0.5.24	f	\N	\N	\N	\N	\N	\N	\N	2026-09-25 16:15:42.672577+00	\N
+386	96c31199-9bd4-4ee7-b4c0-33b72480f21d	BB001	2026-09-25 21:14:12.023795+00	2026-09-25 21:14:12.023795+00	1	49.5430085	8.6012109	0.5.25	f	\N	\N	\N	\N	\N	\N	\N	2026-09-25 21:14:12.794733+00	\N
+387	1607dc0c-10f2-4f16-8e61-11bc0c97a904	BB001	2026-09-25 22:40:18.132893+00	2026-09-25 22:40:18.132893+00	2	49.5430076	8.6011756	0.5.25	f	\N	\N	\N	\N	\N	\N	\N	2026-09-25 22:40:19.450136+00	\N
+388	29c35437-7470-4efb-a571-0434566ad882	BB001	2026-09-26 11:03:04.964507+00	2026-09-26 11:03:04.964507+00	1	49.5430063	8.6011815	0.5.25	f	\N	\N	\N	\N	\N	\N	\N	2026-09-26 11:03:05.691998+00	\N
+389	c1ae4655-20ce-4240-8be7-0434f8f41ac8	BB001	2026-09-26 11:16:33.898751+00	2026-09-26 11:16:33.898751+00	3	49.5430232	8.6011771	0.5.25	f	\N	\N	\N	\N	\N	\N	\N	2026-09-26 11:16:35.077632+00	\N
+390	b312016a-b7cc-4e9e-bd2f-b8abaffe1938	BB001	2026-09-27 21:45:46.851875+00	2026-09-27 21:45:46.851875+00	5	49.5429823	8.6013341	0.5.25	f	\N	\N	\N	\N	\N	\N	\N	2026-09-27 21:45:47.449712+00	\N
+391	07c281cf-3f36-4ed3-bb11-f06f61708f0d	BB001	2026-09-28 23:58:17.88242+00	2026-09-28 23:58:17.88242+00	4	49.543045	8.6013448	0.5.25	f	\N	\N	\N	\N	\N	\N	\N	2026-09-28 23:58:18.64673+00	\N
+392	746e7fea-e6c9-42a1-9bb0-b6ba948adb04	BB001	2026-09-30 22:45:49.982524+00	2026-09-30 22:45:49.982524+00	1	49.5429706	8.6016304	0.5.25	f	\N	\N	\N	\N	\N	\N	\N	2026-09-30 22:45:50.671774+00	\N
+393	ebab44e7-8222-46ad-b6e3-2821bf48ca7d	BB001	2026-10-01 12:22:02.516464+00	2026-10-01 12:22:02.516464+00	5	49.5429419	8.6013136	0.5.25	f	\N	\N	\N	\N	\N	\N	\N	2026-10-01 12:22:03.341057+00	pulse
+394	40a2bcd2-d8cd-4e43-a403-fe0bf1a358af	BB001	2026-10-01 13:15:40.677336+00	2026-10-01 13:15:40.677336+00	5	49.5430242	8.6012561	0.5.25	f	\N	\N	\N	\N	\N	\N	\N	2026-10-01 13:15:41.542703+00	\N
+395	825825a5-90bf-4744-9ca1-045f3447612f	BB001	2026-10-01 15:23:25.846039+00	2026-10-01 15:23:25.846039+00	5	49.5429298	8.6014167	0.5.25	f	\N	\N	\N	\N	\N	\N	\N	2026-10-01 15:23:26.529864+00	pulse
+396	1d240065-3917-426a-adba-a31c57a17e28	BB001	2026-10-01 23:31:29.895071+00	2026-10-01 23:31:29.895071+00	1	49.542963	8.6016101	0.5.25	f	\N	\N	\N	\N	\N	\N	\N	2026-10-01 23:31:30.485322+00	\N
+397	2c3895d3-9708-4469-a8cc-7df69d686496	BB001	2026-10-02 11:02:31.855258+00	2026-10-02 11:02:31.855258+00	4	49.5429327	8.6014107	0.5.25	f	\N	\N	\N	\N	\N	\N	\N	2026-10-02 11:02:32.55882+00	\N
+398	39437199-01f5-4fc9-a633-8278c15d230e	BB001	2026-10-03 22:44:44.302932+00	2026-10-03 22:44:44.302932+00	1	49.5429606	8.6014809	0.5.25	f	\N	\N	\N	\N	\N	\N	\N	2026-10-03 22:44:45.320497+00	\N
+399	65d25fb6-1e01-4d7d-9e31-ccefe2163b5d	BB001	2026-10-04 22:37:30.002993+00	2026-10-04 22:37:30.002993+00	4	49.542955	8.6016266	0.5.25	f	\N	\N	\N	\N	\N	\N	\N	2026-10-04 22:37:30.703525+00	\N
+400	264092e0-9a24-454c-8e84-991bb873a903	BB001	2026-10-05 02:50:21.934438+00	2026-10-05 02:50:21.934438+00	5	49.5429695	8.601405	0.5.25	f	\N	\N	\N	\N	\N	\N	\N	2026-10-05 02:50:22.688879+00	\N
+401	7345573d-a7e9-4360-87f5-05ecdba5461e	BB001	2026-10-06 00:44:28.72489+00	2026-10-06 00:44:28.72489+00	4	49.5429591	8.6015477	0.5.25	f	\N	\N	\N	\N	\N	\N	\N	2026-10-06 00:44:29.548081+00	\N
+402	679893f8-b9c4-41f5-b4b0-4bad0bdfe68d	BB001	2026-10-06 13:17:58.754277+00	2026-10-06 13:17:58.754277+00	4	49.5429949	8.6013455	0.5.25	f	\N	\N	\N	\N	\N	\N	\N	2026-10-06 13:17:59.855997+00	\N
+403	c81ae09d-3826-4d95-a4c2-813981724686	BB001	2026-10-07 22:17:08.233779+00	2026-10-07 22:17:08.233779+00	2	49.5430067	8.60129	0.5.25	f	\N	\N	\N	\N	\N	\N	\N	2026-10-07 22:17:08.901086+00	\N
+404	3a620a0a-673b-45b3-8899-c99078dbfcc9	BB001	2026-10-08 11:46:29.984627+00	2026-10-08 11:46:29.984627+00	0	49.54301	8.6012979	0.5.25	f	\N	\N	\N	\N	\N	\N	\N	2026-10-08 11:46:30.890884+00	\N
+\.
+
+
+--
+-- Data for Name: buckets; Type: TABLE DATA; Schema: storage; Owner: supabase_storage_admin
+--
+
+COPY "storage"."buckets" ("id", "name", "owner", "created_at", "updated_at", "public", "avif_autodetection", "file_size_limit", "allowed_mime_types", "owner_id", "type", "versioning_status", "lifecycle_configuration", "lifecycle_configuration_generation") FROM stdin;
+brummbeobachter-wav	brummbeobachter-wav	\N	2026-09-01 09:56:48.933983+00	2026-09-01 09:56:48.933983+00	f	f	\N	\N	\N	STANDARD	DISABLED	\N	\N
+brumm-audio	brumm-audio	\N	2026-09-08 20:29:33.191482+00	2026-09-08 20:29:33.191482+00	f	f	\N	\N	\N	STANDARD	DISABLED	\N	\N
+\.
+
+
+--
+-- Data for Name: buckets_analytics; Type: TABLE DATA; Schema: storage; Owner: supabase_storage_admin
+--
+
+COPY "storage"."buckets_analytics" ("name", "type", "format", "created_at", "updated_at", "id", "deleted_at") FROM stdin;
+\.
+
+
+--
+-- Data for Name: buckets_vectors; Type: TABLE DATA; Schema: storage; Owner: supabase_storage_admin
+--
+
+COPY "storage"."buckets_vectors" ("id", "type", "created_at", "updated_at") FROM stdin;
+\.
+
+
+--
+-- Data for Name: objects; Type: TABLE DATA; Schema: storage; Owner: supabase_storage_admin
+--
+
+COPY "storage"."objects" ("id", "bucket_id", "name", "owner", "created_at", "updated_at", "last_accessed_at", "metadata", "version", "owner_id", "user_metadata", "archived_at", "is_delete_marker", "is_versioned") FROM stdin;
+137cc5c9-c474-4512-b997-15a567f84376	brummbeobachter-wav	BB001/2026-09-01/BB001_20260901_102930_R3_25e33356-5ffb-4dc9-8b5b-72c4e2c7547d.wav	\N	2026-09-01 10:29:33.091486+00	2026-09-01 10:29:33.091486+00	2026-09-01 10:29:33.091486+00	{"eTag": "\\"196442dbc21b9a8dbbe46eff02ce21d7\\"", "size": 240044, "mimetype": "audio/wav", "cacheControl": "max-age=3600", "lastModified": "2026-09-01T10:29:34.000Z", "contentLength": 240044, "httpStatusCode": 200}	32d216e3-a059-4846-b086-d2e109f3ad95	\N	{}	\N	f	f
+a1fb8ff5-f04c-4e95-a016-bb99c8c2cf0a	brumm-audio	BB001/BB001_2026-09-18_17-57-23_G50_UNP_R3.wav	\N	2026-09-18 15:59:30.511987+00	2026-09-18 15:59:30.511987+00	2026-09-18 15:59:30.511987+00	{"eTag": "\\"19d91c3e5c9adac010e7023ac810e6b9\\"", "size": 240044, "mimetype": "audio/wav", "cacheControl": "max-age=3600", "lastModified": "2026-09-18T15:59:31.000Z", "contentLength": 240044, "httpStatusCode": 200}	15fba4d6-ce6c-4284-9804-c6409de9bff0	\N	{}	\N	f	f
+8946622e-664d-40f7-ade2-a09e1311c2b5	brummbeobachter-wav	BB001/2026-09-01/BB001_20260901_123804_R4_62c4ee44-8be3-496d-be27-e8cda225d153.wav	\N	2026-09-01 10:38:05.859948+00	2026-09-01 10:38:05.859948+00	2026-09-01 10:38:05.859948+00	{"eTag": "\\"196442dbc21b9a8dbbe46eff02ce21d7\\"", "size": 240044, "mimetype": "audio/wav", "cacheControl": "max-age=3600", "lastModified": "2026-09-01T10:38:06.000Z", "contentLength": 240044, "httpStatusCode": 200}	7d4a612b-f2b8-4546-85a9-2da40a479def	\N	{}	\N	f	f
+7fdbd469-234b-4208-bbf8-d36119934e99	brumm-audio	BB001/f16c944e-5d6d-47c3-88db-16ec3bfdf900.wav	\N	2026-09-08 21:30:54.830167+00	2026-09-08 21:30:54.830167+00	2026-09-08 21:30:54.830167+00	{"eTag": "\\"aa0ac5d188ad5c760c21566e1e76c6f7\\"", "size": 240044, "mimetype": "audio/wav", "cacheControl": "max-age=3600", "lastModified": "2026-09-08T21:30:55.000Z", "contentLength": 240044, "httpStatusCode": 200}	7a06d207-e606-4be9-8de7-af4f4c16b7b4	\N	{}	\N	f	f
+7c9a262f-f06e-4003-afe3-78d27da83ec3	brumm-audio	BB001/BB001_2026-09-18_18-02-00_G50_UNP_R3.wav	\N	2026-09-18 16:04:25.057494+00	2026-09-18 16:04:25.057494+00	2026-09-18 16:04:25.057494+00	{"eTag": "\\"de8ccfaff1a77b2bc56a805d74254a1e\\"", "size": 240044, "mimetype": "audio/wav", "cacheControl": "max-age=3600", "lastModified": "2026-09-18T16:04:26.000Z", "contentLength": 240044, "httpStatusCode": 200}	17738ada-17a7-4416-a72e-d66bf0226e74	\N	{}	\N	f	f
+80925c31-11e2-4d35-b603-7a3678cd3000	brumm-audio	BB001/22eff2a2-5ab0-4ac7-92ea-5d9381edc8fc.wav	\N	2026-09-08 21:46:25.923538+00	2026-09-08 21:46:25.923538+00	2026-09-08 21:46:25.923538+00	{"eTag": "\\"3cef3e4c5e697bc63d7b6b62bb96bb54\\"", "size": 240044, "mimetype": "audio/wav", "cacheControl": "max-age=3600", "lastModified": "2026-09-08T21:46:26.000Z", "contentLength": 240044, "httpStatusCode": 200}	cb71bcec-2200-4d0f-9feb-d31b2a6e0b6a	\N	{}	\N	f	f
+1c7d65d0-b154-4312-a0b2-6f899152f1b5	brumm-audio	BB001/89292d01-79fb-42ce-8958-542c8be9ce71.wav	\N	2026-09-08 22:12:31.879906+00	2026-09-08 22:12:31.879906+00	2026-09-08 22:12:31.879906+00	{"eTag": "\\"3b74e251b3d5e6dee15b45671afd3ab1\\"", "size": 240044, "mimetype": "audio/wav", "cacheControl": "max-age=3600", "lastModified": "2026-09-08T22:12:32.000Z", "contentLength": 240044, "httpStatusCode": 200}	d2da1601-46ae-454b-9ca6-7f965f8dd628	\N	{}	\N	f	f
+85ceb3be-fe92-4110-9062-93558838c779	brumm-audio	BB001/BB001_2026-09-19_20-35-00_G50_UNP_R5.wav	\N	2026-09-19 18:37:24.587012+00	2026-09-19 18:37:24.587012+00	2026-09-19 18:37:24.587012+00	{"eTag": "\\"0e398e0aaed27b85251078867c27a434\\"", "size": 240044, "mimetype": "audio/wav", "cacheControl": "max-age=3600", "lastModified": "2026-09-19T18:37:25.000Z", "contentLength": 240044, "httpStatusCode": 200}	b3c87880-2844-4b97-924c-c6f8a1162c97	\N	{}	\N	f	f
+4bd4d7c1-2c20-4bc5-92d6-5ae075b94134	brumm-audio	BB001/eafc088c-62af-4cc5-ab40-1690d1cfef6c.wav	\N	2026-09-08 22:56:08.174542+00	2026-09-08 22:56:08.174542+00	2026-09-08 22:56:08.174542+00	{"eTag": "\\"295fa4f6adc52ca54006ba7e80ef9c4d\\"", "size": 240044, "mimetype": "audio/wav", "cacheControl": "max-age=3600", "lastModified": "2026-09-08T22:56:09.000Z", "contentLength": 240044, "httpStatusCode": 200}	50b1d1a1-a8a3-428e-9ca3-d189288bbe90	\N	{}	\N	f	f
+8b1565de-86d7-4a52-a40e-52602943a4ae	brumm-audio	BB001/2c19877a-ce84-420a-8c6e-35e88f3ab841.wav	\N	2026-09-08 23:46:33.272817+00	2026-09-08 23:46:33.272817+00	2026-09-08 23:46:33.272817+00	{"eTag": "\\"c23d0c01d2ca6fa7661abc378c96b9e8\\"", "size": 240044, "mimetype": "audio/wav", "cacheControl": "max-age=3600", "lastModified": "2026-09-08T23:46:34.000Z", "contentLength": 240044, "httpStatusCode": 200}	5bbdf659-984e-47b3-ac3e-c975b7370bf5	\N	{}	\N	f	f
+01e1f027-a53b-442e-9bc0-507afabc9594	brumm-audio	BB001/BB001_2026-09-25_11-18-46_G50_UNP_RX.wav	\N	2026-09-25 09:21:32.454181+00	2026-09-25 09:21:32.454181+00	2026-09-25 09:21:32.454181+00	{"eTag": "\\"6b3363d608fac4707cff88937b41862c\\"", "size": 240044, "mimetype": "audio/wav", "cacheControl": "max-age=3600", "lastModified": "2026-09-25T09:21:33.000Z", "contentLength": 240044, "httpStatusCode": 200}	c72bd563-a1e0-4f8e-9855-a764db94b86d	\N	{}	\N	f	f
+ff6454a6-1e3c-4a98-bf95-f0fde9f181cf	brumm-audio	BB001/9154fc8e-2ff0-40e1-89e6-2c10ff22f252.wav	\N	2026-09-09 00:48:27.292921+00	2026-09-09 00:48:27.292921+00	2026-09-09 00:48:27.292921+00	{"eTag": "\\"10a5bf9db8266250e5ff2c0e9e13b012\\"", "size": 240044, "mimetype": "audio/wav", "cacheControl": "max-age=3600", "lastModified": "2026-09-09T00:48:28.000Z", "contentLength": 240044, "httpStatusCode": 200}	f930ccb0-6383-4460-9ced-4ebf563dec62	\N	{}	\N	f	f
+5ca4dc6c-10cc-4fb1-a39f-1a42f097b762	brumm-audio	BB001/373a6818-c609-4fc6-b22c-f177a2a80175.wav	\N	2026-09-09 06:51:51.465473+00	2026-09-09 06:51:51.465473+00	2026-09-09 06:51:51.465473+00	{"eTag": "\\"0ef8e983c803cc8367a54739dddbf8a9\\"", "size": 240044, "mimetype": "audio/wav", "cacheControl": "max-age=3600", "lastModified": "2026-09-09T06:51:51.000Z", "contentLength": 240044, "httpStatusCode": 200}	8eb7d82b-0b3d-4965-b0d2-bd6fa7339437	\N	{}	\N	f	f
+830d3df4-8f09-41c6-b429-caa4c3b358fa	brumm-audio	BB001/2026-09-09_09-18-25_G50_UNP_R4.wav	\N	2026-09-09 07:20:27.668055+00	2026-09-09 07:20:27.668055+00	2026-09-09 07:20:27.668055+00	{"eTag": "\\"bfbff81f02784bb7f039ede278aeb594\\"", "size": 240044, "mimetype": "audio/wav", "cacheControl": "max-age=3600", "lastModified": "2026-09-09T07:20:28.000Z", "contentLength": 240044, "httpStatusCode": 200}	b3e581db-c7b9-4e7e-b3f5-4c1e278b37df	\N	{}	\N	f	f
+c3bcadaf-4fb9-48b3-9da3-9de9a5862f7f	brumm-audio	BB001/2026-09-09_11-18-07_G30_UNP_R2.wav	\N	2026-09-09 09:20:10.269275+00	2026-09-09 09:20:10.269275+00	2026-09-09 09:20:10.269275+00	{"eTag": "\\"d57923c8b851c1649d45760a856ecffe\\"", "size": 240044, "mimetype": "audio/wav", "cacheControl": "max-age=3600", "lastModified": "2026-09-09T09:20:11.000Z", "contentLength": 240044, "httpStatusCode": 200}	97325869-ae80-45f1-854d-bab181492347	\N	{}	\N	f	f
+78acfc5f-027f-4669-bda9-1941a1304b03	brumm-audio	BB001/BB001_2026-09-19_01-46-11_G50_UNP_R4.wav	\N	2026-09-18 23:48:17.459346+00	2026-09-18 23:48:17.459346+00	2026-09-18 23:48:17.459346+00	{"eTag": "\\"e869a85097029fdb5f7f0cf98184dd92\\"", "size": 240044, "mimetype": "audio/wav", "cacheControl": "max-age=3600", "lastModified": "2026-09-18T23:48:18.000Z", "contentLength": 240044, "httpStatusCode": 200}	e99c004f-18ed-40fe-9144-8d00b066ce2b	\N	{}	\N	f	f
+934b1d51-7a7a-4ca0-8e8a-446be9c11c2e	brumm-audio	BB001/2026-09-09_20-16-11_G30_UNP_R5.wav	\N	2026-09-09 18:18:13.053846+00	2026-09-09 18:18:13.053846+00	2026-09-09 18:18:13.053846+00	{"eTag": "\\"1f49ed3dac56382adf075ccd51c0447b\\"", "size": 240044, "mimetype": "audio/wav", "cacheControl": "max-age=3600", "lastModified": "2026-09-09T18:18:14.000Z", "contentLength": 240044, "httpStatusCode": 200}	3ddbd479-72eb-477e-88d9-2f8f3c1a90d1	\N	{}	\N	f	f
+3a4aeb18-a512-4f84-9b83-1a8ea8e589b0	brumm-audio	BB001/2026-09-09_22-49-19_G30_UNP_R5.wav	\N	2026-09-09 20:51:21.1016+00	2026-09-09 20:51:21.1016+00	2026-09-09 20:51:21.1016+00	{"eTag": "\\"5c282ea06d3b5a195dff51a8ff537572\\"", "size": 240044, "mimetype": "audio/wav", "cacheControl": "max-age=3600", "lastModified": "2026-09-09T20:51:22.000Z", "contentLength": 240044, "httpStatusCode": 200}	ba3107f1-be7b-4f7a-adf1-2bfe50223c10	\N	{}	\N	f	f
+d8dbad6b-1e1c-4214-b728-fa56780438a4	brumm-audio	BB001/BB001_2026-09-19_23-05-51_G50_UNP_R4.wav	\N	2026-09-19 21:07:56.875481+00	2026-09-19 21:07:56.875481+00	2026-09-19 21:07:56.875481+00	{"eTag": "\\"063ff873f6c170154e4b22e58e27d965\\"", "size": 240044, "mimetype": "audio/wav", "cacheControl": "max-age=3600", "lastModified": "2026-09-19T21:07:57.000Z", "contentLength": 240044, "httpStatusCode": 200}	27668a76-d47a-4ee1-81dc-785ba58df27c	\N	{}	\N	f	f
+9c9a82a4-94fc-4edb-a211-dff68cf63580	brumm-audio	BB001/2026-09-09_22-59-51_G50_UNP_R5.wav	\N	2026-09-09 21:09:23.812632+00	2026-09-09 21:09:23.812632+00	2026-09-09 21:09:23.812632+00	{"eTag": "\\"21c049312d5a2dbf52c31c80b70c9731\\"", "size": 240044, "mimetype": "audio/wav", "cacheControl": "max-age=3600", "lastModified": "2026-09-09T21:09:24.000Z", "contentLength": 240044, "httpStatusCode": 200}	1b9f117d-18f0-4642-b0b9-75ce40768ee0	\N	{}	\N	f	f
+9d7f648e-735b-4ec7-810a-3236662cc1fb	brumm-audio	BB001/2026-09-09_23-09-54_G50_UNP_R5.wav	\N	2026-09-09 21:12:14.55549+00	2026-09-09 21:12:14.55549+00	2026-09-09 21:12:14.55549+00	{"eTag": "\\"74713373d1b9bed717b8dc720360e858\\"", "size": 240044, "mimetype": "audio/wav", "cacheControl": "max-age=3600", "lastModified": "2026-09-09T21:12:15.000Z", "contentLength": 240044, "httpStatusCode": 200}	e71b1c97-94be-4280-8a29-5e1f48f33f4d	\N	{}	\N	f	f
+251114da-3022-4e1a-aee1-5a8a54bf3b70	brumm-audio	BB001/BB001_2026-09-19_23-09-30_G50_UNP_R4.wav	\N	2026-09-19 21:11:49.713558+00	2026-09-19 21:11:49.713558+00	2026-09-19 21:11:49.713558+00	{"eTag": "\\"7924ccd3482db3d2f17b46532d119487\\"", "size": 240044, "mimetype": "audio/wav", "cacheControl": "max-age=3600", "lastModified": "2026-09-19T21:11:50.000Z", "contentLength": 240044, "httpStatusCode": 200}	c3052648-e5d0-4a03-9f20-ca5ac849ef02	\N	{}	\N	f	f
+ad36a44a-9399-4c15-9ade-715da4617365	brumm-audio	BB001/BB001_2026-09-09_23-50-36_G50_UNP_R5.wav	\N	2026-09-09 21:53:10.265807+00	2026-09-09 21:53:10.265807+00	2026-09-09 21:53:10.265807+00	{"eTag": "\\"a101c67bf2e75ba26c1e4c5eec305a7f\\"", "size": 240044, "mimetype": "audio/wav", "cacheControl": "max-age=3600", "lastModified": "2026-09-09T21:53:11.000Z", "contentLength": 240044, "httpStatusCode": 200}	03761e7d-9020-4e1a-b21a-b05b7d20cc29	\N	{}	\N	f	f
+30eca4c9-d9bc-49c7-b5b8-ab54b273e2eb	brumm-audio	BB001/BB001_2026-09-10_00-26-29_G50_UNP_RX.wav	\N	2026-09-09 22:28:45.491126+00	2026-09-09 22:28:45.491126+00	2026-09-09 22:28:45.491126+00	{"eTag": "\\"ec824d9edcbc3da255479ae3b97e9c18\\"", "size": 240044, "mimetype": "audio/wav", "cacheControl": "max-age=3600", "lastModified": "2026-09-09T22:28:46.000Z", "contentLength": 240044, "httpStatusCode": 200}	0935d825-ef7a-45d4-87c6-dc0a661f31df	\N	{}	\N	f	f
+6917657c-10cb-4922-b97d-35070470d4bd	brumm-audio	BB001/BB001_2026-09-10_02-24-32_G50_UNP_R5.wav	\N	2026-09-10 00:26:53.59931+00	2026-09-10 00:26:53.59931+00	2026-09-10 00:26:53.59931+00	{"eTag": "\\"fda47d6b3c0e99383025608b51f3d90d\\"", "size": 240044, "mimetype": "audio/wav", "cacheControl": "max-age=3600", "lastModified": "2026-09-10T00:26:54.000Z", "contentLength": 240044, "httpStatusCode": 200}	449122af-6ebe-4f89-8f36-3a6e6f9d38ee	\N	{}	\N	f	f
+93e6fba9-ad75-4d2f-946a-6e3524571db5	brumm-audio	BB001/BB001_2026-09-10_06-21-34_G50_UNP_R4.wav	\N	2026-09-10 04:23:45.690639+00	2026-09-10 04:23:45.690639+00	2026-09-10 04:23:45.690639+00	{"eTag": "\\"57e8b1e9435a70b091248aa322398200\\"", "size": 240044, "mimetype": "audio/wav", "cacheControl": "max-age=3600", "lastModified": "2026-09-10T04:23:46.000Z", "contentLength": 240044, "httpStatusCode": 200}	c7166a45-23fb-4ce3-b03e-6011e1983f48	\N	{}	\N	f	f
+ef792188-aa6a-4c48-9a4d-0142aa81ef07	brumm-audio	BB001/BB001_2026-09-10_06-29-56_G50_UNP_R4.wav	\N	2026-09-10 04:32:10.019998+00	2026-09-10 04:32:10.019998+00	2026-09-10 04:32:10.019998+00	{"eTag": "\\"091545561e08e868fbc41c8dfcf55074\\"", "size": 240044, "mimetype": "audio/wav", "cacheControl": "max-age=3600", "lastModified": "2026-09-10T04:32:10.000Z", "contentLength": 240044, "httpStatusCode": 200}	62a0faab-1b75-4445-bd51-9d827fc88936	\N	{}	\N	f	f
+69a5ad1b-db80-4251-b687-45e200f94f39	brumm-audio	BB001/BB001_2026-09-10_07-07-21_G50_UNP_R4.wav	\N	2026-09-10 05:09:37.843431+00	2026-09-10 05:09:37.843431+00	2026-09-10 05:09:37.843431+00	{"eTag": "\\"bee5112a3973792c560778bfba5b086a\\"", "size": 240044, "mimetype": "audio/wav", "cacheControl": "max-age=3600", "lastModified": "2026-09-10T05:09:38.000Z", "contentLength": 240044, "httpStatusCode": 200}	5aba6493-e44c-412d-9a81-ce10c56bba0b	\N	{}	\N	f	f
+bbab413d-54e4-4bff-a940-2c240a0222aa	brumm-audio	BB001/BB001_2026-09-19_02-12-38_G50_UNP_R4.wav	\N	2026-09-19 00:15:14.516141+00	2026-09-19 00:15:14.516141+00	2026-09-19 00:15:14.516141+00	{"eTag": "\\"ff9f713828bf346db626a4e23327e792\\"", "size": 240044, "mimetype": "audio/wav", "cacheControl": "max-age=3600", "lastModified": "2026-09-19T00:15:15.000Z", "contentLength": 240044, "httpStatusCode": 200}	2bf03066-3d3d-420c-9f64-44f1370b9881	\N	{}	\N	f	f
+1b3e292b-4185-405a-8e5c-39e40e5f558d	brumm-audio	BB001/BB001_2026-09-10_07-30-28_G50_UNP_R3.wav	\N	2026-09-10 05:32:42.057645+00	2026-09-10 05:32:42.057645+00	2026-09-10 05:32:42.057645+00	{"eTag": "\\"27cb986ada7ae083210b0dd54c4ab782\\"", "size": 240044, "mimetype": "audio/wav", "cacheControl": "max-age=3600", "lastModified": "2026-09-10T05:32:43.000Z", "contentLength": 240044, "httpStatusCode": 200}	64d532c5-0d77-4d2a-917b-92965fe31c3f	\N	{}	\N	f	f
+11c0372e-e612-4ee5-aa89-540486504de5	brumm-audio	BB001/BB001_2026-09-10_17-29-13_G50_UNP_R5.wav	\N	2026-09-10 15:31:30.27916+00	2026-09-10 15:31:30.27916+00	2026-09-10 15:31:30.27916+00	{"eTag": "\\"2c928ae569e721b1184bbc576e6a126e\\"", "size": 240044, "mimetype": "audio/wav", "cacheControl": "max-age=3600", "lastModified": "2026-09-10T15:31:31.000Z", "contentLength": 240044, "httpStatusCode": 200}	2da5700d-fcf0-4969-8a08-f2aab7aa322b	\N	{}	\N	f	f
+8db8b32f-2ba3-41cd-b1bc-5540d2138923	brumm-audio	BB001/BB001_2026-09-19_23-30-51_G50_UNP_R3.wav	\N	2026-09-19 21:33:03.448513+00	2026-09-19 21:33:03.448513+00	2026-09-19 21:33:03.448513+00	{"eTag": "\\"4be51ad4919a9bec16156e9521017ddf\\"", "size": 240044, "mimetype": "audio/wav", "cacheControl": "max-age=3600", "lastModified": "2026-09-19T21:33:04.000Z", "contentLength": 240044, "httpStatusCode": 200}	b749fcfc-ca2a-416c-a691-096b47770d61	\N	{}	\N	f	f
+06002949-29b5-4026-8e08-9a0d17a31026	brumm-audio	BB001/BB001_2026-09-11_01-16-37_G50_UNP_R3.wav	\N	2026-09-10 23:18:48.318838+00	2026-09-10 23:18:48.318838+00	2026-09-10 23:18:48.318838+00	{"eTag": "\\"1d5cab38ccd65978507778f6df074e34\\"", "size": 240044, "mimetype": "audio/wav", "cacheControl": "max-age=3600", "lastModified": "2026-09-10T23:18:49.000Z", "contentLength": 240044, "httpStatusCode": 200}	ea55d311-7c18-41f6-8cea-cc1e3eead1d6	\N	{}	\N	f	f
+2c6a12b4-f271-4168-b740-1403d981f53f	brumm-audio	BB001/BB001_2026-09-25_14-54-18_G50_UNP_R1.wav	\N	2026-09-25 12:57:21.552292+00	2026-09-25 12:57:21.552292+00	2026-09-25 12:57:21.552292+00	{"eTag": "\\"b1af73e8e2c054f8d28fc218116ced34\\"", "size": 240044, "mimetype": "audio/wav", "cacheControl": "max-age=3600", "lastModified": "2026-09-25T12:57:22.000Z", "contentLength": 240044, "httpStatusCode": 200}	0af40bae-9bb6-4d06-8a9b-a843a7298288	\N	{}	\N	f	f
+25698c57-458d-4973-9010-5e9ccc28cfaa	brumm-audio	BB001/BB001_2026-09-12_17-00-40_G50_UNP_R0.wav	\N	2026-09-12 15:03:04.404223+00	2026-09-12 15:03:04.404223+00	2026-09-12 15:03:04.404223+00	{"eTag": "\\"189997f93a5f2d04e1cb50d90da69866\\"", "size": 240044, "mimetype": "audio/wav", "cacheControl": "max-age=3600", "lastModified": "2026-09-12T15:03:05.000Z", "contentLength": 240044, "httpStatusCode": 200}	1208b7fc-33bf-4f4d-99d7-489ae9262448	\N	{}	\N	f	f
+7e303929-fcdc-421c-bba3-7bb0184098af	brumm-audio	BB001/BB001_2026-09-28_19-23-37_G0_UNP_RX.wav	\N	2026-09-28 17:24:05.908947+00	2026-09-28 17:24:05.908947+00	2026-09-28 17:24:05.908947+00	{"eTag": "\\"f719f887b38763ffc77c9f1c99dd6179\\"", "size": 240044, "mimetype": "audio/wav", "cacheControl": "max-age=3600", "lastModified": "2026-09-28T17:24:06.000Z", "contentLength": 240044, "httpStatusCode": 200}	eda3874b-fca7-4a89-b2fc-beeee896d58e	\N	{}	\N	f	f
+8d44cd26-437e-4bbe-9746-2170ea9f0002	brumm-audio	BB001/BB001_2026-09-12_23-56-13_G50_UNP_R3.wav	\N	2026-09-12 21:58:25.201181+00	2026-09-12 21:58:25.201181+00	2026-09-12 21:58:25.201181+00	{"eTag": "\\"799eb9cc107d19bb3b6e09ed6930ede0\\"", "size": 240044, "mimetype": "audio/wav", "cacheControl": "max-age=3600", "lastModified": "2026-09-12T21:58:26.000Z", "contentLength": 240044, "httpStatusCode": 200}	bccd5704-648b-4d5b-9163-c8e98146e2cd	\N	{}	\N	f	f
+cda1b510-52aa-4465-b52d-67b310ca4185	brumm-audio	BB001/BB001_2026-09-13_08-46-04_G50_UNP_R1.wav	\N	2026-09-13 06:48:18.842305+00	2026-09-13 06:48:18.842305+00	2026-09-13 06:48:18.842305+00	{"eTag": "\\"01046aae18c893cd86ba6cdb2f844796\\"", "size": 240044, "mimetype": "audio/wav", "cacheControl": "max-age=3600", "lastModified": "2026-09-13T06:48:19.000Z", "contentLength": 240044, "httpStatusCode": 200}	72386857-5262-458a-8371-8ca2c098f6fc	\N	{}	\N	f	f
+aac6f9ff-4578-44b2-bbe2-6ed4fe734d15	brumm-audio	BB001/BB001_2026-09-13_22-20-36_G50_UNP_R0.wav	\N	2026-09-13 20:22:52.918902+00	2026-09-13 20:22:52.918902+00	2026-09-13 20:22:52.918902+00	{"eTag": "\\"e7350fb3333c18bd3a1d662cb12d54e9\\"", "size": 240044, "mimetype": "audio/wav", "cacheControl": "max-age=3600", "lastModified": "2026-09-13T20:22:53.000Z", "contentLength": 240044, "httpStatusCode": 200}	54b40908-5eae-47cc-b846-855f095a2625	\N	{}	\N	f	f
+cdff7c73-e695-436d-91e3-ae67cce46951	brumm-audio	BB001/BB001_2026-09-13_23-15-36_G50_UNP_R1.wav	\N	2026-09-13 21:17:50.650325+00	2026-09-13 21:17:50.650325+00	2026-09-13 21:17:50.650325+00	{"eTag": "\\"05a20735d638045473d9bc9db229fe0c\\"", "size": 240044, "mimetype": "audio/wav", "cacheControl": "max-age=3600", "lastModified": "2026-09-13T21:17:51.000Z", "contentLength": 240044, "httpStatusCode": 200}	7c8dcaed-eb9e-42e4-939c-21093f535469	\N	{}	\N	f	f
+5e3e7188-437d-4b09-8bc0-9012b435f616	brumm-audio	BB001/BB001_2026-09-13_23-41-51_G50_UNP_R1.wav	\N	2026-09-13 21:44:03.658307+00	2026-09-13 21:44:03.658307+00	2026-09-13 21:44:03.658307+00	{"eTag": "\\"a91bb1169956b94691c4d883c463d677\\"", "size": 240044, "mimetype": "audio/wav", "cacheControl": "max-age=3600", "lastModified": "2026-09-13T21:44:04.000Z", "contentLength": 240044, "httpStatusCode": 200}	8e944b5c-e75c-4f56-b240-a53bb247c2ad	\N	{}	\N	f	f
+503f386d-ed94-43a9-be7f-68f149d48f5e	brumm-audio	BB001/BB001_2026-09-14_00-11-19_G50_UNP_R1.wav	\N	2026-09-13 22:13:29.417817+00	2026-09-13 22:13:29.417817+00	2026-09-13 22:13:29.417817+00	{"eTag": "\\"d3c148158db3a610b9210e6dc81b5365\\"", "size": 240044, "mimetype": "audio/wav", "cacheControl": "max-age=3600", "lastModified": "2026-09-13T22:13:30.000Z", "contentLength": 240044, "httpStatusCode": 200}	98b6d50c-f508-47a8-96b3-fce5c3594814	\N	{}	\N	f	f
+9e081145-4b21-4abd-9b1f-a29438a78c81	brumm-audio	BB001/BB001_2026-09-19_04-35-37_G50_UNP_R5.wav	\N	2026-09-19 02:37:56.068511+00	2026-09-19 02:37:56.068511+00	2026-09-19 02:37:56.068511+00	{"eTag": "\\"78e41de5796e0f55f52229834f13024b\\"", "size": 240044, "mimetype": "audio/wav", "cacheControl": "max-age=3600", "lastModified": "2026-09-19T02:37:57.000Z", "contentLength": 240044, "httpStatusCode": 200}	f212134f-b211-451e-824f-bcceb6d3b54f	\N	{}	\N	f	f
+25f07b91-9ce8-43b9-ab89-b65889763137	brumm-audio	BB001/BB001_2026-09-14_00-20-23_G50_UNP_R1.wav	\N	2026-09-13 22:23:19.220175+00	2026-09-13 22:23:19.220175+00	2026-09-13 22:23:19.220175+00	{"eTag": "\\"db0ea05f9b583b15baa4ffaf45a14c4f\\"", "size": 240044, "mimetype": "audio/wav", "cacheControl": "max-age=3600", "lastModified": "2026-09-13T22:23:20.000Z", "contentLength": 240044, "httpStatusCode": 200}	90eb0926-b14d-4629-90ba-5fe17ab98126	\N	{}	\N	f	f
+2a8b247d-e982-42c4-9be8-dcc7e6dbe60d	brumm-audio	BB001/BB001_2026-09-14_00-40-46_G50_UNP_R1.wav	\N	2026-09-13 22:42:57.571807+00	2026-09-13 22:42:57.571807+00	2026-09-13 22:42:57.571807+00	{"eTag": "\\"b0e446e875df3f2a89ece17c37e2e54a\\"", "size": 240044, "mimetype": "audio/wav", "cacheControl": "max-age=3600", "lastModified": "2026-09-13T22:42:58.000Z", "contentLength": 240044, "httpStatusCode": 200}	1273d3f3-da1b-4f5c-8192-752acbb6dcc2	\N	{}	\N	f	f
+d13b9958-53ff-4d1f-a341-6d76496095c0	brumm-audio	BB001/BB001_2026-09-21_07-40-31_G50_UNP_R5.wav	\N	2026-09-21 05:42:44.427904+00	2026-09-21 05:42:44.427904+00	2026-09-21 05:42:44.427904+00	{"eTag": "\\"ca17dad2971f1ba84ffbf9ca7a99ad69\\"", "size": 240044, "mimetype": "audio/wav", "cacheControl": "max-age=3600", "lastModified": "2026-09-21T05:42:45.000Z", "contentLength": 240044, "httpStatusCode": 200}	beef0b10-3a47-44d9-9049-854446eadad9	\N	{}	\N	f	f
+c9f8f0ff-70ac-43d6-bc3d-b9b304e2ba4d	brumm-audio	BB001/BB001_2026-09-14_03-03-17_G50_UNP_R1.wav	\N	2026-09-14 01:05:43.926521+00	2026-09-14 01:05:43.926521+00	2026-09-14 01:05:43.926521+00	{"eTag": "\\"c8ea557edbfc19777d696ba05637baaa\\"", "size": 240044, "mimetype": "audio/wav", "cacheControl": "max-age=3600", "lastModified": "2026-09-14T01:05:44.000Z", "contentLength": 240044, "httpStatusCode": 200}	c8dc2caf-29bb-438d-a4d6-0d97dd6d4244	\N	{}	\N	f	f
+f27151b4-f593-4217-b6a5-2a7c16c72d8b	brumm-audio	BB001/BB001_2026-09-14_21-48-32_G50_UNP_R0.wav	\N	2026-09-14 19:51:13.473603+00	2026-09-14 19:51:13.473603+00	2026-09-14 19:51:13.473603+00	{"eTag": "\\"9a00c000db015b83a531686c9f96cad9\\"", "size": 240044, "mimetype": "audio/wav", "cacheControl": "max-age=3600", "lastModified": "2026-09-14T19:51:14.000Z", "contentLength": 240044, "httpStatusCode": 200}	1f105770-7c55-4ba7-b91c-ba29dca6b1c2	\N	{}	\N	f	f
+b296ffdc-05dd-41fe-a4cf-63b783c61580	brumm-audio	BB001/BB001_2026-09-25_18-17-50_G0_UNP_R2.wav	\N	2026-09-25 16:18:06.07851+00	2026-09-25 16:18:06.07851+00	2026-09-25 16:18:06.07851+00	{"eTag": "\\"3d6cb1b7e8ccdb1c3fc3f9848403b4b3\\"", "size": 240044, "mimetype": "audio/wav", "cacheControl": "max-age=3600", "lastModified": "2026-09-25T16:18:07.000Z", "contentLength": 240044, "httpStatusCode": 200}	daaf2083-7c49-4c2f-8c8a-56581662dbe6	\N	{}	\N	f	f
+6a969102-3dc3-48b7-8588-f10bf1bc56fa	brumm-audio	BB001/BB001_2026-09-15_01-08-27_G41_UNP_R0.wav	\N	2026-09-14 23:10:47.914871+00	2026-09-14 23:10:47.914871+00	2026-09-14 23:10:47.914871+00	{"eTag": "\\"c54766294d911241828e24932084dcb1\\"", "size": 240044, "mimetype": "audio/wav", "cacheControl": "max-age=3600", "lastModified": "2026-09-14T23:10:48.000Z", "contentLength": 240044, "httpStatusCode": 200}	2eb9a96f-1a81-4df2-9a77-5baeb739fd19	\N	{}	\N	f	f
+05bf4297-85d6-43dd-bb54-0d331eda686d	brumm-audio	BB001/BB001_2026-09-15_01-22-06_G50_UNP_R0.wav	\N	2026-09-14 23:24:24.958384+00	2026-09-14 23:24:24.958384+00	2026-09-14 23:24:24.958384+00	{"eTag": "\\"dedd15b3d07407dfafa9ceb66f5dbda9\\"", "size": 240044, "mimetype": "audio/wav", "cacheControl": "max-age=3600", "lastModified": "2026-09-14T23:24:25.000Z", "contentLength": 240044, "httpStatusCode": 200}	4a0a07a2-9eb3-49d1-a392-69f4ba7ba046	\N	{}	\N	f	f
+ef8062b0-7985-45c1-abc8-f56397e1e200	brumm-audio	BB001/BB001_2026-09-15_01-49-54_G50_UNP_R1.wav	\N	2026-09-14 23:52:34.687128+00	2026-09-14 23:52:34.687128+00	2026-09-14 23:52:34.687128+00	{"eTag": "\\"aad59894371723b42f4fd4b0e98a5f4f\\"", "size": 240044, "mimetype": "audio/wav", "cacheControl": "max-age=3600", "lastModified": "2026-09-14T23:52:35.000Z", "contentLength": 240044, "httpStatusCode": 200}	6c8d9db0-0817-403b-bf0f-1dc0cf0e8691	\N	{}	\N	f	f
+7505d489-7572-41f9-b1ab-16c3e40ad998	brumm-audio	BB001/BB001_2026-09-15_08-08-40_G50_UNP_R1.wav	\N	2026-09-15 06:11:09.848198+00	2026-09-15 06:11:09.848198+00	2026-09-15 06:11:09.848198+00	{"eTag": "\\"37aeb3cf9a8213f6c1b3739276a9600f\\"", "size": 240044, "mimetype": "audio/wav", "cacheControl": "max-age=3600", "lastModified": "2026-09-15T06:11:10.000Z", "contentLength": 240044, "httpStatusCode": 200}	ccbffe17-5232-4465-b3d8-d4900b1db72c	\N	{}	\N	f	f
+f259bde4-e878-42dc-9f6b-1aa5635d46df	brumm-audio	BB001/BB001_2026-09-15_17-15-49_G50_UNP_R1.wav	\N	2026-09-15 15:18:17.380175+00	2026-09-15 15:18:17.380175+00	2026-09-15 15:18:17.380175+00	{"eTag": "\\"14cd8beb2ae6590378c2c2b704e5022c\\"", "size": 240044, "mimetype": "audio/wav", "cacheControl": "max-age=3600", "lastModified": "2026-09-15T15:18:18.000Z", "contentLength": 240044, "httpStatusCode": 200}	c4f88f97-7c39-4676-8df3-b034e674c528	\N	{}	\N	f	f
+7b387e0a-16ac-4929-a666-6c633cdaa77c	brumm-audio	BB001/BB001_2026-09-15_23-07-06_G50_UNP_R2.wav	\N	2026-09-15 21:09:19.895451+00	2026-09-15 21:09:19.895451+00	2026-09-15 21:09:19.895451+00	{"eTag": "\\"5287837c75c9cb2f5487c2e6bad53755\\"", "size": 240044, "mimetype": "audio/wav", "cacheControl": "max-age=3600", "lastModified": "2026-09-15T21:09:20.000Z", "contentLength": 240044, "httpStatusCode": 200}	88444e39-b671-44be-b9f1-90b7dc41e5d5	\N	{}	\N	f	f
+94ce4826-7212-40ad-82d3-b17d049985ac	brumm-audio	BB001/BB001_2026-09-19_12-51-15_G50_UNP_R4.wav	\N	2026-09-19 10:53:25.329994+00	2026-09-19 10:53:25.329994+00	2026-09-19 10:53:25.329994+00	{"eTag": "\\"c2338170730789844a4b7ff82440d18f\\"", "size": 240044, "mimetype": "audio/wav", "cacheControl": "max-age=3600", "lastModified": "2026-09-19T10:53:26.000Z", "contentLength": 240044, "httpStatusCode": 200}	7ded20b4-2004-41d9-b5ca-76084cdff754	\N	{}	\N	f	f
+537946c1-9236-4c56-a135-f0a60483dd03	brumm-audio	BB001/BB001_2026-09-16_02-17-28_G50_UNP_R0.wav	\N	2026-09-16 00:19:45.978464+00	2026-09-16 00:19:45.978464+00	2026-09-16 00:19:45.978464+00	{"eTag": "\\"356aa00d32a128a78ecaa98857b23630\\"", "size": 240044, "mimetype": "audio/wav", "cacheControl": "max-age=3600", "lastModified": "2026-09-16T00:19:46.000Z", "contentLength": 240044, "httpStatusCode": 200}	144218c4-afe5-441b-9988-0e702da12449	\N	{}	\N	f	f
+1307b4d4-69c8-46de-bbef-263381e83368	brumm-audio	BB001/BB001_2026-09-16_07-30-26_G50_UNP_R4.wav	\N	2026-09-16 05:32:45.43374+00	2026-09-16 05:32:45.43374+00	2026-09-16 05:32:45.43374+00	{"eTag": "\\"48c17d51e7e556df5a43fd9f23077853\\"", "size": 240044, "mimetype": "audio/wav", "cacheControl": "max-age=3600", "lastModified": "2026-09-16T05:32:46.000Z", "contentLength": 240044, "httpStatusCode": 200}	1ea7c492-076d-4cc2-876a-44cac04cb698	\N	{}	\N	f	f
+cdea94fa-12a4-47b7-a82b-504a08a3eb64	brumm-audio	BB001/BB001_2026-09-25_01-05-22_G50_UNP_R1.wav	\N	2026-09-24 23:07:39.690163+00	2026-09-24 23:07:39.690163+00	2026-09-24 23:07:39.690163+00	{"eTag": "\\"e359fbccce90454c15c3dcc8ba83ddff\\"", "size": 240044, "mimetype": "audio/wav", "cacheControl": "max-age=3600", "lastModified": "2026-09-24T23:07:40.000Z", "contentLength": 240044, "httpStatusCode": 200}	a6de3563-f38f-4273-8ad6-b738d517bd61	\N	{}	\N	f	f
+cd21cbfd-5852-44ce-bb63-c269c1ef1e87	brumm-audio	BB001/BB001_2026-09-17_00-35-32_G50_UNP_R4.wav	\N	2026-09-16 22:37:52.718662+00	2026-09-16 22:37:52.718662+00	2026-09-16 22:37:52.718662+00	{"eTag": "\\"a02420e7af1925250b5913c127fc5bf4\\"", "size": 240044, "mimetype": "audio/wav", "cacheControl": "max-age=3600", "lastModified": "2026-09-16T22:37:53.000Z", "contentLength": 240044, "httpStatusCode": 200}	3c75afc1-4cc0-4cdb-83dd-1b367470d68c	\N	{}	\N	f	f
+9ab4e441-b75c-481a-9b26-82dd71fd3abb	brumm-audio	BB001/BB001_2026-09-17_17-10-59_G50_UNP_R3.wav	\N	2026-09-17 15:13:07.024836+00	2026-09-17 15:13:07.024836+00	2026-09-17 15:13:07.024836+00	{"eTag": "\\"7b473d513bc07cabde256fbdd25c5268\\"", "size": 240044, "mimetype": "audio/wav", "cacheControl": "max-age=3600", "lastModified": "2026-09-17T15:13:07.000Z", "contentLength": 240044, "httpStatusCode": 200}	5f4fb63b-c7ab-493b-bb86-db1ce7908ad7	\N	{}	\N	f	f
+e054e0f8-44cb-40de-afbe-3c7eed4be45a	brumm-audio	BB001/BB001_2026-09-26_13-06-05_G0_UNP_R1.wav	\N	2026-09-26 11:06:13.260782+00	2026-09-26 11:06:13.260782+00	2026-09-26 11:06:13.260782+00	{"eTag": "\\"ab9010e04565020b641a0d4d6559f35f\\"", "size": 240044, "mimetype": "audio/wav", "cacheControl": "max-age=3600", "lastModified": "2026-09-26T11:06:14.000Z", "contentLength": 240044, "httpStatusCode": 200}	a76c91ea-56d2-4fb4-b398-62e9cd2e741f	\N	{}	\N	f	f
+11c0af68-a369-47c5-8b12-b0cba7b33208	brumm-audio	BB001/BB001_2026-09-18_01-13-37_G50_UNP_RX.wav	\N	2026-09-17 23:16:07.428876+00	2026-09-17 23:16:07.428876+00	2026-09-17 23:16:07.428876+00	{"eTag": "\\"5e794aff501f4806ffdd3b8495ceec8e\\"", "size": 240044, "mimetype": "audio/wav", "cacheControl": "max-age=3600", "lastModified": "2026-09-17T23:16:08.000Z", "contentLength": 240044, "httpStatusCode": 200}	8a48d110-a7c0-40ed-b54f-944684470508	\N	{}	\N	f	f
+93b22070-f750-4fcf-8e04-002bac310c0f	brumm-audio	BB001/BB001_2026-09-28_20-20-35_G0_UNP_RX.wav	\N	2026-09-28 18:20:42.701893+00	2026-09-28 18:20:42.701893+00	2026-09-28 18:20:42.701893+00	{"eTag": "\\"276f435ab5e216a0d7f8c75ce921d3b7\\"", "size": 240044, "mimetype": "audio/wav", "cacheControl": "max-age=3600", "lastModified": "2026-09-28T18:20:43.000Z", "contentLength": 240044, "httpStatusCode": 200}	5ace8ade-00aa-4132-8847-968c5a9c4dc2	\N	{}	\N	f	f
+0fcaf5d7-2014-4e1d-b68c-4c3a5b5199bb	brumm-audio	BB001/BB001_2026-09-18_04-05-15_G50_UNP_R4.wav	\N	2026-09-18 02:08:17.880169+00	2026-09-18 02:08:17.880169+00	2026-09-18 02:08:17.880169+00	{"eTag": "\\"9a3239ef68971e24c822014bfcdbbac4\\"", "size": 240044, "mimetype": "audio/wav", "cacheControl": "max-age=3600", "lastModified": "2026-09-18T02:08:18.000Z", "contentLength": 240044, "httpStatusCode": 200}	11be56d0-8db9-444e-9d5f-b6b5f9421d97	\N	{}	\N	f	f
+baec0481-90b9-4a7e-8705-942e7dc78173	brumm-audio	BB001/BB001_2026-09-18_09-09-08_G50_UNP_R2.wav	\N	2026-09-18 07:11:17.597637+00	2026-09-18 07:11:17.597637+00	2026-09-18 07:11:17.597637+00	{"eTag": "\\"7c5e78c4db97105cad42c7863e57c39e\\"", "size": 240044, "mimetype": "audio/wav", "cacheControl": "max-age=3600", "lastModified": "2026-09-18T07:11:18.000Z", "contentLength": 240044, "httpStatusCode": 200}	ed4cd763-4de1-442c-acb5-5cee33d6a5ef	\N	{}	\N	f	f
+8b4db057-8c60-42b2-a70d-256bef2f04c5	brumm-audio	BB001/BB001_2026-09-18_12-13-40_G50_UNP_R2.wav	\N	2026-09-18 10:16:19.42825+00	2026-09-18 10:16:19.42825+00	2026-09-18 10:16:19.42825+00	{"eTag": "\\"9ddfb7aec183948a889ab603ea495318\\"", "size": 240044, "mimetype": "audio/wav", "cacheControl": "max-age=3600", "lastModified": "2026-09-18T10:16:20.000Z", "contentLength": 240044, "httpStatusCode": 200}	19d3005c-ed74-4045-bbbd-d8101c873201	\N	{}	\N	f	f
+19c9d22b-d5ca-4f4c-aa38-63efda9951e1	brumm-audio	BB001/BB001_2026-09-18_11-17-23_G50_UNP_R2.wav	\N	2026-09-18 11:19:29.86164+00	2026-09-18 11:19:29.86164+00	2026-09-18 11:19:29.86164+00	{"eTag": "\\"e5b61e25112f0161f2c3d02c9a735134\\"", "size": 240044, "mimetype": "audio/wav", "cacheControl": "max-age=3600", "lastModified": "2026-09-18T11:19:30.000Z", "contentLength": 240044, "httpStatusCode": 200}	1964de1d-b2fe-462f-823a-7c922da7822c	\N	{}	\N	f	f
+16db5152-a5c4-401d-a4d5-91e199ed51f2	brumm-audio	BB001/BB001_2026-09-18_17-35-11_G50_UNP_R3.wav	\N	2026-09-18 15:37:33.004214+00	2026-09-18 15:37:33.004214+00	2026-09-18 15:37:33.004214+00	{"eTag": "\\"a95c1e43de72541e5ebc49f9f9eac13c\\"", "size": 240044, "mimetype": "audio/wav", "cacheControl": "max-age=3600", "lastModified": "2026-09-18T15:37:33.000Z", "contentLength": 240044, "httpStatusCode": 200}	d2e4786e-d858-4d93-b874-7a8458e41b7d	\N	{}	\N	f	f
+521017e4-2859-45b1-96a0-e9f6e222e466	brumm-audio	BB001/BB001_2026-09-19_15-26-27_G50_UNP_R5.wav	\N	2026-09-19 13:28:45.702416+00	2026-09-19 13:28:45.702416+00	2026-09-19 13:28:45.702416+00	{"eTag": "\\"d5a518fdd53be4c6e3ebff4f14d369b4\\"", "size": 240044, "mimetype": "audio/wav", "cacheControl": "max-age=3600", "lastModified": "2026-09-19T13:28:46.000Z", "contentLength": 240044, "httpStatusCode": 200}	97d84b5c-9c93-4696-8ba1-7761069bdf87	\N	{}	\N	f	f
+f1808e3a-055a-46e1-be6e-48da1936bffd	brumm-audio	BB001/BB001_2026-09-25_11-01-42_G50_UNP_RX.wav	\N	2026-09-25 09:03:54.46084+00	2026-09-25 09:03:54.46084+00	2026-09-25 09:03:54.46084+00	{"eTag": "\\"04db041690bf1c931714f56c4bae774b\\"", "size": 240044, "mimetype": "audio/wav", "cacheControl": "max-age=3600", "lastModified": "2026-09-25T09:03:55.000Z", "contentLength": 240044, "httpStatusCode": 200}	1d679073-b9bb-4b50-bccc-260d9696b37e	\N	{}	\N	f	f
+eba33344-818a-435a-95de-e16b3d7e2bc8	brumm-audio	BB001/BB001_2026-09-27_23-48-15_G0_UNP_R5.wav	\N	2026-09-27 21:48:29.878301+00	2026-09-27 21:48:29.878301+00	2026-09-27 21:48:29.878301+00	{"eTag": "\\"56a359c79440d815a24805d3ddb2859c\\"", "size": 240044, "mimetype": "audio/wav", "cacheControl": "max-age=3600", "lastModified": "2026-09-27T21:48:30.000Z", "contentLength": 240044, "httpStatusCode": 200}	59d04cad-6a19-4fb7-9131-04d075dc7406	\N	{}	\N	f	f
+a793fe56-7ba3-4ce4-ab34-26dff7795fbb	brumm-audio	BB001/BB001_2026-09-29_02-00-08_G0_UNP_R4.wav	\N	2026-09-29 00:00:14.250695+00	2026-09-29 00:00:14.250695+00	2026-09-29 00:00:14.250695+00	{"eTag": "\\"814e7539fce4af462f850263e65def2e\\"", "size": 240044, "mimetype": "audio/wav", "cacheControl": "max-age=3600", "lastModified": "2026-09-29T00:00:15.000Z", "contentLength": 240044, "httpStatusCode": 200}	2bdd47ce-ba27-4f33-92ae-c90c62fd9449	\N	{}	\N	f	f
+427df5cc-ddba-4f05-b21a-ad310b1bb44a	brumm-audio	BB001/BB001_2026-10-01_00-47-54_G0_UNP_R1.wav	\N	2026-09-30 22:48:04.866005+00	2026-09-30 22:48:04.866005+00	2026-09-30 22:48:04.866005+00	{"eTag": "\\"bf4800b9e5e9fb399808931cc9ea8a28\\"", "size": 240044, "mimetype": "audio/wav", "cacheControl": "max-age=3600", "lastModified": "2026-09-30T22:48:05.000Z", "contentLength": 240044, "httpStatusCode": 200}	d82878ad-2013-43ba-9e1f-59ee8c1263a3	\N	{}	\N	f	f
+8f781429-b8c5-4c26-a876-caf84dbc03c9	brumm-audio	BB001/BB001_2026-10-01_00-48-59_G0_UNP_R1.wav	\N	2026-09-30 22:49:13.820955+00	2026-09-30 22:49:13.820955+00	2026-09-30 22:49:13.820955+00	{"eTag": "\\"0b71ee75d580405b6062625337a4bdd6\\"", "size": 240044, "mimetype": "audio/wav", "cacheControl": "max-age=3600", "lastModified": "2026-09-30T22:49:14.000Z", "contentLength": 240044, "httpStatusCode": 200}	3b381788-8f6e-4e08-8f87-305b49657380	\N	{}	\N	f	f
+2d2a9584-0274-4cc2-a115-3f9d9311c22c	brumm-audio	BB001/BB001_2026-10-01_14-24-35_G0_UNP_R5.wav	\N	2026-10-01 12:24:50.275394+00	2026-10-01 12:24:50.275394+00	2026-10-01 12:24:50.275394+00	{"eTag": "\\"894bfa16682c09dcc21943d1bbf554e9\\"", "size": 240044, "mimetype": "audio/wav", "cacheControl": "max-age=3600", "lastModified": "2026-10-01T12:24:51.000Z", "contentLength": 240044, "httpStatusCode": 200}	56d70484-041d-4922-acc0-d6b43a7061f1	\N	{}	\N	f	f
+ec28a34b-414e-4f92-8af8-ddd0c70866d7	brumm-audio	BB001/BB001_2026-10-04_00-47-14_G0_UNP_R1.wav	\N	2026-10-03 22:47:24.53927+00	2026-10-03 22:47:24.53927+00	2026-10-03 22:47:24.53927+00	{"eTag": "\\"d118c4740cadc6f5101a7aee90991007\\"", "size": 240044, "mimetype": "audio/wav", "cacheControl": "max-age=3600", "lastModified": "2026-10-03T22:47:25.000Z", "contentLength": 240044, "httpStatusCode": 200}	e00487aa-11da-4b7d-8d8a-1a0a7884a570	\N	{}	\N	f	f
+79c2d72b-2dde-4dc8-8a8c-c93b0d88f23f	brumm-audio	BB001/BB001_2026-10-05_00-42-02_G0_UNP_R4.wav	\N	2026-10-04 22:42:16.722504+00	2026-10-04 22:42:16.722504+00	2026-10-04 22:42:16.722504+00	{"eTag": "\\"c200cf7b9b0cde168d358bfddf15fa50\\"", "size": 240044, "mimetype": "audio/wav", "cacheControl": "max-age=3600", "lastModified": "2026-10-04T22:42:17.000Z", "contentLength": 240044, "httpStatusCode": 200}	a270b92d-ba7f-4a64-a846-1e3ebc6c5bb9	\N	{}	\N	f	f
+6f3dcdf9-a8e2-423b-bcd0-9719ba7a3765	brumm-audio	BB001/BB001_2026-10-05_04-53-11_G0_UNP_R5.wav	\N	2026-10-05 02:53:18.281807+00	2026-10-05 02:53:18.281807+00	2026-10-05 02:53:18.281807+00	{"eTag": "\\"d0845c37cdb4e02df7f054b7c20c000d\\"", "size": 240044, "mimetype": "audio/wav", "cacheControl": "max-age=3600", "lastModified": "2026-10-05T02:53:19.000Z", "contentLength": 240044, "httpStatusCode": 200}	aaf9c1bc-8eef-4879-a5c8-819a2b0895cb	\N	{}	\N	f	f
+d4fbaf46-4579-4125-9ebd-0a0c7475916b	brumm-audio	BB001/BB001_2026-10-06_02-46-50_G0_UNP_R4.wav	\N	2026-10-06 00:46:56.54219+00	2026-10-06 00:46:56.54219+00	2026-10-06 00:46:56.54219+00	{"eTag": "\\"818812fd68af36ce9396fa38f9cb9d84\\"", "size": 240044, "mimetype": "audio/wav", "cacheControl": "max-age=3600", "lastModified": "2026-10-06T00:46:57.000Z", "contentLength": 240044, "httpStatusCode": 200}	34bcd615-10b1-4cf3-bafd-65a2deb10f90	\N	{}	\N	f	f
+1d36c328-7c90-4550-9951-6ef19668368d	brumm-audio	BB001/BB001_2026-10-06_15-20-10_G0_UNP_R4.wav	\N	2026-10-06 13:20:36.896048+00	2026-10-06 13:20:36.896048+00	2026-10-06 13:20:36.896048+00	{"eTag": "\\"0b33e07b745447416e373bd03a9b215f\\"", "size": 240044, "mimetype": "audio/wav", "cacheControl": "max-age=3600", "lastModified": "2026-10-06T13:20:37.000Z", "contentLength": 240044, "httpStatusCode": 200}	1e50f823-f7f5-4ddd-98a3-922e2d5f5474	\N	{}	\N	f	f
+4d75a73f-a5b0-4580-b788-2977e7d48f35	brumm-audio	BB001/BB001_2026-10-07_10-10-39_G0_UNP_RX.wav	\N	2026-10-07 08:11:16.862294+00	2026-10-07 08:11:16.862294+00	2026-10-07 08:11:16.862294+00	{"eTag": "\\"a7baa7dde410a9bd3627af51e4dd694c\\"", "size": 240044, "mimetype": "audio/wav", "cacheControl": "max-age=3600", "lastModified": "2026-10-07T08:11:17.000Z", "contentLength": 240044, "httpStatusCode": 200}	a4418cef-7d3d-4bfe-8c54-76e2a4d2f695	\N	{}	\N	f	f
+b94c7f3e-af61-4ecb-b9aa-167a211c2d9d	brumm-audio	BB001/BB001_2026-10-07_10-44-12_G0_UNP_RX.wav	\N	2026-10-07 08:44:56.876433+00	2026-10-07 08:44:56.876433+00	2026-10-07 08:44:56.876433+00	{"eTag": "\\"ce03121b78e7f9882ad993ec081b8de8\\"", "size": 240044, "mimetype": "audio/wav", "cacheControl": "max-age=3600", "lastModified": "2026-10-07T08:44:57.000Z", "contentLength": 240044, "httpStatusCode": 200}	cb6ab46b-786d-4d17-be73-499c2da63c15	\N	{}	\N	f	f
+bd7b72aa-369b-4dbd-ad71-7549273c4cb6	brumm-audio	BB001/BB001_2026-10-07_10-46-40_G0_UNP_RX.wav	\N	2026-10-07 08:46:54.273419+00	2026-10-07 08:46:54.273419+00	2026-10-07 08:46:54.273419+00	{"eTag": "\\"c85e9574debfe6ad875a6eecd362adeb\\"", "size": 240044, "mimetype": "audio/wav", "cacheControl": "max-age=3600", "lastModified": "2026-10-07T08:46:55.000Z", "contentLength": 240044, "httpStatusCode": 200}	5cd51472-9a87-4727-8463-7b6f476afa7b	\N	{}	\N	f	f
+0927bfdb-4172-49c9-803f-a27d81e7b72c	brumm-audio	BB001/BB001_2026-10-08_13-48-47_G0_UNP_R0.wav	\N	2026-10-08 11:49:15.552605+00	2026-10-08 11:49:15.552605+00	2026-10-08 11:49:15.552605+00	{"eTag": "\\"f4e9df67f45a4eec4eaea9a362d1c1a9\\"", "size": 240044, "mimetype": "audio/wav", "cacheControl": "max-age=3600", "lastModified": "2026-10-08T11:49:16.000Z", "contentLength": 240044, "httpStatusCode": 200}	c5f72b3d-f8ae-44b3-a970-6751f9cfe4c9	\N	{}	\N	f	f
+\.
+
+
+--
+-- Data for Name: s3_multipart_uploads; Type: TABLE DATA; Schema: storage; Owner: supabase_storage_admin
+--
+
+COPY "storage"."s3_multipart_uploads" ("id", "in_progress_size", "upload_signature", "bucket_id", "key", "version", "owner_id", "created_at", "user_metadata", "metadata") FROM stdin;
+\.
+
+
+--
+-- Data for Name: s3_multipart_uploads_parts; Type: TABLE DATA; Schema: storage; Owner: supabase_storage_admin
+--
+
+COPY "storage"."s3_multipart_uploads_parts" ("id", "upload_id", "size", "part_number", "bucket_id", "key", "etag", "owner_id", "version", "created_at") FROM stdin;
+\.
+
+
+--
+-- Data for Name: vector_indexes; Type: TABLE DATA; Schema: storage; Owner: supabase_storage_admin
+--
+
+COPY "storage"."vector_indexes" ("id", "name", "bucket_id", "data_type", "dimension", "distance_metric", "metadata_configuration", "created_at", "updated_at") FROM stdin;
+\.
+
+
+--
+-- Name: refresh_tokens_id_seq; Type: SEQUENCE SET; Schema: auth; Owner: supabase_auth_admin
+--
+
+SELECT pg_catalog.setval('"auth"."refresh_tokens_id_seq"', 1, false);
+
+
+--
+-- Name: observations_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('"public"."observations_id_seq"', 404, true);
+
+
+--
+-- PostgreSQL database dump complete
+--
+
+-- \unrestrict Zk4ac6fYfm2lxUtEBK74T7cgu61I3UbkabmnifPDSsiFTKPBJ3cFj4v3JmfyQhA
+
+RESET ALL;

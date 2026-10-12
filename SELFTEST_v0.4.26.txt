@@ -1,0 +1,27 @@
+LFN-Scout v0.4.26 – Selbstprüfung
+
+PASS Drei Panelzustände MAIN / SETTINGS / MORE vorhanden
+PASS Hauptpanel besitzt ⚙ und ⋮
+PASS Pausen 1/2/4/8/24/72 h und Ganz aus im Hauptpanel
+PASS Teilnehmerschlüssel im Einstellungspanel
+PASS CSV/XLSX im Zusatzfunktionen-Panel
+PASS Debug-Protokoll im Zusatzfunktionen-Panel
+PASS Radius-Histogramme verwenden 2 Spalten / 2 Reihen für vier Blöcke
+PASS 5-s-Kommentar-Auto-Senden im Hauptpanel erhalten
+PASS In-Process-Tonpakete v0.4.25 erhalten
+PASS Fullscreen-Timeout-Fix v0.4.24 erhalten
+PASS verbotener expliziter Compose-weight-Import fehlt
+PASS Android versionName ist 0.4.26
+
+AUDIO:
+Die Audio-Karte ist Teil des Facelifts.
+Die Schaltfläche ist absichtlich deaktiviert, weil die Android-WAV-
+Aufnahme und der Upload noch nicht implementiert sind. Es wird keine
+Funktion vorgetäuscht.
+
+BUILDSTATUS:
+Statische Regressionen: PASS
+Kotlin-Syntaxprüfung: keine Syntaxfehler gefunden.
+Vollständiger Gradle-Build in der ChatGPT-Umgebung nicht möglich:
+services.gradle.org war nicht auflösbar.
+Der Build muss deshalb in Android Studio / auf dem Build-PC geprüft werden.

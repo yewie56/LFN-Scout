@@ -1,0 +1,36 @@
+LFN-Scout v0.4.35 – Audio-Input-Test
+
+1. App starten und Audio-Karte öffnen.
+PASS: AudioSource zeigt standardmäßig "Auto · UNPROCESSED bevorzugt".
+PASS: Audioeingang zeigt "Auto · Android wählt Eingang".
+
+2. "Inputs aktualisieren" drücken.
+PASS: Zahl der gefundenen Eingänge wird angezeigt.
+PASS: Dropdown enthält alle von Android gemeldeten Input-Geräte.
+
+3. Interne Mikrofonquelle auswählen.
+PASS: Auswahl bleibt beim erneuten Öffnen erhalten.
+
+4. Aufnahme mit AudioSource AUTO starten.
+PASS: unter "Aktiv:" erscheint die tatsächlich verwendete Source.
+ERWARTUNG: auf geeigneten Geräten UNPROCESSED; sonst MIC-Fallback.
+PASS: tatsächliches/geroutetes Eingabegerät wird angezeigt.
+
+5. AudioSource UNPROCESSED erzwingen.
+PASS: wenn unterstützt, Aufnahme läuft mit UNPROCESSED.
+PASS: wenn nicht unterstützt, klare Fehlermeldung; kein stiller MIC-Fallback.
+
+6. AudioSource MIC erzwingen.
+PASS: Aufnahme läuft mit MIC.
+
+7. USB-/Headset-Eingang verbinden und "Inputs aktualisieren" drücken.
+PASS: Gerät erscheint in der Liste.
+PASS: Auswahl kann gespeichert und zur Aufnahme angefordert werden.
+
+8. Gewähltes externes Gerät entfernen und App/Audio-Karte erneut öffnen.
+PASS: Auswahl fällt automatisch auf Auto zurück.
+
+9. Regression
+PASS erwartet: Gain 0..+50 dB.
+PASS erwartet: Live-CLIP und Clip-Zähler.
+PASS erwartet: PREPARE_PROJECT.bat verwendet Java 17 ohne globales Java 8 zu verändern.

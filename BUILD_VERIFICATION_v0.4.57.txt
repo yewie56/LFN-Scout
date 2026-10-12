@@ -1,0 +1,24 @@
+LFN-Scout v0.4.57 – Verification
+Date: 2026-09-14
+
+PASS verify_v0457_requirements.py: 26/26
+PASS RollingBufferContinuitySelfTest
+PASS RollingSnapshotContinuitySelfTest
+PASS RollingBufferEngineSelfTest
+PASS WaterfallTimeAxisSelfTest
+
+v0.4.57 change verified statically:
+- Rolling buffered-seconds state lives at LFNScoutApp level.
+- It refreshes from RollingAudioEngine.bufferedSeconds() every 1 second while enabled.
+- MoreFunctionsScreen receives the live parent value.
+- The previous screen-local liveRollingSeconds ticker was removed.
+- The displayed text uses the current parent rollingBufferedSeconds value.
+- Rolling audio engine/service behavior itself was not changed.
+
+Android Gradle verification:
+NOT RUN TO COMPLETION in this offline environment.
+./gradlew --version attempted, but Gradle 8.13 download failed because services.gradle.org could not be resolved.
+Run on Windows after PREPARE_PROJECT.bat:
+  gradlew.bat clean
+  gradlew.bat testDebugUnitTest
+  gradlew.bat assembleDebug

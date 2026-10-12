@@ -1,0 +1,23 @@
+LFN-Scout Android v0.4.59 - Build/CI Verification
+Datum: 2026-09-14
+
+Statische Verifikation:
+- PASS: versionName 0.4.59
+- PASS: versionCode 99
+- PASS: GitHub Actions Workflow vorhanden
+- PASS: workflow_dispatch vorhanden
+- PASS: Push- und Pull-Request-Trigger vorhanden
+- PASS: Java 17 eingerichtet
+- PASS: Unit-Test-Schritt testDebugUnitTest vorhanden
+- PASS: Debug-Build assembleDebug vorhanden
+- PASS: APK-Artifact-Upload vorhanden
+- PASS: GITHUB_BUILD.md vorhanden
+
+Hinweis:
+Der eigentliche GitHub-Actions-Lauf kann erst nach Push des Projekts in ein GitHub-Repository ausgeführt werden. Lokal wird zusätzlich der statische v0.4.59-Regressionstest ausgeführt.
+
+Lokaler Gradle-Versuch in der Prüfungsumgebung:
+- NICHT AUSFÜHRBAR: services.gradle.org konnte per DNS nicht aufgelöst werden.
+- Fehler: curl: (6) Could not resolve host: services.gradle.org
+- Damit liegt kein lokaler Compiler-/Unit-Test-Nachweis aus dieser Umgebung vor.
+- Der GitHub-Workflow führt dieselben Test-/Build-Schritte in GitHub Actions aus.

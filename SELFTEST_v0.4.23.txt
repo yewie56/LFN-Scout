@@ -1,0 +1,19 @@
+LFN-Scout v0.4.23 – Selbstprüfung
+
+PASS Timeout 1 = 5 Sekunden
+PASS Timeout 2 = 5 Sekunden
+PASS beide Zeiten zentral in CommentAutoSendPolicy
+PASS Bewertung ohne Kommentar wird nach Timeout automatisch gesendet
+PASS Kommentar-Klick schaltet auf zweiten Timeout um
+PASS Kommentartext wird beim zweiten Timeout mitgesendet
+PASS weitere Texteingaben verlängern Timeout 2 nicht fortlaufend
+PASS manueller Senden-Button bleibt erhalten
+PASS Abbrechen verwirft offene Eingabe
+PASS Kommentar-/Exportfunktion v0.4.22 erhalten
+PASS Sperrbildschirm-Timeout-Fix v0.4.21 erhalten
+PASS horizontale Histogramme erhalten
+PASS Offline-Retry erhalten
+PASS VersionName 0.4.23 / VersionCode 63
+
+GRADLE:
+Ein frischer :app:compileDebugKotlin-Aufruf wird versucht.

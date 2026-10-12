@@ -1,0 +1,24 @@
+LFN-Scout v0.4.50 – Verifikationsstand
+
+verify_v0450_requirements.py: PASS
+Supabase storage_filename.test.mjs: PASS
+Zusätzliche statische Prüfungen: PASS
+Klammerbilanz geänderter/berührter Kotlin-Dateien: 0
+
+Änderungen:
+- MAIN: Wisch links -> MORE; Wisch rechts -> keine Aktion.
+- MORE: Wisch rechts -> MAIN; Wisch links -> SETTINGS.
+- SETTINGS: Wisch rechts -> MORE; Wisch links -> keine Aktion.
+- Button „Wasserfall neueste Aufnahme“ entfernt.
+- Neueste Aufnahme wird durch die bestehende newest-first sortierte Liste als erster Eintrag angezeigt.
+- Dateiinfo bleibt direkt anklickbar; kein Wasserfall-Einzelbutton.
+- Bewertung + Erläuterung in einer Zeile.
+- Erinnerungsstatus + Modus in einer Zeile; nächste Erinnerung separat.
+- Zoom/Pan, Doppeltipp-Reset sowie PNG/JPG/PNG+JPG aus v0.4.49 bleiben erhalten.
+
+Gradle assembleDebug --offline Exit: 6
+[LFN-Scout] Initialisiere Gradle 8.13 ...
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0curl: (6) Could not resolve host: services.gradle.org

@@ -1,0 +1,37 @@
+LFN-Scout v0.4.22 – Selbstprüfung
+
+PASS Rating 0..5 öffnet optionales Kommentarfeld
+PASS expliziter Button "Bewertung senden"
+PASS Kommentar maximal 2000 Zeichen
+PASS rating=-1 erzwingt comment=null
+PASS Kommentar Bestandteil des ObservationPayload
+PASS Kommentar wird im Offline-Puffer gespeichert und beim Retry wiederhergestellt
+PASS Supabase-Migration observations.comment enthalten
+PASS aktualisierte submit_observation Edge Function enthalten
+PASS get_all_observations Edge Function enthalten
+PASS vollständiger eigener Abruf paginiert (500 pro Seite)
+PASS CSV-Export lokal
+PASS CSV UTF-8 BOM + Semikolon
+PASS XLSX-Export lokal ohne zusätzliche Android-Excel-Bibliothek
+PASS XLSX-Writer als reines Kotlin erfolgreich kompiliert
+PASS erzeugte Test-XLSX ZIP/XML strukturell gültig
+PASS Test-XLSX mit Spreadsheet-Parser erfolgreich eingelesen
+PASS UTC- und lokale Zeitspalten im Export
+PASS stabile observer_id im Export
+PASS Kommentar auch in Radius-Rohdaten ergänzt
+PASS Sperrbildschirm-Timeout-Fix v0.4.21 erhalten
+PASS horizontale normierte Histogramme erhalten
+PASS 2h-Offline-Retry erhalten
+PASS VersionName 0.4.22 / VersionCode 62
+
+GRADLE:
+NICHT BESTÄTIGT.
+Ein frischer :app:compileDebugKotlin-Aufruf wurde versucht, konnte den
+Gradle-Wrapper aber nicht herunterladen:
+curl: (6) Could not resolve host: services.gradle.org
+
+Der vollständige Android-Build muss deshalb auf dem Build-PC erfolgen.
+
+SUPABASE:
+Vor Verwendung der Kommentar-/Exportfunktionen die Schritte in
+SUPABASE_v0.4.22_SETUP.txt ausführen.

@@ -1,0 +1,99 @@
+name: Build LFN-Scout
+
+on:
+  workflow_dispatch:
+  push:
+  pull_request:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: lfn-scout-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  STORE_APK_IN_REPOSITORY: "true"
+
+jobs:
+  test-and-build:
+    name: Test and build debug APK
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Gradle cache
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Make Gradle bootstrap executable
+        run: chmod +x ./gradlew
+
+      - name: Read app version
+        id: appmeta
+        shell: bash
+        run: |
+          VERSION=$(grep -E 'versionName[[:space:]]*=' app/build.gradle.kts | head -1 | sed -E 's/.*"([^"]+)".*/\1/')
+          if [ -z "$VERSION" ]; then
+            echo "Version konnte nicht aus app/build.gradle.kts gelesen werden." >&2
+            exit 1
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "apk=LFN-Scout-v${VERSION}-debug.apk" >> "$GITHUB_OUTPUT"
+
+      - name: Run unit tests
+        run: ./gradlew testDebugUnitTest --stacktrace
+
+      - name: Upload unit test report on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: LFN-Scout-v${{ steps.appmeta.outputs.version }}-test-report
+          path: |
+            app/build/reports/tests/testDebugUnitTest/**
+            app/build/test-results/testDebugUnitTest/**
+            analyzer-core/build/reports/tests/test/**
+            analyzer-core/build/test-results/test/**
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Build debug APK
+        run: ./gradlew assembleDebug --stacktrace
+
+      - name: Rename debug APK
+        shell: bash
+        run: cp app/build/outputs/apk/debug/app-debug.apk "app/build/outputs/apk/debug/${{ steps.appmeta.outputs.apk }}"
+
+      - name: Upload debug APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: LFN-Scout-v${{ steps.appmeta.outputs.version }}-debug
+          path: app/build/outputs/apk/debug/${{ steps.appmeta.outputs.apk }}
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Store APK in repository (variant B)
+        if: env.STORE_APK_IN_REPOSITORY == 'true' && github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        shell: bash
+        run: |
+          mkdir -p Builds/debug
+          cp "app/build/outputs/apk/debug/${{ steps.appmeta.outputs.apk }}" "Builds/debug/${{ steps.appmeta.outputs.apk }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "Builds/debug/${{ steps.appmeta.outputs.apk }}"
+          if git diff --cached --quiet; then
+            echo "APK ist bereits im Repository vorhanden."
+            exit 0
+          fi
+          git commit -m "Add LFN-Scout v${{ steps.appmeta.outputs.version }} debug APK [skip ci]"
+          git push origin HEAD:main

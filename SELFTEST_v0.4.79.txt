@@ -1,0 +1,11 @@
+LFN-Scout v0.4.79 - Seismik-Selbsttest
+
+PASS SeismicAmplitudeSelfTest
+PASS SeismicRegionalHelicorderSelfTest
+PASS SeismicWaveformSelfTest
+PASS SeismicDetailReductionSelfTest
+PASS SeismicBinDetailSelfTest
+PASS SeismicPlotUiSelfTest
+PASS SeismicDayRoutingSelfTest
+PASS SeismicSearchSelfTest
+PASS verify_v0_4_79.py 10/10

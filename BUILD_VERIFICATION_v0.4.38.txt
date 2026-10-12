@@ -1,0 +1,30 @@
+LFN-Scout v0.4.38 – Verifikationsstand
+
+PASS: versionName 0.4.38
+PASS: versionCode 78
+PASS: stale onAudioGainChange removed from call
+PASS: onAudioGainChange absent from signature
+PASS: no onAudioGainChange anywhere
+PASS: gain remains in main
+PASS: Audio today remains in main
+PASS: CLIP remains inline
+PASS: WAV info remains
+PASS: gain absent from settings
+PASS: AudioSource remains in settings
+PASS: Audio input remains in settings
+PASS: Inputs refresh remains in settings
+PASS: pause row 1 unchanged
+PASS: pause row 2 unchanged
+PASS: header subtitle preserved
+PASS: rating explanation preserved
+PASS: recent ratings preserved
+PASS: Verlauf/Rohdaten preserved
+PASS: main compact spacing retained
+PASS: Java17 setup retained
+
+Statische Anforderungs-/Regressionsprüfung: 21/21 PASS.
+Klammerbilanz der geänderten Kotlin-Dateien: 0.
+
+NICHT HIER VERIFIZIERT:
+- vollständige Android/Kotlin-Kompilation mit Android SDK
+- Android-Studio-Build auf dem Windows-Rechner

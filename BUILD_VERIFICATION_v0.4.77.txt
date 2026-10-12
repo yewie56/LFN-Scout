@@ -1,0 +1,11 @@
+LFN-Scout / LFN-Scout Android v0.4.77
+Date: 2026-09-17
+
+PASS: tools/verify_v0_4_77.py
+PASS: standalone SeismicScheliPolicy self-test
+PASS: MainActivity brace-balance check
+PASS: ZIP integrity check (performed before handoff)
+
+Gradle testDebugUnitTest: NOT COMPLETED in this environment.
+Reason: Gradle bootstrap cannot resolve services.gradle.org (DNS blocked).
+Final Android/Compose compile must therefore be confirmed by Android Studio or GitHub Actions.
