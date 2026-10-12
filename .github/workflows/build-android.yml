@@ -81,19 +81,3 @@ jobs:
           path: app/build/outputs/apk/debug/${{ steps.appmeta.outputs.apk }}
           if-no-files-found: error
           retention-days: 14
-
-      - name: Store APK in repository (variant B)
-        if: env.STORE_APK_IN_REPOSITORY == 'true' && github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
-        shell: bash
-        run: |
-          mkdir -p Builds/debug
-          cp "app/build/outputs/apk/debug/${{ steps.appmeta.outputs.apk }}" "Builds/debug/${{ steps.appmeta.outputs.apk }}"
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add "Builds/debug/${{ steps.appmeta.outputs.apk }}"
-          if git diff --cached --quiet; then
-            echo "APK ist bereits im Repository vorhanden."
-            exit 0
-          fi
-          git commit -m "Add LFN-Scout v${{ steps.appmeta.outputs.version }} debug APK [skip ci]"
-          git push origin HEAD:main
