@@ -1,3 +1,12 @@
+## v0.5.49 (versionCode 207) – AUDIO-REC, DIAG, Mithören, kompaktes Routing
+- AUDIO-REC: roter Kreis; Buffersekunden / konfigurierter Clipdauer und lokal gespeicherte Aufnahmen / Tageslimit in der 48-dp-Taste. Nur Uhr bei gespeichert + ausstehender Cloud; Haken nach bestätigtem Upload derselben WAV. Archivstatus für noch offene Übertragung wird nachgelesen.
+- DIAG: Rahmen, Größe und Rundung an untere Tasten angepasst. NOISE-Zustände bleiben vollständig innerhalb der eigenen Taste.
+- MON: Kopfhörersymbol 50 % der Tastenbreite. Tippen für Mithören, langer Druck für additive Frequenzverschiebung. Fade-in, persistenter Pegel / Mittenfrequenz, steilflankiger separater Biquad-Bandpass, parametrierbare Bandbreite und SHIFT-Frequenz. Gesten im Wasserfall, Anzeige im Spektrum.
+- Obere Kurzstatusanzeige LIVE/PAUSE/STOP zusammen mit tatsächlich von der PCM-Quelle gemeldetem Mikrofon (bei STOP nur gewählte Quelle mit Sternchen). Keine zusätzliche Statuszeile.
+- Separate neue PCM-Monitoring-Subscription und AudioTrack; kein zweiter AudioRecord, keine Änderung der eigentlichen FFT/WAV-Verarbeitung oder Cloud-Schemata.
+- Kotlin-PSI-Parser 5/5 PASS, lokale Kotlin-Policy-Prüfungen 7/7 PASS; Android/AudioTrack-Gerätetest **offen** (kein lokaler Gradle-8.13-Download möglich).
+- Windows-/GitHub-Builddateien unverändert. Siehe ANLEITUNG_TEST_v0.5.49.md.
+
 ## v0.5.48 (versionCode 206) – Kompakte NOISE- und AUDIO-Tasten
 - NOISE: Keine eigene Statusmeldung mehr neben der Taste oder in der globalen Statuszeile. AUS/MESS/1/f, Einmessfortschritt und Fehlerindikator erscheinen nur innerhalb der 52-dp-Taste.
 - AUDIO: Feste 48 × 48 dp wie die übrigen unteren Aktionen, roter Aufnahmepunkt und vollständig interne zweizeilige Beschriftung. Status SICHERT/OK/FEHLER/BEREIT/WARTEN nur in der Taste; bisheriges Popup und externer Sekunden-/Tageszähler entfallen.

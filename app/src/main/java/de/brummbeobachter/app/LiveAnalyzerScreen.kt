@@ -15,6 +15,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -70,6 +72,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.window.Popup
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import java.util.Locale
 import java.text.SimpleDateFormat
@@ -118,6 +121,14 @@ internal fun LiveAnalyzerScreen(
     var localSettingsShown by remember { mutableStateOf(false) }
     var audioSaveBusy by remember { mutableStateOf(false) }
     var audioSaveStatus by remember { mutableStateOf("") }
+    var lastAudioCloudState by remember { mutableStateOf("NONE") }
+    var lastAudioRecordingId by remember { mutableStateOf<String?>(null) }
+    var previousBufferSeconds by remember { mutableStateOf(0) }
+    var chosenInputId by remember { mutableStateOf(-1) }
+    var monitoring by remember { mutableStateOf(false) }
+    var monitoringShift by remember { mutableStateOf(false) }
+    var monitorCenter by remember { mutableStateOf(20.0) }
+    var monitorLevel by remember { mutableStateOf(-24.0) }
     var pendingAudioClip by remember { mutableStateOf<LocalAnalyzerAudioBuffer.Clip?>(null) }
     var pendingAudioConfig by remember { mutableStateOf<StatisticsWindowEngine.Configuration?>(null) }
     var pendingAudioDisplayGainDb by remember { mutableStateOf(0) }
@@ -155,19 +166,51 @@ internal fun LiveAnalyzerScreen(
         }
     }
     BackHandler(enabled = !settings) { leavePanel() }
+    DisposableEffect(Unit) {
+        AnalyzerRouteTracker.start()
+        onDispose { AnalyzerMonitor.stop();AnalyzerRouteTracker.stop() }
+    }
     val bg = Color(0xFF081113)
     val edge = Color(0xFF34444A)
     val white = Color(0xFFF1F6F8)
     val muted = Color(0xFF9DAAB1)
     val cyan = Color(0xFF30D7EF)
     LaunchedEffect(Unit) {
+        AnalyzerMonitor.load(context)
+        monitorCenter=AnalyzerMonitor.centerHz
+        monitorLevel=AnalyzerMonitor.levelDb
         while (true) {
             state = LiveAnalyzerController.snapshot()
+            monitoring=AnalyzerMonitor.enabled
+            monitoringShift=AnalyzerMonitor.shifted
             // Display refresh is independent from FFT computation and waterfall decimation.
             delay(if (state.fftHopSamples <= 50) 50L else 100L)
         }
     }
+    LaunchedEffect(state.running) {
+        if(!state.running && AnalyzerMonitor.enabled) {
+            AnalyzerMonitor.stop()
+            monitoring=false;monitoringShift=false
+        }
+    }
     LaunchedEffect(settings) { screenScroll.scrollTo(0) }
+    LaunchedEffect(Unit) {
+        ReminderSettingsStore(context).settingsFlow.collect { prefs ->
+            chosenInputId=prefs.audioInputDeviceId
+        }
+    }
+    // Upload retry may complete after the initial save attempt. Read the archive status
+    // periodically, using the exact recordingId instead of another recording's success.
+    LaunchedEffect(Unit) {
+        while(true) {
+            val id=lastAudioRecordingId
+            if(id!=null && lastAudioCloudState=="PENDING") {
+                val entry=runCatching { AudioArchive.list(context).firstOrNull { it.recordingId==id } }.getOrNull()
+                if(entry?.isUploaded==true)lastAudioCloudState="OK"
+            }
+            delay(3000L)
+        }
+    }
     LaunchedEffect(cursorHz) { LiveAnalyzerController.setCursorFrequency(cursorHz) }
     LaunchedEffect(state.manualSaveEvent) {
         if (state.manualSaveEvent > observedManualSaveEvent) {
@@ -229,23 +272,27 @@ internal fun LiveAnalyzerScreen(
                 if (audioSaveBusy) return
                 audioSaveBusy = true
                 audioSaveStatus = "Speichert …"
+                lastAudioCloudState="PENDING"
                 modeScope.launch {
                     try {
                         val saved = LocalAudioStatisticsRepository.saveAnalyzer(
                             context, analyzerPendingClip, analyzerPendingConfig,
                             pendingAudioDisplayGainDb, comment, observerId, recentObservations
                         )
+                        lastAudioRecordingId=saved.archiveEntry?.recordingId
                         val quotaAccepted = onLocalAudioSaved()
                         if (!quotaAccepted) {
                             audioSaveStatus = "Lokal gespeichert · Tageslimit erreicht"
                         } else {
                             val archived = saved.archiveEntry
                             val uploadOk = archived != null && onAnalyzerAudioArchived(archived)
+                            lastAudioCloudState=if(uploadOk) "OK" else "PENDING"
                             audioSaveStatus = if (uploadOk) "Lokal gespeichert · Cloud ok"
                                 else "Lokal gespeichert · Upload offen"
                         }
                     } catch (e: Exception) {
                         if (analyzerPendingClip.fromPause) LocalAnalyzerAudioBuffer.restoreFrozenOnFailure()
+                        lastAudioCloudState="NONE"
                         audioSaveStatus = "Audio-Save fehlgeschlagen: ${e.message ?: e.javaClass.simpleName}"
                     } finally {
                         audioSaveBusy = false
@@ -373,6 +420,18 @@ internal fun LiveAnalyzerScreen(
                 onNavigate={ scrollScope.launch { screenScroll.scrollTo(0) } },
                 selected=settingsSection, onSelect={ settingsSection=it },
                 onOpenLocalSaveSettings={ localSettingsShown = true })
+            var monitorWidth by remember { mutableStateOf(AnalyzerMonitor.bandwidthHz.toFloat()) }
+            var monitorShiftHz by remember { mutableStateOf(AnalyzerMonitor.shiftHz.toFloat()) }
+            Text("Mithören · steilflankiger Bandpass",color=cyan,fontSize=14.sp)
+            Text("Bandbreite: ${monitorWidth.toInt()} Hz",color=white,fontSize=12.sp)
+            Slider(value=monitorWidth,onValueChange={ monitorWidth=it },valueRange=2f..100f,
+                onValueChangeFinished={ AnalyzerMonitor.setBandwidth(context,monitorWidth.toDouble()) })
+            Text("Frequenzverschiebung: +${monitorShiftHz.toInt()} Hz",color=white,fontSize=12.sp)
+            Slider(value=monitorShiftHz,onValueChange={ monitorShiftHz=it },valueRange=20f..400f,
+                onValueChangeFinished={ AnalyzerMonitor.setShift(context,monitorShiftHz.toDouble()) })
+            Text("Mithörpegel und Mittenfrequenz: Wischen im Wasserfall, solange MON aktiv ist. " +
+                "Mithören kurz drücken = EIN/AUS; lang drücken = Frequenzverschiebung.",
+                color=muted,fontSize=11.sp)
         } else {
             Row(Modifier.fillMaxWidth().height(42.dp), verticalAlignment=Alignment.CenterVertically,
                 horizontalArrangement=Arrangement.SpaceBetween) {
@@ -401,7 +460,27 @@ internal fun LiveAnalyzerScreen(
                     Text(if (state.paused) "▶" else "Ⅱ", color=cyan, fontSize=15.sp)
                 }
                 Column(Modifier.padding(start=5.dp),horizontalAlignment=Alignment.End) {
-                    Text(if(state.running && !state.paused) "● Messung aktiv" else if(state.paused) "Ⅱ Pause" else "○ Stopp",
+                    val used=if(state.running) AnalyzerRouteTracker.liveDevice() else ""
+                    val mic=when {
+                        !state.running -> "–"
+                        used.contains("Bluetooth",true) -> "BT"
+                        used.contains("USB",true) -> "USB"
+                        used.contains("Headset",true) || used.contains("Kabel",true) -> "EXT"
+                        used.contains("Intern",true) || used.contains("Built",true) -> "INT"
+                        else -> "?"
+                    }
+                    val selected=if(chosenInputId==-1) "AUTO" else {
+                        val candidate=AudioInputManager.findInput(context,chosenInputId)
+                        val label=candidate?.let(AudioInputManager::buildLabel).orEmpty()
+                        when {
+                            label.contains("Bluetooth",true)->"BT"
+                            label.contains("USB",true)->"USB"
+                            label.contains("Headset",true)->"EXT"
+                            label.contains("Intern",true)->"INT"
+                            else->"?"
+                        }
+                    }
+                    Text("${if(!state.running) "STOP" else if(state.paused) "PAUSE" else "LIVE"} · ${if(state.running) mic else "$selected*"}",
                         color=if(state.running&&!state.paused)Color(0xFF2CDAA2) else muted,fontSize=10.sp)
                     Text("${state.spectra} FFT",color=muted,fontSize=10.sp)
                 }
@@ -416,6 +495,13 @@ internal fun LiveAnalyzerScreen(
         val testMode = AnalyzerModeCoordinator.mode == AnalyzerModeCoordinator.Mode.TEST_8K ||
             AnalyzerModeCoordinator.mode == AnalyzerModeCoordinator.Mode.TEST_48K
         val availableSeconds = LocalAnalyzerAudioBuffer.bufferedSeconds()
+        LaunchedEffect(availableSeconds) {
+            if(RecordingButtonPolicy.resetCloudOnNewBuffer(previousBufferSeconds,availableSeconds,localSaveConfig.durationSeconds)) {
+                lastAudioCloudState="NONE"
+                lastAudioRecordingId=null
+            }
+            previousBufferSeconds=availableSeconds
+        }
         val canLocalSave = state.running && !testMode && !audioSaveBusy && pendingAudioClip == null &&
             dailyCount < dailyLimit && LocalAnalyzerAudioBuffer.canSave(localSaveConfig.durationSeconds, state.paused)
         if(state.running && !state.direct48k && !RollingAudioEngine.isRunning && age < 0) {
@@ -480,12 +566,29 @@ internal fun LiveAnalyzerScreen(
                     }
                 })
             }) {
+            if(monitoring) {
+                Text("MON ${"%.0f".format(java.util.Locale.US,monitorCenter)} Hz · ${"%.0f".format(java.util.Locale.US,monitorLevel)} dB${if(monitoringShift) " · SHIFT" else ""}",
+                    modifier=Modifier.align(Alignment.TopEnd).padding(end=17.dp,top=5.dp),
+                    color=if(monitoringShift)Color(0xFFFFCF65) else cyan,fontSize=10.sp)
+            }
             val freq=state.frequencyHz
             Canvas(Modifier.matchParentSize()) {
                 val left=plotLeftDp.toPx(); val right=size.width-plotRightDp.toPx()
                 val top=plotTopDp.toPx(); val bottom=size.height-plotBottomDp.toPx()
                 val plotW=right-left; val plotH=bottom-top
                 if (plotW <= 0f || plotH <= 0f) return@Canvas
+                if(monitoring) {
+                    val width=AnalyzerMonitor.bandwidthHz
+                    fun xFor(hz:Double):Float = left+((hz-state.minFrequencyHz)/
+                        (state.rangeHz-state.minFrequencyHz)*plotW).toFloat()
+                    val lo=xFor(monitorCenter-width/2).coerceIn(left,right)
+                    val hi=xFor(monitorCenter+width/2).coerceIn(left,right)
+                    drawRect(cyan.copy(alpha=0.15f),Offset(lo,top),Size((hi-lo).coerceAtLeast(0f),plotH))
+                    drawLine(cyan,Offset(lo,top),Offset(lo,bottom),strokeWidth=1.dp.toPx())
+                    drawLine(cyan,Offset(hi,top),Offset(hi,bottom),strokeWidth=1.dp.toPx())
+                    val center=xFor(monitorCenter)
+                    if(center in left..right)drawLine(Color(0xFFFFCF65),Offset(center,top),Offset(center,bottom),strokeWidth=1.5.dp.toPx())
+                }
                 val tickColor=Color(0xFFABB6BE)
                 val textPaint=NativePaint(NativePaint.ANTI_ALIAS_FLAG).apply {
                     color=AndroidColor.rgb(180,192,200); textSize=10.sp.toPx()
@@ -607,7 +710,21 @@ internal fun LiveAnalyzerScreen(
                 state.filterMinHz,state.filterMaxHz)
         }
         Box(Modifier.fillMaxWidth().height(waterfallHeight).background(Color(0xFF130C29))
-            .clickable {expanded=!expanded}) {
+            .clickable { if(!monitoring)expanded=!expanded }
+            .pointerInput(monitoring) {
+                if(monitoring)detectDragGestures { change, delta ->
+                    if(kotlin.math.abs(delta.x)>kotlin.math.abs(delta.y)) {
+                        AnalyzerMonitor.setCenter(context,AnalyzerMonitor.centerHz+
+                            delta.x.toDouble()/size.width*state.rangeHz)
+                        monitorCenter=AnalyzerMonitor.centerHz
+                    } else {
+                        AnalyzerMonitor.setLevel(context,AnalyzerMonitor.levelDb-
+                            delta.y.toDouble()/size.height*48.0)
+                        monitorLevel=AnalyzerMonitor.levelDb
+                    }
+                    change.consume()
+                }
+            }) {
             Canvas(Modifier.matchParentSize()) {
                 val left=plotLeftDp.toPx();val right=size.width-plotRightDp.toPx()
                 val top=4.dp.toPx();val bottom=size.height-plotBottomDp.toPx()
@@ -764,8 +881,11 @@ internal fun LiveAnalyzerScreen(
             }
 
             var diagnosticOpen by remember { mutableStateOf(false) }
-            Text("DIAG", color=cyan, fontSize=12.sp,
-                modifier=Modifier.padding(start=6.dp,top=13.dp).clickable { diagnosticOpen=true })
+            Box(Modifier.size(48.dp).padding(start=2.dp)
+                .border(BorderStroke(1.dp,muted),RoundedCornerShape(6.dp))
+                .clickable { diagnosticOpen=true },contentAlignment=Alignment.Center) {
+                Text("DIAG",color=cyan,fontSize=12.sp)
+            }
             if(diagnosticOpen) {
                 AlertDialog(onDismissRequest={diagnosticOpen=false},
                     title={ Text("Rauschdiagnose") },
@@ -850,51 +970,65 @@ internal fun LiveAnalyzerScreen(
                     }
                 }
             }
-            // AUDIO RECORD: fixed 48-dp button like the neighbouring action buttons.
-            // ALL status text stays INSIDE its own button; never create a popup/row label.
-            Box(Modifier.size(48.dp)
+            // AUDIO: red dot, actual rolling-buffer time, local archive count and last cloud result.
+            // No external status text, popups, or fake background recording indicator.
+            Box(Modifier.size(48.dp).border(BorderStroke(1.dp,muted),RoundedCornerShape(6.dp))
                 .clickable(enabled=canLocalSave) {
-                    // Freeze/copy the complete audio window BEFORE opening the comment dialog.
-                    // Keyboard/tap sounds therefore cannot enter this saved clip.
-                    val clip = LocalAnalyzerAudioBuffer.take(localSaveConfig.durationSeconds, state.paused)
-                    if (clip == null) {
-                        audioSaveStatus = "Audiofenster nicht vollständig verfügbar"
-                    } else {
-                        pendingAudioClip = clip
-                        pendingAudioConfig = StatisticsWindowEngine.Configuration(
-                            localSaveConfig.minHz.toDouble(), localSaveConfig.maxHz.toDouble(),
-                            if (state.direct48k) localSaveConfig.minHz.toDouble() else state.filterMinHz,
-                            if (state.direct48k) localSaveConfig.maxHz.toDouble() else state.filterMaxHz,
-                            if (state.direct48k) 10 else state.filterBandCount)
-                        pendingAudioDisplayGainDb = state.analysisGainDb
-                        audioSaveStatus = ""
+                    val clip=LocalAnalyzerAudioBuffer.take(localSaveConfig.durationSeconds,state.paused)
+                    if(clip==null) audioSaveStatus="Audiofenster nicht vollständig verfügbar"
+                    else {
+                        pendingAudioClip=clip
+                        pendingAudioConfig=StatisticsWindowEngine.Configuration(
+                            localSaveConfig.minHz.toDouble(),localSaveConfig.maxHz.toDouble(),
+                            if(state.direct48k) localSaveConfig.minHz.toDouble() else state.filterMinHz,
+                            if(state.direct48k) localSaveConfig.maxHz.toDouble() else state.filterMaxHz,
+                            if(state.direct48k) 10 else state.filterBandCount)
+                        pendingAudioDisplayGainDb=state.analysisGainDb
+                        audioSaveStatus=""
                     }
-                }, contentAlignment=Alignment.Center) {
+                },contentAlignment=Alignment.Center) {
+                val cloud=when(lastAudioCloudState) {
+                    "PENDING"->RecordingButtonPolicy.Cloud.PENDING
+                    "OK"->RecordingButtonPolicy.Cloud.CONFIRMED
+                    else->RecordingButtonPolicy.Cloud.NONE
+                }
+                val display=RecordingButtonPolicy.view(availableSeconds,localSaveConfig.durationSeconds,
+                    dailyCount,dailyLimit,cloud)
                 Column(horizontalAlignment=Alignment.CenterHorizontally,
-                    verticalArrangement=Arrangement.Center,
-                    modifier=Modifier.matchParentSize()) {
-                    Row(verticalAlignment=Alignment.CenterVertically,
-                        horizontalArrangement=Arrangement.Center) {
-                        Canvas(Modifier.size(7.dp)) {
-                            drawCircle(Color(0xFFFF3232))
+                    verticalArrangement=Arrangement.Center) {
+                    Box(Modifier.size(19.dp).background(Color(0xFFFF3030),RoundedCornerShape(50)),
+                        contentAlignment=Alignment.Center) {
+                        when(display.cloud) {
+                            RecordingButtonPolicy.Cloud.PENDING -> Text("◷",color=Color.White,fontSize=15.sp,lineHeight=16.sp)
+                            RecordingButtonPolicy.Cloud.CONFIRMED -> Text("✓",color=Color.White,fontSize=15.sp,lineHeight=16.sp)
+                            else -> Unit
                         }
-                        Spacer(Modifier.width(3.dp))
-                        Text("AUDIO",color=if(canLocalSave) white else muted,
-                            fontSize=9.sp,lineHeight=10.sp,maxLines=1)
                     }
-                    val recordText = when {
-                        audioSaveStatus.startsWith("Audio-Save fehlgeschlagen") ||
-                            audioSaveStatus.startsWith("Audiofenster") -> "FEHLER"
-                        audioSaveBusy || audioSaveStatus == "Speichert …" -> "SICHERT"
-                        audioSaveStatus.startsWith("Lokal gespeichert") -> "OK"
-                        pendingAudioClip != null -> "BEREIT"
-                        !canLocalSave -> "WARTEN"
-                        else -> "REC"
-                    }
-                    Text(recordText,
-                        color=if(recordText == "FEHLER") Color(0xFFFF6655)
-                            else if(canLocalSave || recordText == "OK") cyan else muted,
-                        fontSize=9.sp,lineHeight=10.sp,maxLines=1)
+                    Text(display.seconds,
+                        color=white,fontSize=8.sp,lineHeight=10.sp,maxLines=1)
+                    Text(display.recordings,color=white,fontSize=8.sp,lineHeight=10.sp,maxLines=1)
+                }
+            }
+            // Monitoring uses an independent PCM subscriber. Long press switches SHIFT only
+            // while listening; detectTapGestures does not fire onTap after onLongPress.
+            Box(Modifier.size(48.dp).border(BorderStroke(1.dp,
+                if(monitoringShift) Color(0xFFFFCF65) else if(monitoring) cyan else muted),
+                RoundedCornerShape(6.dp)).pointerInput(monitoring) {
+                detectTapGestures(onTap={
+                    if(AnalyzerMonitor.enabled) AnalyzerMonitor.stop()
+                    else if(state.running) AnalyzerMonitor.start(context)
+                    monitoring=AnalyzerMonitor.enabled;monitoringShift=AnalyzerMonitor.shifted
+                },onLongPress={
+                    if(AnalyzerMonitor.enabled)AnalyzerMonitor.toggleShift()
+                    monitoringShift=AnalyzerMonitor.shifted
+                })
+            },contentAlignment=Alignment.Center) {
+                Column(horizontalAlignment=Alignment.CenterHorizontally,
+                    verticalArrangement=Arrangement.spacedBy(0.dp)) {
+                    Text("🎧",color=if(monitoringShift) Color(0xFFFFCF65) else if(monitoring) cyan else muted,
+                        fontSize=23.sp,lineHeight=24.sp)
+                    Text(if(monitoringShift) "SHIFT" else if(monitoring) "MON" else "AUS",
+                        color=white,fontSize=8.sp,lineHeight=10.sp)
                 }
             }
             if(!state.direct48k) {
