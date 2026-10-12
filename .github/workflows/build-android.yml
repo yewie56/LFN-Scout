@@ -68,7 +68,7 @@ jobs:
           retention-days: 14
 
       - name: Build debug APK
-        run: ./gradlew assembleDebug --stacktrace
+        run: ./gradlew assembleDebug -PlfnGithubTestApp=true --stacktrace
 
       - name: Rename debug APK
         shell: bash

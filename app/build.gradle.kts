@@ -16,11 +16,18 @@ android {
         targetSdk = 36
         versionCode = 201
         versionName = "0.5.45.8"
+        manifestPlaceholders["lfnAppLabel"] = "LFN-Scout"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
+        debug {
+            if (providers.gradleProperty("lfnGithubTestApp").orNull == "true") {
+                applicationIdSuffix = ".githubdebug"
+                manifestPlaceholders["lfnAppLabel"] = "LFN-Scout TEST"
+            }
+        }
         release {
             isMinifyEnabled = false
             proguardFiles(
