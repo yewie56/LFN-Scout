@@ -157,7 +157,7 @@ internal fun AnalyzerJsonSetupBrowser(context: Context) {
                         Text("Abbrechen")
                     }
                 }
-            } })
+            })
     }
     if (requestedId != null) {
         val pending = requestedId!!
