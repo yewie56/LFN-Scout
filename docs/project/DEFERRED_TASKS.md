@@ -1,3 +1,7 @@
+## v0.5.56 – Phase 3J (Entwicklung, nicht freigegeben)
+
+Analyzer-Anzeige-Vorschau mit 12 Feldern und expliziter Wiederherstellung ergänzt; JSON/SharedPreferences werden dabei nicht geschrieben. Vollständige Setup-Aktivierung, Prozessrestart-Verhalten, UI-Panels und Android-Gerätetest weiterhin offen. Bestehende R-/O-/A-Kennungen unverändert.
+
 ## v0.5.44 – Offene Abnahme
 - Reale v0.5.44 Android-JUnit-/Build-/ADB-Tests; Smartphone-Messung für 3 Methoden × 10/20 Bänder, jeweils mit gleicher Eingabe und mehreren Durchläufen.
 - MediaStore-Append, CSV-Zeilenanzahl, Performance-Ausreißer, CPU-/Akku-Leistung und Langzeitverhalten überprüfen. Die Performance-CSV ist kein physikalischer Messwert und kein Gesamt-CPU-Profil.

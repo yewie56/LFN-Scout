@@ -40,6 +40,8 @@ internal fun AnalyzerJsonSetupBrowser(context: Context) {
     var inspectedId by remember { mutableStateOf<String?>(null) }
     var details by remember { mutableStateOf("") }
     var runtimeComparison by remember { mutableStateOf("") }
+    var displayPreviewId by remember { mutableStateOf(AnalyzerDisplayPreviewSession.activeSetupId) }
+    var requestedDisplayPreview by remember { mutableStateOf<String?>(null) }
     var expanded by remember { mutableStateOf(false) }
     var monDraftId by remember { mutableStateOf(AnalyzerMonDraftSession.setupId) }
     var monBaseline by remember { mutableStateOf(AnalyzerMonDraftSession.baseline) }
@@ -99,6 +101,26 @@ internal fun AnalyzerJsonSetupBrowser(context: Context) {
         } else {
             confirmActivation = true // Explicit confirmation before first activation
         }
+    }
+    // Explicit opt-in: preview only 12 DISPLAY fields, with an explicit restore path.
+    if (requestedDisplayPreview != null) {
+        val pending = requestedDisplayPreview!!
+        AlertDialog(onDismissRequest = { requestedDisplayPreview = null },
+            title = { Text("Nur Anzeigeparameter als Vorschau übernehmen?") },
+            text = { Text("Nur 12 unterstützte Anzeigeparameter werden temporär angewendet. Audio, FFT, Filterbank-DSP und MON bleiben unverändert. Keine Speicherung in JSON oder alten Einstellungen. Mit 'Anzeige zurücksetzen' wird der vorherige Anzeigezustand wiederhergestellt.") },
+            confirmButton = { OutlinedButton(onClick = {
+                requestedDisplayPreview = null
+                runCatching {
+                    val doc = repository.load(pending)
+                    val legacy = doc.getJSONObject("parameters").optJSONObject("legacy")
+                        ?: error("Dieses Setup enthält keine Analyzer-Anzeigeparameter")
+                    val result = AnalyzerDisplayPreviewSession.begin(context, pending, legacy)
+                    displayPreviewId = AnalyzerDisplayPreviewSession.activeSetupId
+                    warning = "Anzeige-Vorschau aktiv: ${result.appliedKeys.size} Felder. " +
+                        "Nicht unterstützt: ${result.excludedKeys.size}. Nicht gespeichert."
+                }.onFailure { warning = "Anzeige-Vorschau fehlgeschlagen: ${it.message}" }
+            }) { Text("Vorschau starten") } },
+            dismissButton = { OutlinedButton(onClick = { requestedDisplayPreview = null }) { Text("Abbrechen") } })
     }
     if (requestedId != null) {
         val pending = requestedId!!
@@ -164,8 +186,27 @@ internal fun AnalyzerJsonSetupBrowser(context: Context) {
                     }.getOrElse { "Laufzeitvergleich fehlgeschlagen: ${it.message}" }
                 }) { Text("Mit laufendem Analyzer vergleichen (nur lesen)") }
                 if (runtimeComparison.isNotBlank()) Text(runtimeComparison, color = Color(0xFFABB8C0), fontSize = 12.sp)
+                OutlinedButton(onClick = { requestedDisplayPreview = inspectedId },
+                    enabled = displayPreviewId == null && !AnalyzerMonitor.enabled && !AnalyzerMonitorRecording.isActive()) {
+                    Text("Anzeige-Vorschau (12 Werte, ohne Speichern)")
+                }
                 OutlinedButton(onClick = { requestActivate(inspectedId!!) }, enabled = !AnalyzerMonitor.enabled && !AnalyzerMonitorRecording.isActive()) {
                     Text("MON-Entwurf aus diesem Setup laden")
+                }
+            }
+            if (displayPreviewId != null) {
+                Text("Anzeige-Vorschau aktiv: ${data.entries.firstOrNull { it.id == displayPreviewId }?.name ?: displayPreviewId}",
+                    color = Color(0xFFFFB33B), fontSize = 12.sp)
+                Text("Zurücksetzen stellt den Zustand vor Vorschau-Beginn wieder her. Spätere manuelle Anzeigeänderungen gehen dabei ebenfalls verloren.",
+                    color = Color(0xFFABB8C0), fontSize = 12.sp)
+                OutlinedButton(onClick = {
+                    runCatching {
+                        AnalyzerDisplayPreviewSession.restore(context)
+                        displayPreviewId = AnalyzerDisplayPreviewSession.activeSetupId
+                        warning = "Anzeigezustand vor der Vorschau wiederhergestellt."
+                    }.onFailure { warning = "Anzeige nicht zurückgesetzt: ${it.message}" }
+                }, enabled = !AnalyzerMonitor.enabled && !AnalyzerMonitorRecording.isActive()) {
+                    Text("Anzeige zurücksetzen (nicht speichern)")
                 }
             }
             if (monDraftId != null) {
