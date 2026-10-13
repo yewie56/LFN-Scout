@@ -428,9 +428,9 @@ internal object LiveAnalyzerController {
         minDb in -240..40 && maxDb in -230..50 && maxDb - minDb >= 10
 
     /** Display-only preferences. Never modifies DSP gain, WAV or shared capture. */
-    fun setDisplayRange(context: Context, minDb: Int, maxDb: Int) {
+    fun setDisplayRange(context: Context, minDb: Int, maxDb: Int, persist: Boolean = true) {
         require(isValidDisplayRange(minDb, maxDb))
-        context.getSharedPreferences("lfn_scout_live_analyzer", Context.MODE_PRIVATE)
+        if (persist) context.getSharedPreferences("lfn_scout_live_analyzer", Context.MODE_PRIVATE)
             .edit().putInt("display_min_db", minDb).putInt("display_max_db", maxDb).apply()
         synchronized(lock) {
             autoRange = null; autoRangeStartNs = 0L
@@ -438,9 +438,9 @@ internal object LiveAnalyzerController {
         }
     }
 
-    fun setAutoRangeSettings(context: Context, durationSec: Int, marginDb: Int) {
+    fun setAutoRangeSettings(context: Context, durationSec: Int, marginDb: Int, persist: Boolean = true) {
         require(durationSec in 1..30 && marginDb in 0..30)
-        context.getSharedPreferences("lfn_scout_live_analyzer", Context.MODE_PRIVATE)
+        if (persist) context.getSharedPreferences("lfn_scout_live_analyzer", Context.MODE_PRIVATE)
             .edit().putInt("autorange_duration_sec", durationSec)
             .putInt("autorange_margin_db", marginDb).apply()
         synchronized(lock) { autoRangeDurationSec = durationSec; autoRangeMarginDb = marginDb }
@@ -459,22 +459,22 @@ internal object LiveAnalyzerController {
     }
 
     /** FILTER-only display scale; never affects ORIGINAL, DSP or the relative-dB overlay threshold. */
-    fun setFilterDisplayRange(context: Context, minDb: Int, maxDb: Int) {
+    fun setFilterDisplayRange(context: Context, minDb: Int, maxDb: Int, persist: Boolean = true) {
         require(isValidDisplayRange(minDb,maxDb))
         synchronized(lock) {
             if(direct48k) return
             filterAutoRange=null;filterAutoRangeStartNs=0L
             filterDisplayMinDb=minDb;filterDisplayMaxDb=maxDb;waterfallRevision++
-            context.getSharedPreferences("lfn_scout_live_analyzer",Context.MODE_PRIVATE).edit()
+            if (persist) context.getSharedPreferences("lfn_scout_live_analyzer",Context.MODE_PRIVATE).edit()
                 .putInt("filter_display_min_db",minDb).putInt("filter_display_max_db",maxDb).apply()
         }
     }
 
-    fun setFilterAutoRangeSettings(context: Context, durationSec: Int, marginDb: Int) {
+    fun setFilterAutoRangeSettings(context: Context, durationSec: Int, marginDb: Int, persist: Boolean = true) {
         require(durationSec in 1..30 && marginDb in 0..30)
         synchronized(lock) {
             filterAutoRangeDurationSec=durationSec;filterAutoRangeMarginDb=marginDb
-            context.getSharedPreferences("lfn_scout_live_analyzer",Context.MODE_PRIVATE).edit()
+            if (persist) context.getSharedPreferences("lfn_scout_live_analyzer",Context.MODE_PRIVATE).edit()
                 .putInt("filter_autorange_duration_sec",durationSec)
                 .putInt("filter_autorange_margin_db",marginDb).apply()
         }
@@ -545,15 +545,15 @@ internal object LiveAnalyzerController {
         }
     }
 
-    fun setTraceVisibility(context: Context, average: Boolean, noiseFloor: Boolean) {
-        context.getSharedPreferences("lfn_scout_live_analyzer", Context.MODE_PRIVATE)
+    fun setTraceVisibility(context: Context, average: Boolean, noiseFloor: Boolean, persist: Boolean = true) {
+        if (persist) context.getSharedPreferences("lfn_scout_live_analyzer", Context.MODE_PRIVATE)
             .edit().putBoolean("show_average", average).putBoolean("show_floor", noiseFloor).apply()
         synchronized(lock) { showAverage = average; showFloor = noiseFloor }
     }
 
     /** Visibility changes never restart FFT, waterfall or microphone. */
-    fun setSpectrumVisibility(context: Context, currentTrace: Boolean, averageTrace: Boolean, maxHoldTrace: Boolean) {
-        context.getSharedPreferences("lfn_scout_live_analyzer", Context.MODE_PRIVATE).edit()
+    fun setSpectrumVisibility(context: Context, currentTrace: Boolean, averageTrace: Boolean, maxHoldTrace: Boolean, persist: Boolean = true) {
+        if (persist) context.getSharedPreferences("lfn_scout_live_analyzer", Context.MODE_PRIVATE).edit()
             .putBoolean("show_current", currentTrace).putBoolean("show_average", averageTrace)
             .putBoolean("show_max_hold", maxHoldTrace).apply()
         synchronized(lock) { showCurrent = currentTrace; showAverage = averageTrace; showMaxHold = maxHoldTrace }

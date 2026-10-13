@@ -940,6 +940,8 @@ internal fun LiveAnalyzerSettingsPanel(
                     SettingNote("Mikrofonprofile, Frequenzgangkorrektur und absolute Referenzkalibrierung sind geplant, im Live-Analyzer aber noch nicht implementiert.")
                 }
                 "Setups" -> {
+                    AnalyzerJsonSetupBrowser(context)
+                    Spacer(Modifier.height(12.dp))
                     SettingNote("Oben: lokalen Platz 1–3 wählen. Name und Beschreibung gehören zum Platz und werden beim Speichern übernommen.")
                     OutlinedTextField(value=setupName,onValueChange={if(it.length<=80)setupName=it},
                         label={Text("Setup-Name (bis 80 Zeichen)")},singleLine=true,

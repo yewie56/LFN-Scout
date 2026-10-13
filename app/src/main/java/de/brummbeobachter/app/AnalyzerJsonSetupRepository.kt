@@ -21,7 +21,7 @@ internal class AnalyzerJsonSetupRepository(context: Context) {
     private fun requireId(id: String) { require(idPattern.matches(id)) { "Invalid setup identifier" } }
     private fun fileFor(id: String): File { requireId(id); return File(setups, "$id.json") }
 
-    private fun readJson(file: File): JSONObject = JSONObject(file.readText(Charsets.UTF_8))
+    private fun readJson(file: File): JSONObject = JSONObject(AtomicFile(file).openRead().bufferedReader(Charsets.UTF_8).use { it.readText() })
     private fun writeAtomic(file: File, content: JSONObject) {
         require(file.parentFile?.mkdirs() == true || file.parentFile?.isDirectory == true)
         val atomic = AtomicFile(file)
@@ -41,10 +41,10 @@ internal class AnalyzerJsonSetupRepository(context: Context) {
         val id = doc.getString("id")
         requireId(id)
         if (expectedId != null) require(id == expectedId) { "Identifier mismatch" }
-        require(doc.getString("name").trim().isNotEmpty()) { "Setup name missing" }
+        require(doc.get("name") is String && doc.getString("name").trim().isNotEmpty()) { "Setup name missing" }
         require(doc.getString("name").length <= 120) { "Setup name too long" }
         require(doc.has("parameters") && doc.get("parameters") is JSONObject) { "Parameters missing" }
-        // Full field-level validation must be installed before enabling migration/import.
+        AnalyzerSetupFormat.validate(doc.getJSONObject("parameters"))
         return doc
     }
 

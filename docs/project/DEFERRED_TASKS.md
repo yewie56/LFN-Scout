@@ -127,3 +127,7 @@ Die Kennzeichnung **R01–R07, O01–O08 und A01–A05** können wir künftig al
 - **O09:** Methodenvergleich auf echtem Xiaomi mit gleichen Testsignalen, 10/20/40 Bändern: Filter-CPU-Mittel/Maximum sowie P50/P95/P99, Thermal, Akku, Dropouts; v0.5.42 nur Quell- und Hosttest.
 - **O10:** Physikalische Amplituden-/Bandnormierung aller 3 Verfahren und Impuls-Zeitauflösung unabhängig validieren, FFT-Hann-Fenstereinfluss getrennt ausweisen.
 - **O11:** Methodenkennung in lokalen Messmetadaten/CSV (rückwärtskompatibel) ergänzen, damit Messwerte nicht ohne Filterkontext verglichen werden; noch nicht implementiert.
+
+### v0.5.56 Phase 3F – Entwicklungsnotiz (keine Freigabe)
+- Der reine JSON-Setup-Browser ist in der Analyzer-Setup-Seite sichtbar; aktiv bleibt die bisherige Slot-Speicherung.
+- Noch offen: JSON-Setup-Aktivierung, tatsächliche MRU-Schnellzugriffe, Änderungen nur auf explizites Speichern persistieren, MON-/Analyzer-Synchronisation, acht Analyzer-Panels und sieben Scout-Panels, SAF-Import-/Export sowie automatisierte und Gerätetests.

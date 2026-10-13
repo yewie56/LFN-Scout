@@ -6,6 +6,7 @@ import android.media.AudioFormat
 import android.media.AudioTrack
 import android.media.AudioDeviceInfo
 import java.io.Closeable
+import org.json.JSONObject
 import kotlin.math.*
 
 /** Independent pre-gain PCM monitoring branch; never feeds the analyzer, FFT or WAV. */
@@ -57,8 +58,63 @@ internal object AnalyzerMonitor {
     private var phase = 0.0
 
     @Volatile private var initialized = false
+    // Explicit Analyzer-setup live draft: never persist MON adjustments into legacy preferences.
+    @Volatile private var setupDraftActive = false
+    private fun persistIfLegacy(context: Context) { if (!setupDraftActive) save(context) }
+
+    /** Read current effective MON values, without changing storage or runtime. */
+    fun snapshotSetupParameters(): JSONObject = synchronized(lock) {
+        JSONObject().put("center", centerHz).put("level", levelDb)
+            .put("width", bandwidthHz).put("shift", shiftHz)
+            .put("comp_on", compressorEnabled).put("comp_thr", compressorThresholdDb)
+            .put("comp_ratio", compressorRatio).put("comp_attack", compressorAttackMs)
+            .put("comp_release", compressorReleaseMs).put("comp_knee", compressorKneeDb)
+            .put("comp_makeup", compressorMakeupDb).put("limit_on", limiterEnabled)
+            .put("limit_ceiling", limiterCeilingDb).put("limit_attack", limiterAttackMs)
+            .put("limit_release", limiterReleaseMs).put("fade", fadeSeconds)
+    }
+
+    /** Only explicit setup selection should call this. Reject partial MON payloads. */
+    fun applySetupDraft(values: JSONObject) = synchronized(lock) {
+        val copy = JSONObject(values.toString())
+        AnalyzerSetupFormat.validate(JSONObject().put("monitor", copy))
+        val expected = setOf("center", "level", "width", "shift", "comp_on", "comp_thr",
+            "comp_ratio", "comp_attack", "comp_release", "comp_knee", "comp_makeup",
+            "limit_on", "limit_ceiling", "limit_attack", "limit_release", "fade")
+        require(copy.length() == expected.size && expected.all { copy.has(it) && !copy.isNull(it) }) {
+            "MON setup draft is incomplete; legacy values would otherwise leak into the selected setup"
+        }
+        // Validate numeric ranges before mutating any runtime field.
+        val limits = mapOf("center" to (1.0..200.0), "level" to (-60.0..120.0),
+            "width" to (2.0..150.0), "shift" to (20.0..400.0),
+            "comp_thr" to (-60.0..0.0), "comp_ratio" to (1.0..20.0),
+            "comp_attack" to (1.0..200.0), "comp_release" to (20.0..2000.0),
+            "comp_knee" to (0.0..20.0), "comp_makeup" to (0.0..30.0),
+            "limit_ceiling" to (-30.0..-1.0), "limit_attack" to (0.1..20.0),
+            "limit_release" to (10.0..1000.0), "fade" to (0.2..5.0))
+        for ((key, range) in limits) require(copy.getDouble(key) in range) { "MON parameter out of range: $key" }
+        centerHz=copy.getDouble("center");levelDb=copy.getDouble("level")
+        bandwidthHz=copy.getDouble("width");shiftHz=copy.getDouble("shift")
+        compressorEnabled=copy.getBoolean("comp_on");compressorThresholdDb=copy.getDouble("comp_thr")
+        compressorRatio=copy.getDouble("comp_ratio");compressorAttackMs=copy.getDouble("comp_attack")
+        compressorReleaseMs=copy.getDouble("comp_release");compressorKneeDb=copy.getDouble("comp_knee")
+        compressorMakeupDb=copy.getDouble("comp_makeup");limiterEnabled=copy.getBoolean("limit_on")
+        limiterCeilingDb=copy.getDouble("limit_ceiling");limiterAttackMs=copy.getDouble("limit_attack")
+        limiterReleaseMs=copy.getDouble("limit_release");fadeSeconds=copy.getDouble("fade")
+        setupDraftActive=true
+        initialized=false
+    }
+
+    /** Return to original legacy persistence behavior when the new setup UI is not active. */
+    fun releaseSetupDraft(context: Context) = synchronized(lock) {
+        require(!enabled) { "Stop MON before releasing the setup draft" }
+        setupDraftActive=false
+        load(context)
+    }
+
 
     fun load(context: Context) = synchronized(lock) {
+        if (setupDraftActive) return@synchronized
         val p = context.getSharedPreferences(PREFS,Context.MODE_PRIVATE)
         centerHz=p.getFloat("center",20f).toDouble().coerceIn(1.0,200.0)
         levelDb=p.getFloat("level",-24f).toDouble().coerceIn(-60.0,120.0)
@@ -85,12 +141,12 @@ internal object AnalyzerMonitor {
         levelDb=db.coerceIn(-60.0,120.0)
     }
     /** Persist once on touch release; never perform SharedPreferences I/O per move event. */
-    fun persistTouchSettings(context:Context) = synchronized(lock) { save(context) }
+    fun persistTouchSettings(context:Context) = synchronized(lock) { persistIfLegacy(context) }
     fun setBandwidth(context:Context,hz:Double)=synchronized(lock) {
-        bandwidthHz=hz.coerceIn(2.0,150.0); initialized=false;save(context)
+        bandwidthHz=hz.coerceIn(2.0,150.0); initialized=false;persistIfLegacy(context)
     }
     fun setShift(context:Context,hz:Double)=synchronized(lock) {
-        shiftHz=hz.coerceIn(20.0,400.0);initialized=false;save(context)
+        shiftHz=hz.coerceIn(20.0,400.0);initialized=false;persistIfLegacy(context)
     }
     fun setDynamics(context:Context, key:String, value:Double)=synchronized(lock) {
         when(key) {
@@ -104,12 +160,12 @@ internal object AnalyzerMonitor {
             "limit_attack" -> limiterAttackMs=value.coerceIn(0.1,20.0)
             "limit_release" -> limiterReleaseMs=value.coerceIn(10.0,1000.0)
             "fade" -> fadeSeconds=value.coerceIn(0.2,5.0)
-        }; save(context)
+        }; persistIfLegacy(context)
     }
     fun setDynamicsEnabled(context:Context, compressor:Boolean?=null, limiter:Boolean?=null)=synchronized(lock) {
         compressor?.let { compressorEnabled=it }
         limiter?.let { limiterEnabled=it }
-        save(context)
+        persistIfLegacy(context)
     }
     private fun save(context: Context) {
         context.getSharedPreferences(PREFS,Context.MODE_PRIVATE).edit()
@@ -124,7 +180,7 @@ internal object AnalyzerMonitor {
     }
     fun start(context:Context):Boolean = synchronized(lock) {
         if(enabled)return true
-        load(context)
+        if (!setupDraftActive) load(context)
         val engine = AnalyzerSessionGateway.rawPcm
         ramp=0.0;phase=0.0;rate=0;initialized=false
         compressorEnvelope=0.0;compressorGain=1.0;limiterEnvelope=0.0;limiterGain=1.0
