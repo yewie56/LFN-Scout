@@ -64,7 +64,7 @@ internal object AnalyzerLegacyExportV2Converter {
             while (memberKeys.hasNext()) {
                 val field = memberKeys.next()
                 require(field in keys && encountered.add(field)) { "Duplicate/unknown grouped field: $field" }
-                require(JSONObject.valueToString(group.get(field)) == JSONObject.valueToString(settings.get(field))) {
+                require(JSONArray().put(group.get(field)).toString() == JSONArray().put(settings.get(field)).toString()) {
                     "Group/value conflict: $field"
                 }
             }
