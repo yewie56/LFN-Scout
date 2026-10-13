@@ -381,7 +381,8 @@ object AudioArchive {
         ratingTag: String,
         comment: String? = null,
         origin: String = "OBSERVER",
-        isRolling: Boolean = true
+        isRolling: Boolean = true,
+        monMetadata: JSONObject? = null
     ): AudioArchiveEntry {
         val publication = publishWav(context.applicationContext, wavFile, targetDisplayName)
         val jsonName = targetDisplayName.substringBeforeLast('.') + ".json"
@@ -403,7 +404,7 @@ object AudioArchive {
             durationSeconds = durationSeconds.coerceAtLeast(0),
             companionJsonName = jsonName
         )
-        val jsonPublication = writeRollingCompanionJson(context, entry, startTime, endTime, deviceLabel, ratingTag)
+        val jsonPublication = writeRollingCompanionJson(context, entry, startTime, endTime, deviceLabel, ratingTag, monMetadata)
         val finalEntry = entry.copy(
             companionJsonUri = jsonPublication.contentUri,
             companionJsonLegacyPath = jsonPublication.legacyPublicPath
@@ -524,16 +525,17 @@ object AudioArchive {
         startTime: String,
         endTime: String,
         deviceLabel: String,
-        ratingTag: String
+        ratingTag: String,
+        monMetadata: JSONObject? = null
     ): PublishedWav {
         val json = JSONObject().apply {
-            put("rolling_buffer", true)
+            put("rolling_buffer", entry.rollingBuffer)
             put("recording_id", entry.recordingId)
             put("wav_file_name", entry.wavFileName)
             put("start_time", startTime)
             put("end_time", endTime)
             put("duration_seconds", entry.durationSeconds)
-            put("sample_rate_hz", RollingAudioPolicy.TARGET_SAMPLE_RATE_HZ)
+            put("sample_rate_hz", if (monMetadata != null) 48000 else RollingAudioPolicy.TARGET_SAMPLE_RATE_HZ)
             put("channels", 1)
             put("bits_per_sample", 16)
             put("gain_db", entry.gainDb)
@@ -542,6 +544,7 @@ object AudioArchive {
             put("rating", ratingTag)
             put("clipped_samples", entry.clippedSamples)
             put("comment", entry.comment ?: JSONObject.NULL)
+            if (monMetadata != null) put("mon_audio", monMetadata)
         }
         val temp = File(context.cacheDir, entry.companionJsonName ?: "rolling.json")
         temp.writeText(json.toString(2), Charsets.UTF_8)

@@ -17,7 +17,6 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -193,6 +192,7 @@ internal fun LiveAnalyzerScreen(
             monitoring=AnalyzerMonitor.enabled
             monitoringShift=AnalyzerMonitor.shifted
             monitorOutputLevel=AnalyzerMonitor.outputPeakDbfs
+            if(monRecRunning) AnalyzerMonitorRecording.noteParameters()
             // Display refresh is independent from FFT computation and waterfall decimation.
             delay(if (state.fftHopSamples <= 50) 50L else 100L)
         }
@@ -652,13 +652,41 @@ internal fun LiveAnalyzerScreen(
                     drawRect(Color(0xFF213445),Offset(gainL,top),Size(gainR-gainL,plotH))
                     val gainFrac=((monitorLevel+60)/180).coerceIn(0.0,1.0).toFloat()
                     drawRect(cyan.copy(alpha=0.8f),Offset(gainL,bottom-plotH*gainFrac),Size(gainR-gainL,plotH*gainFrac))
-                    val gainPaint=NativePaint(NativePaint.ANTI_ALIAS_FLAG).apply {
-                        color=AndroidColor.WHITE;textSize=9.sp.toPx();isFakeBoldText=true
+                    // Three separate 90° counterclockwise labels, clipped INSIDE the gain bar.
+                    // For rotated text, glyph height (font bounds) determines horizontal fit.
+                    val labelPaint=NativePaint(NativePaint.ANTI_ALIAS_FLAG).apply {
+                        color=AndroidColor.WHITE
+                        isFakeBoldText=true
+                        textAlign=NativePaint.Align.CENTER
+                        textSize=9.sp.toPx()
+                        val metrics=fontMetrics
+                        val available=(gainR-gainL)-3.dp.toPx()
+                        val glyphHeight=metrics.descent-metrics.ascent
+                        if(glyphHeight>available) textSize*=available/glyphHeight
                     }
+                    val gainX=(gainL+gainR)/2f
+                    val labels=listOf(
+                        "+120 dB",
+                        "${"%.0f".format(Locale.US,monitorLevel)} dB",
+                        "−60 dB"
+                    )
                     drawIntoCanvas { canvas ->
                         val c=canvas.nativeCanvas
-                        c.save();c.rotate(-90f,gainR-3.dp.toPx(),bottom-4.dp.toPx())
-                        c.drawText("${"%.0f".format(Locale.US,monitorLevel)} dB",gainR-3.dp.toPx(),bottom-4.dp.toPx(),gainPaint)
+                        c.save()
+                        c.clipRect(gainL,top,gainR,bottom)
+                        // Each label gets a third of the vertical bar. textScaleX
+                        // prevents overlap or clipping after rotating 90° left.
+                        val segmentHeight=plotH/3f
+                        labels.forEachIndexed { index,label ->
+                            val y=top+segmentHeight*(index+0.5f)
+                            labelPaint.textScaleX=1f
+                            val length=labelPaint.measureText(label).coerceAtLeast(1f)
+                            labelPaint.textScaleX=minOf(1f,(segmentHeight-4.dp.toPx()).coerceAtLeast(1f)/length)
+                            c.save()
+                            c.rotate(-90f,gainX,y)
+                            c.drawText(label,gainX,y-(labelPaint.ascent()+labelPaint.descent())/2f,labelPaint)
+                            c.restore()
+                        }
                         c.restore()
                     }
                     drawRect(Color(0xFF23313A),Offset(meterL,top),Size(meterR-meterL,plotH))
@@ -943,10 +971,14 @@ internal fun LiveAnalyzerScreen(
         LaunchedEffect(Unit) {
             while (true) { noiseState = NoiseFloorReference.state(); delay(500) }
         }
-        Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(top=4.dp),horizontalArrangement=Arrangement.Start){
+        BoxWithConstraints(Modifier.fillMaxWidth().padding(top=4.dp)) {
+        val buttonGap = 2.dp
+        val buttonWidth = ((maxWidth - buttonGap * 7) / 8).coerceAtMost(48.dp)
+        val buttonHeight = 48.dp
+        Row(Modifier.fillMaxWidth(), horizontalArrangement=Arrangement.spacedBy(buttonGap)) {
             // Tap toggles auto images, long-press requests exactly one independent manual image.
             // No separate Auto EIN/AUS label; the crossed camera represents OFF.
-            Box(Modifier.size(48.dp).border(BorderStroke(1.dp,muted),RoundedCornerShape(6.dp)).pointerInput(state.validSignal) {
+            Box(Modifier.size(buttonWidth,buttonHeight).border(BorderStroke(1.dp,muted),RoundedCornerShape(6.dp)).pointerInput(state.validSignal) {
                 detectTapGestures(
                     onTap = {
                         LiveAnalyzerController.setAutoSave(context,!LiveAnalyzerController.snapshot().autoSave)
@@ -966,7 +998,7 @@ internal fun LiveAnalyzerScreen(
                 )
             },contentAlignment=Alignment.Center) {
                 Text("📷",color=white,fontSize=27.sp)
-                LongPressMark()
+                LongPressMark(show=state.validSignal)
                 if (!state.autoSave) Canvas(Modifier.matchParentSize()) {
                     val margin=7.dp.toPx()
                     drawLine(Color(0xFFF04438),Offset(margin,margin),
@@ -994,7 +1026,7 @@ internal fun LiveAnalyzerScreen(
             }
             // AUDIO: red dot, actual rolling-buffer time, local archive count and last cloud result.
             // No external status text, popups, or fake background recording indicator.
-            Box(Modifier.size(48.dp).border(BorderStroke(1.dp,if(monRecRunning) Color(0xFFFFCB55) else muted),RoundedCornerShape(6.dp))
+            Box(Modifier.size(buttonWidth,buttonHeight).border(BorderStroke(1.dp,if(monRecRunning) Color(0xFFFFCB55) else muted),RoundedCornerShape(6.dp))
                 .pointerInput(canLocalSave,monitoring,monRecRunning) { detectTapGestures(onLongPress={
                     if(AnalyzerMonitor.enabled && !monRecRunning) {
                         monRecRunning=AnalyzerMonitorRecording.start(context)
@@ -1053,11 +1085,11 @@ internal fun LiveAnalyzerScreen(
                     if(monRecRunning) Text("MON",color=Color(0xFFFFCB55),fontSize=7.sp,lineHeight=8.sp)
                     else if(monRecStatus.isNotEmpty()) Text(monRecStatus,color=Color(0xFFFFCB55),fontSize=6.sp,lineHeight=7.sp,maxLines=1)
                 }
-                LongPressMark()
+                LongPressMark(show=monitoring && !monRecRunning)
             }
             // Monitoring uses an independent PCM subscriber. Long press switches SHIFT only
             // while listening; detectTapGestures does not fire onTap after onLongPress.
-            Box(Modifier.size(48.dp).border(BorderStroke(1.dp,
+            Box(Modifier.size(buttonWidth,buttonHeight).border(BorderStroke(1.dp,
                 if(monitoringShift) Color(0xFFFFCF65) else if(monitoring) cyan else muted),
                 RoundedCornerShape(6.dp)).pointerInput(monitoring) {
                 detectTapGestures(onTap={
@@ -1092,27 +1124,33 @@ internal fun LiveAnalyzerScreen(
                     Text(if(monitoringShift) "SHIFT" else if(monitoring) "MON" else "AUS",
                         color=white,fontSize=8.sp,lineHeight=10.sp)
                 }
-                LongPressMark()
+                LongPressMark(show=monitoring)
             }
             if(!state.direct48k) {
-                WaterfallSwitchIcon(original=true,active=state.showOriginalWaterfall, onLongPress={}) {
+                WaterfallSwitchIcon(buttonWidth=buttonWidth,buttonHeight=buttonHeight,original=true,active=state.showOriginalWaterfall, onLongPress={}) {
                     LiveAnalyzerController.setWaterfallVisibility(context,!state.showOriginalWaterfall,state.showFilterWaterfall)
                     state=LiveAnalyzerController.snapshot()
                 }
-                WaterfallSwitchIcon(original=false,active=state.showFilterWaterfall, onLongPress={
-                    LiveAnalyzerController.startFilterAutoRange()
-                    state=LiveAnalyzerController.snapshot()
+                WaterfallSwitchIcon(buttonWidth=buttonWidth,buttonHeight=buttonHeight,
+                    longEnabled=state.running && !state.paused && state.validSignal,
+                    original=false,active=state.showFilterWaterfall, onLongPress={
+                    if (state.running && !state.paused && state.validSignal) {
+                        LiveAnalyzerController.startFilterAutoRange()
+                        state=LiveAnalyzerController.snapshot()
+                    }
                 }) {
                     LiveAnalyzerController.setWaterfallVisibility(context,state.showOriginalWaterfall,!state.showFilterWaterfall)
                     state=LiveAnalyzerController.snapshot()
                 }
             }
             // Noise and DIAG follow both waterfall toggles; MULTI stays at far right.
-            Box(Modifier.size(48.dp).border(BorderStroke(1.dp,
+            Box(Modifier.size(buttonWidth,buttonHeight).border(BorderStroke(1.dp,
                 if (noiseState.enabled) cyan else muted), RoundedCornerShape(6.dp))
-                .pointerInput(Unit) { detectTapGestures(
+                .pointerInput(state.running,state.paused,noiseState.capturing) { detectTapGestures(
                     onTap = { noiseMessage=LiveAnalyzerController.toggleNoiseCalibration(); noiseState=NoiseFloorReference.state() },
-                    onLongPress = { noiseMessage=LiveAnalyzerController.startNoiseCalibration(); noiseState=NoiseFloorReference.state() }
+                    onLongPress = { if(state.running && !state.paused && !noiseState.capturing) {
+                        noiseMessage=LiveAnalyzerController.startNoiseCalibration(); noiseState=NoiseFloorReference.state()
+                    } }
                 ) }, contentAlignment=Alignment.Center) {
                 Column(horizontalAlignment=Alignment.CenterHorizontally) {
                     Text("NOISE", color=if (noiseState.enabled) cyan else white, fontSize=10.sp, lineHeight=12.sp)
@@ -1123,11 +1161,11 @@ internal fun LiveAnalyzerScreen(
                             else if(noiseState.enabled) cyan else muted,
                         fontSize=11.sp, lineHeight=12.sp, maxLines=1)
                 }
-                LongPressMark()
+                LongPressMark(show=state.running && !state.paused && !noiseState.capturing)
             }
 
             var diagnosticOpen by remember { mutableStateOf(false) }
-            Box(Modifier.size(48.dp)
+            Box(Modifier.size(buttonWidth,buttonHeight)
                 .border(BorderStroke(1.dp,muted),RoundedCornerShape(6.dp))
                 .clickable { diagnosticOpen=true },contentAlignment=Alignment.Center) {
                 Text("DIAG",color=cyan,fontSize=12.sp)
@@ -1170,15 +1208,15 @@ internal fun LiveAnalyzerScreen(
                     confirmButton={TextButton(onClick={diagnosticOpen=false}) { Text("Schließen") }})
             }
 
-            Box(Modifier.size(48.dp).border(BorderStroke(1.dp,muted),RoundedCornerShape(6.dp))
+            Box(Modifier.size(buttonWidth,buttonHeight).border(BorderStroke(1.dp,muted),RoundedCornerShape(6.dp))
                 .clickable { multiOpen=!multiOpen },contentAlignment=Alignment.Center) {
                 Text("MULTI",color=cyan,fontSize=9.sp)
                 if(multiOpen) Popup(alignment=Alignment.TopStart,
-                    offset=IntOffset(0,with(LocalDensity.current){(-5*52).dp.roundToPx()}),
+                    offset=IntOffset(0,with(LocalDensity.current){(-(buttonHeight * 5 + 4.dp * 5)).roundToPx()}),
                     properties=PopupProperties(focusable=false)) {
                     Column(verticalArrangement=Arrangement.spacedBy(4.dp)) {
                         for(n in 1..5) {
-                            Box(Modifier.size(48.dp).border(BorderStroke(1.dp,muted),RoundedCornerShape(6.dp))
+                            Box(Modifier.size(buttonWidth,buttonHeight).border(BorderStroke(1.dp,muted),RoundedCornerShape(6.dp))
                                 .background(bg,RoundedCornerShape(6.dp))
                                 .clickable { multiOpen=false },contentAlignment=Alignment.Center) {
                                 Text("$n",color=white,fontSize=16.sp)
@@ -1188,6 +1226,7 @@ internal fun LiveAnalyzerScreen(
                 }
             }
         } // bottom action row
+        } // button constraints
         } // end main analyzer view
         } // scrolling content
     } // full-viewport dark background
@@ -1242,14 +1281,14 @@ private fun makeWaterfall(rows: List<DoubleArray>, freq: DoubleArray, minHz: Int
 /** Two fixed 48-dp icons. ORIGINAL uses exact user-supplied PNG; FILTER retains five
  * symmetric magenta/pink/white bars. Tap toggles visibility; FILTER long-press auto-ranges. */
 @Composable
-private fun WaterfallSwitchIcon(original: Boolean, active: Boolean,
-    onLongPress: () -> Unit, onClick: () -> Unit) {
+private fun WaterfallSwitchIcon(buttonWidth: androidx.compose.ui.unit.Dp, buttonHeight: androidx.compose.ui.unit.Dp, original: Boolean, active: Boolean,
+    onLongPress: () -> Unit, longEnabled: Boolean = false, onClick: () -> Unit) {
     val outline=if(active) Color(0xFFE8D9F1) else Color(0xFF48525C)
-    Box(Modifier.size(48.dp).padding(1.dp)
+    Box(Modifier.size(buttonWidth,buttonHeight).padding(1.dp)
         .border(BorderStroke(1.dp,outline),androidx.compose.foundation.shape.RoundedCornerShape(7.dp))
         .background(Color(0xFF101016),androidx.compose.foundation.shape.RoundedCornerShape(7.dp))
-        .pointerInput(original,active) {
-            detectTapGestures(onTap={ onClick() }, onLongPress={ onLongPress() })
+        .pointerInput(original,active,longEnabled) {
+            detectTapGestures(onTap={ onClick() }, onLongPress={ if (longEnabled) onLongPress() })
         },contentAlignment=Alignment.Center) {
         if (original) {
             // Byte-for-byte user-provided image, resized to fit the approved camera-sized button.
@@ -1267,7 +1306,7 @@ private fun WaterfallSwitchIcon(original: Boolean, active: Boolean,
                 }
             }
         }
-        if(!original) LongPressMark()
+        if(!original) LongPressMark(show=longEnabled)
         if(!active) Canvas(Modifier.matchParentSize()) {
             drawLine(Color(0xFFFA5252),Offset(5.dp.toPx(),size.height-5.dp.toPx()),
                 Offset(size.width-5.dp.toPx(),5.dp.toPx()),strokeWidth=1.5.dp.toPx())
@@ -1276,7 +1315,8 @@ private fun WaterfallSwitchIcon(original: Boolean, active: Boolean,
 }
 
 @Composable
-private fun androidx.compose.foundation.layout.BoxScope.LongPressMark() {
+private fun androidx.compose.foundation.layout.BoxScope.LongPressMark(show: Boolean = true) {
+    if (!show) return
     Box(Modifier.align(Alignment.TopStart).padding(2.dp).size(11.dp)
         .border(BorderStroke(0.7.dp,Color(0xFFB5BDC5)),RoundedCornerShape(50)),
         contentAlignment=Alignment.Center) { Text("L",fontSize=7.sp,lineHeight=8.sp,color=Color(0xFFC2CBD3)) }

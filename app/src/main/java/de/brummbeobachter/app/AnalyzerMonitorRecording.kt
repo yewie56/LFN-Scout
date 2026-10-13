@@ -5,6 +5,9 @@ import java.io.File
 import java.io.FileOutputStream
 import java.io.RandomAccessFile
 import java.time.OffsetDateTime
+import java.time.format.DateTimeFormatter
+import org.json.JSONObject
+import org.json.JSONArray
 import java.util.UUID
 
 /** Records actual post-dynamics, post-fade PCM, never the raw rolling buffer.
@@ -20,6 +23,20 @@ internal object AnalyzerMonitorRecording {
     private val blocks = java.util.concurrent.LinkedBlockingQueue<ByteArray>(512)
     private var samples: Long = 0
     private var failed = false
+    private var startTime = OffsetDateTime.now()
+    private data class Params(val center: Double, val width: Double, val gain: Double)
+    private var firstParams = Params(20.0,12.0,-24.0)
+    private val changes = mutableListOf<Pair<Long,Params>>()
+    private fun currentParams() = Params(AnalyzerMonitor.centerHz,AnalyzerMonitor.bandwidthHz,AnalyzerMonitor.levelDb)
+    fun noteParameters() = synchronized(mutex) {
+        if (!active) return@synchronized
+        val current = currentParams()
+        if (changes.lastOrNull()?.second != current) changes.add((System.currentTimeMillis()) to current)
+    }
+    private fun number(value:Double):String =
+        java.math.BigDecimal.valueOf(value).stripTrailingZeros().toPlainString()
+    private fun safe(value:Double) = (if (value >= 0.0) "+" else "") + number(value).replace(".","p")
+
 
     fun isActive() = active
 
@@ -33,6 +50,10 @@ internal object AnalyzerMonitorRecording {
             writer = stream
             samples = 0L
             failed = false
+            startTime=OffsetDateTime.now()
+            firstParams=currentParams()
+            changes.clear()
+            changes.add(System.currentTimeMillis() to firstParams)
             blocks.clear()
             active = true
             thread = Thread({
@@ -90,13 +111,35 @@ internal object AnalyzerMonitorRecording {
             tag("data");le32(length)
         }
         val id="mon-${UUID.randomUUID()}"
-        val now=OffsetDateTime.now().toString()
+        val endTime=OffsetDateTime.now()
+        val now=startTime.toString()
+        val base="MON_${startTime.format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss_SSS"))}" +
+            "_FP${safe(firstParams.center)}Hz_FB${safe(firstParams.width)}Hz_G${safe(firstParams.gain)}dB"
+        val metadata=JSONObject().apply {
+            put("filter_position_hz",firstParams.center)
+            put("filter_width_hz",firstParams.width)
+            put("gain_db",firstParams.gain)
+            put("sample_rate_hz",RATE)
+            put("changes",JSONArray().apply {
+                synchronized(mutex) {
+                    changes.forEach { (t,v) ->
+                        put(JSONObject().apply {
+                            put("time_epoch_ms",t)
+                            put("offset_seconds",((t-startTime.toInstant().toEpochMilli())/1000.0).coerceAtLeast(0.0))
+                            put("filter_position_hz",v.center)
+                            put("filter_width_hz",v.width)
+                            put("gain_db",v.gain)
+                        })
+                    }
+                }
+            })
+        }
         val archived=runCatching { AudioArchive.createRolling(
             context=context,recordingId=id,wavFile=f,
-            targetDisplayName="MON_${System.currentTimeMillis()}.wav",recordedAt=now,
+            targetDisplayName="$base.wav",recordedAt=now,
             gainDb=0,audioSource="UNP",clippedSamples=0,durationSeconds=(count/RATE).toInt(),
-            startTime=now,endTime=now,deviceLabel="Mithör-Ausgang 48 kHz nach DSP",ratingTag="MON",
-            origin="MON",isRolling=false)
+            startTime=now,endTime=endTime.toString(),deviceLabel="Mithör-Ausgang 48 kHz nach DSP",ratingTag="MON",
+            origin="MON",isRolling=false,monMetadata=metadata)
         }.getOrNull()
         synchronized(mutex) { outputFile=null;writer=null;thread=null }
         archived

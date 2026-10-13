@@ -1,3 +1,12 @@
+## v0.5.54 (versionCode 212) – Adaptive Tasten, dynamisches Ⓛ, MON-Metadaten und Gainbar (2026-10-13)
+
+- Acht Tasten passen ohne horizontales Scrollen in die tatsächliche Breite: maximale Breite 48 dp; Rest wird proportional pro Taste auf acht gleiche Breiten verteilt, 2-dp-Abstand; gleiche Tastenhöhe 48 dp. MULTI-Popup-Tasten erhalten exakt dieselben Außenmaße.
+- Long-Press-Markierungen zustandsabhängig: Kamera nur bei gültigem Signal, REC nur bei aktivem Mithören ohne laufende MON-Aufnahme, MON nur bei aktivem Mithören, FILTER nur bei laufender ungepauster Messung mit Signal, NOISE nur bei ungepauster Messung ohne Referenzeinmessung; die Tastengesten prüfen dieselben Bedingungen. ORIGINAL/DIAG/MULTI ohne Ⓛ.
+- Mithör-WAV-Dateiname enthält Aufnahme-Startzeit, MON-Filterposition, Filterbreite und Gain. Gleichnamige JSON-Datei enthält diese drei numerisch im `mon_audio`-Block samt zeitgestempelter Parameteränderungen (`changes`). Die MON-Abtastrate im WAV-Companion ist 48 kHz. Beide Dateien gehen bei freigegebener Cloud-Übertragung über den bestehenden Archivpfad.
+- Gain-Leiste links am Spektrum: `+120 dB`, aktuelle Verstärkung und `−60 dB` in drei vertikalen Segmenten, alle Textlabels gegen den Uhrzeigersinn um 90° gedreht. Buchstabenhöhe wird automatisch auf die tatsächliche Balkenbreite begrenzt, Textlänge auf die Segmenthöhe.
+- GitHub-/Windows-Buildkonfiguration und Originalicons unverändert. Testbeschreibung: `ANLEITUNG_TEST_v0.5.54.md`.
+- Validierung: Kotlin-PSI-Syntax PASS; statischer Regressionstest 14/14 PASS; Android-Gesamtbuild mangels verfügbarer Gradle-Distribution noch offen.
+
 ## v0.5.53 (versionCode 211) – Tasten, MULTI und MON-WAV
 
 - Untere Aktionsleiste: Kamera, REC, MON, Original-Wasserfall, Filter-Wasserfall, NOISE, DIAG, MULTI. Bestehende Piktogramme beibehalten, alle Haupttasten und die fünf MULTI-Tasten 48 × 48 dp.
