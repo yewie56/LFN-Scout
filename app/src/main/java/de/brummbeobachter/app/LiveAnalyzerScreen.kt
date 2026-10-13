@@ -435,15 +435,13 @@ internal fun LiveAnalyzerScreen(
             Slider(value=monitorShiftHz,onValueChange={ monitorShiftHz=it },valueRange=20f..400f,
                 onValueChangeFinished={ AnalyzerMonitor.setShift(context,monitorShiftHz.toDouble()) })
             Text("Ausgangsdynamik · nur Mithörzweig",color=cyan,fontSize=14.sp)
+            Text("Mithör-Gain: −60 bis +120 dB · per Wasserfall-Swipe",color=white,fontSize=12.sp)
             var compOn by remember { mutableStateOf(AnalyzerMonitor.compressorEnabled) }
             var limitOn by remember { mutableStateOf(AnalyzerMonitor.limiterEnabled) }
+            Text("KOMPRESSOR · Dynamikregelung",color=cyan,fontSize=15.sp,fontWeight=FontWeight.Bold)
             Row(verticalAlignment=Alignment.CenterVertically) {
                 Text("Kompressor",color=white,modifier=Modifier.weight(1f))
                 Switch(checked=compOn,onCheckedChange={ compOn=it;AnalyzerMonitor.setDynamicsEnabled(context,compressor=it) })
-            }
-            Row(verticalAlignment=Alignment.CenterVertically) {
-                Text("Limiter",color=white,modifier=Modifier.weight(1f))
-                Switch(checked=limitOn,onCheckedChange={ limitOn=it;AnalyzerMonitor.setDynamicsEnabled(context,limiter=it) })
             }
             @Composable fun DynamicsSetting(label:String,key:String,initial:Double,limits:ClosedFloatingPointRange<Float>,unit:String="") {
                 var setting by remember(key) { mutableStateOf(initial.toFloat()) }
@@ -457,6 +455,12 @@ internal fun LiveAnalyzerScreen(
             DynamicsSetting("Release","comp_release",AnalyzerMonitor.compressorReleaseMs,20f..2000f,"ms")
             DynamicsSetting("Soft Knee","comp_knee",AnalyzerMonitor.compressorKneeDb,0f..20f,"dB")
             DynamicsSetting("Makeup","comp_makeup",AnalyzerMonitor.compressorMakeupDb,0f..30f,"dB")
+            Spacer(Modifier.height(12.dp))
+            Text("LIMITER · Spitzenbegrenzung",color=cyan,fontSize=15.sp,fontWeight=FontWeight.Bold)
+            Row(verticalAlignment=Alignment.CenterVertically) {
+                Text("Limiter",color=white,modifier=Modifier.weight(1f))
+                Switch(checked=limitOn,onCheckedChange={ limitOn=it;AnalyzerMonitor.setDynamicsEnabled(context,limiter=it) })
+            }
             DynamicsSetting("Limiter-Grenze","limit_ceiling",AnalyzerMonitor.limiterCeilingDb,-30f..-1f,"dBFS")
             DynamicsSetting("Limiter Attack","limit_attack",AnalyzerMonitor.limiterAttackMs,0.1f..20f,"ms")
             DynamicsSetting("Limiter Release","limit_release",AnalyzerMonitor.limiterReleaseMs,10f..1000f,"ms")
@@ -635,7 +639,7 @@ internal fun LiveAnalyzerScreen(
                     val gainL=3.dp.toPx(); val gainR=20.dp.toPx()
                     val meterL=24.dp.toPx();val meterR=30.dp.toPx()
                     drawRect(Color(0xFF213445),Offset(gainL,top),Size(gainR-gainL,plotH))
-                    val gainFrac=((monitorLevel+60)/160).coerceIn(0.0,1.0).toFloat()
+                    val gainFrac=((monitorLevel+60)/180).coerceIn(0.0,1.0).toFloat()
                     drawRect(cyan.copy(alpha=0.8f),Offset(gainL,bottom-plotH*gainFrac),Size(gainR-gainL,plotH*gainFrac))
                     val gainPaint=NativePaint(NativePaint.ANTI_ALIAS_FLAG).apply {
                         color=AndroidColor.WHITE;textSize=9.sp.toPx();isFakeBoldText=true
@@ -776,8 +780,8 @@ internal fun LiveAnalyzerScreen(
             .pointerInput(monitoring) {
                 if(monitoring)detectDragGestures(
                     onDragStart={ monitoringTouch=true;frozenSpectrum=state },
-                    onDragEnd={ monitoringTouch=false;frozenSpectrum=null },
-                    onDragCancel={ monitoringTouch=false;frozenSpectrum=null }
+                    onDragEnd={ monitoringTouch=false;frozenSpectrum=null; AnalyzerMonitor.persistTouchSettings(context) },
+                    onDragCancel={ monitoringTouch=false;frozenSpectrum=null; AnalyzerMonitor.persistTouchSettings(context) }
                 ) { change, delta ->
                     if(kotlin.math.abs(delta.x)>kotlin.math.abs(delta.y)) {
                         AnalyzerMonitor.setCenter(context,AnalyzerMonitor.centerHz+
@@ -785,7 +789,7 @@ internal fun LiveAnalyzerScreen(
                         monitorCenter=AnalyzerMonitor.centerHz
                     } else {
                         AnalyzerMonitor.setLevel(context,AnalyzerMonitor.levelDb-
-                            delta.y.toDouble()/size.height*160.0)
+                            delta.y.toDouble()/size.height*180.0)
                         monitorLevel=AnalyzerMonitor.levelDb
                     }
                     change.consume()

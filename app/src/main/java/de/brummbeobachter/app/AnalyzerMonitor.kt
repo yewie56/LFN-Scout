@@ -56,12 +56,12 @@ internal object AnalyzerMonitor {
     private var ramp = 0.0
     private var phase = 0.0
 
-    private var initialized = false
+    @Volatile private var initialized = false
 
     fun load(context: Context) = synchronized(lock) {
         val p = context.getSharedPreferences(PREFS,Context.MODE_PRIVATE)
         centerHz=p.getFloat("center",20f).toDouble().coerceIn(1.0,200.0)
-        levelDb=p.getFloat("level",-24f).toDouble().coerceIn(-60.0,100.0)
+        levelDb=p.getFloat("level",-24f).toDouble().coerceIn(-60.0,120.0)
         bandwidthHz=p.getFloat("width",12f).toDouble().coerceIn(2.0,150.0)
         shiftHz=p.getFloat("shift",100f).toDouble().coerceIn(20.0,400.0)
         compressorEnabled=p.getBoolean("comp_on",false)
@@ -78,12 +78,14 @@ internal object AnalyzerMonitor {
         fadeSeconds=p.getFloat("fade",1.5f).toDouble().coerceIn(0.2,5.0)
         shifted=false; enabled=false
     }
-    fun setCenter(context:Context,hz:Double)=synchronized(lock) {
-        centerHz=hz.coerceIn(1.0,200.0); initialized=false; save(context)
+    fun setCenter(context:Context,hz:Double) {
+        centerHz=hz.coerceIn(1.0,200.0); initialized=false
     }
-    fun setLevel(context:Context,db:Double)=synchronized(lock) {
-        levelDb=db.coerceIn(-60.0,100.0); save(context)
+    fun setLevel(context:Context,db:Double) {
+        levelDb=db.coerceIn(-60.0,120.0)
     }
+    /** Persist once on touch release; never perform SharedPreferences I/O per move event. */
+    fun persistTouchSettings(context:Context) = synchronized(lock) { save(context) }
     fun setBandwidth(context:Context,hz:Double)=synchronized(lock) {
         bandwidthHz=hz.coerceIn(2.0,150.0); initialized=false;save(context)
     }
@@ -177,8 +179,9 @@ internal object AnalyzerMonitor {
         }
         return 10.0.pow((-reduction+compressorMakeupDb)/20.0)
     }
-    private fun process(frame:AnalyzerPcmHub.Frame) = synchronized(lock) {
-        if(!enabled || frame.sampleRateHz !in 8000..48000)return@synchronized
+    private fun process(frame:AnalyzerPcmHub.Frame) {
+        val packet = synchronized(lock) {
+        if(!enabled || frame.sampleRateHz !in 8000..48000)return@synchronized null
         try {
             configure(frame.sampleRateHz)
             if(!initialized)rebuild()
@@ -206,6 +209,8 @@ internal object AnalyzerMonitor {
             var blockPeak=0.0
             var blockReduction=0.0
             val ceiling=10.0.pow(limiterCeilingDb/20.0)
+            val useCompressor=compressorEnabled && !diagnosticToneEnabled
+            val useLimiter=limiterEnabled && !diagnosticToneEnabled
             for(i in 0 until count) {
                 val position=i.toDouble()*rate/OUTPUT_RATE
                 val idx=position.toInt().coerceIn(0,processed.lastIndex)
@@ -222,7 +227,7 @@ internal object AnalyzerMonitor {
                 } else x*gain*ramp
                 // Feed-forward dynamics on the independent output branch only.
                 var y=raw
-                if(compressorEnabled && !diagnosticToneEnabled) {
+                if(useCompressor) {
                     val power=abs(y)
                     val envCoeff=smootherCoeff(if(power>compressorEnvelope)compressorAttackMs else compressorReleaseMs)
                     compressorEnvelope=envCoeff*compressorEnvelope+(1-envCoeff)*power
@@ -232,7 +237,7 @@ internal object AnalyzerMonitor {
                     compressorGain=coeff*compressorGain+(1-coeff)*target
                     y*=compressorGain
                 }
-                if(limiterEnabled && !diagnosticToneEnabled) {
+                if(useLimiter) {
                     val power=abs(y)
                     val coeff=smootherCoeff(if(power>limiterEnvelope)limiterAttackMs else limiterReleaseMs)
                     limiterEnvelope=coeff*limiterEnvelope+(1-coeff)*power
@@ -250,25 +255,37 @@ internal object AnalyzerMonitor {
             }
             outputPeakDbfs=20*log10(blockPeak.coerceAtLeast(1e-6))
             gainReductionDb=blockReduction
-            val track=output ?: return@synchronized
-            val wrote=track.write(buffer,0,buffer.size,AudioTrack.WRITE_BLOCKING)
-            if(wrote<0) { outputErrors++;outputDiagnostic="AudioTrack.write Fehler $wrote" }
-            else {
-                outputBlocks++
-                val routed=track.routedDevice
-                outputRoute=if(routed==null) "Unbekannt" else when(routed.type) {
-                    AudioDeviceInfo.TYPE_BLUETOOTH_A2DP -> "Bluetooth A2DP"
-                    AudioDeviceInfo.TYPE_BLUETOOTH_SCO -> "Bluetooth SCO"
-                    AudioDeviceInfo.TYPE_WIRED_HEADPHONES -> "Kabel-Kopfhörer"
-                    AudioDeviceInfo.TYPE_WIRED_HEADSET -> "Kabel-Headset"
-                    AudioDeviceInfo.TYPE_BUILTIN_SPEAKER -> "Lautsprecher"
-                    AudioDeviceInfo.TYPE_USB_HEADSET -> "USB-Headset"
-                    AudioDeviceInfo.TYPE_USB_DEVICE -> "USB-Audio"
-                    else -> "Typ ${routed.type}: ${routed.productName}"
+            val track=output ?: return@synchronized null
+            Pair(track,buffer)
+
+        } catch (e:Exception) { outputErrors++;outputDiagnostic="Mithoer-Fehler: ${e.javaClass.simpleName}: ${e.message}"; stop(); null }
+        }
+        // Bluetooth/AudioTrack can block here; never hold the shared DSP/config lock.
+        if(packet != null) {
+            val (track,buffer)=packet
+            try {
+                val wrote=track.write(buffer,0,buffer.size,AudioTrack.WRITE_BLOCKING)
+                if(wrote<0) { outputErrors++;outputDiagnostic="AudioTrack.write Fehler $wrote" }
+                else {
+                    outputBlocks++
+                    val routed=track.routedDevice
+                    outputRoute=if(routed==null) "Unbekannt" else when(routed.type) {
+                        AudioDeviceInfo.TYPE_BLUETOOTH_A2DP -> "Bluetooth A2DP"
+                        AudioDeviceInfo.TYPE_BLUETOOTH_SCO -> "Bluetooth SCO"
+                        AudioDeviceInfo.TYPE_WIRED_HEADPHONES -> "Kabel-Kopfhörer"
+                        AudioDeviceInfo.TYPE_WIRED_HEADSET -> "Kabel-Headset"
+                        AudioDeviceInfo.TYPE_BUILTIN_SPEAKER -> "Lautsprecher"
+                        AudioDeviceInfo.TYPE_USB_HEADSET -> "USB-Headset"
+                        AudioDeviceInfo.TYPE_USB_DEVICE -> "USB-Audio"
+                        else -> "Typ ${routed.type}: ${routed.productName}"
+                    }
+                    outputDiagnostic="PLAYING=${track.playState==AudioTrack.PLAYSTATE_PLAYING}; out=$outputRoute; ${rate}->${OUTPUT_RATE}Hz; write=$wrote/${buffer.size}; Gain=${"%.1f".format(java.util.Locale.US,levelDb)} dB; Test440=$diagnosticToneEnabled; Limiter=$limiterHits; Kompressor=$compressorEnabled; LimiterAktiv=$limiterEnabled; Peak=${"%.1f".format(java.util.Locale.US,outputPeakDbfs)}dBFS; GR=${"%.1f".format(java.util.Locale.US,gainReductionDb)}dB; Fehler=$outputErrors"
                 }
-                outputDiagnostic="PLAYING=${track.playState==AudioTrack.PLAYSTATE_PLAYING}; out=$outputRoute; ${rate}->${OUTPUT_RATE}Hz; write=$wrote/${buffer.size}; Gain=${"%.1f".format(java.util.Locale.US,levelDb)} dB; Test440=$diagnosticToneEnabled; Limiter=$limiterHits; Kompressor=$compressorEnabled; LimiterAktiv=$limiterEnabled; Peak=${"%.1f".format(java.util.Locale.US,outputPeakDbfs)}dBFS; GR=${"%.1f".format(java.util.Locale.US,gainReductionDb)}dB; Fehler=$outputErrors"
+            } catch(e:Exception) {
+                outputErrors++
+                outputDiagnostic="AudioTrack.write: ${e.javaClass.simpleName}: ${e.message}"
             }
-        } catch (e:Exception) { outputErrors++;outputDiagnostic="Mithoer-Fehler: ${e.javaClass.simpleName}: ${e.message}"; stop() }
+        }
     }
     fun diagnostic():String = "MON enabled=$enabled SHIFT=$shifted input=$actualDevice output=$outputRoute blocks=$outputBlocks errors=$outputErrors Test440=$diagnosticToneEnabled; $outputDiagnostic"
     private class Biquad {

@@ -1,3 +1,12 @@
+## v0.5.52 (versionCode 210) – MON Touch-Latenz, +120 dB, Setup-Gruppen (2026-10-13)
+
+- MON-Gain von −60 bis +120 dB erweitert, persistentes Gain und Fade weiterhin vorhanden. Anzeige-Skalierung und vertikale Swipe-Empfindlichkeit aktualisiert.
+- AudioTrack.WRITE_BLOCKING aus der gemeinsamen Verarbeitungssperre herausgenommen; Bluetooth-Output blockiert dadurch nicht mehr die Audio-Konfiguration.
+- Während Swipe keine SharedPreferences-Schreibvorgänge. Gain und Bandpassmitte beim Loslassen/Abbruch persistieren.
+- Kompressor und Limiter im Setup durch eigene klar sichtbare Überschriften und gruppierte Parameter getrennt.
+- Kompressor und Limiter erhalten einmal pro Audioblock ermittelte Bypass-Flags; bei ausgeschaltetem Zustand entfallen die rechenintensiven Hüllkurven-/Regelberechnungen. Digitaler Schutzclip bleibt.
+- **Validierung:** Kotlin-Parser PASS; statische Regressionstests PASS; vollständiger Android-Build und Smartphone-/Bluetooth-Test noch ausstehend.
+
 ## v0.5.51 (versionCode 209) – MON Dynamics, Touch & Spectrum UI (2026-10-13)
 
 - MON: Persistierender Gain wird per 1,5-s-Fade-in (im Setup 0,2–5 s) eingeblendet.
