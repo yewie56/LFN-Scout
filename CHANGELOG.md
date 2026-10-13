@@ -1,3 +1,16 @@
+## v0.5.53 (versionCode 211) – Tasten, MULTI und MON-WAV
+
+- Untere Aktionsleiste: Kamera, REC, MON, Original-Wasserfall, Filter-Wasserfall, NOISE, DIAG, MULTI. Bestehende Piktogramme beibehalten, alle Haupttasten und die fünf MULTI-Tasten 48 × 48 dp.
+- Einheitliche Rahmen für Kamera und NOISE; dezente eingekreiste L-Kennzeichnung für Kamera, REC, MON, Filter-Wasserfall und NOISE.
+- MULTI öffnet ein temporäres, nicht-destruktives Popup mit fünf gleich großen vertikalen Tasten (1–5), ohne Funktion; Auswahl schließt die Leiste.
+- REC Long Press bei aktivem MON: Aufzeichnung der tatsächlich an AudioTrack übergebenen 48-kHz-Mono-PCM-Samples nach Filter, SHIFT, Gain, Kompressor, Limiter und Fade; kurzer REC-Druck stoppt und archiviert lokal.
+- REC kurzer Druck ohne laufende MON-Aufnahme bewahrt die bisherige Rolling-Buffer-Funktion.
+- Setup-Option "MON-Aufnahme nur lokal speichern" ist standardmäßig aktiviert. Ist sie deaktiviert, wird nach der lokalen Speicherung über den bestehenden Analyzer-Cloud-Aufruf übertragen.
+- Mithör-WAV speichert im bestehenden AudioArchive mit origin=MON und rollingBuffer=false, ohne den Rolling-Tageszähler zu verändern. Langlaufende Speicherung erfolgt außerhalb des Audio-Ausgabe-Threads.
+- MAX-HOLD-Reset bleibt funktional erhalten, wurde wegen der festgelegten Acht-Tasten-Anordnung in die Einstellungen verlegt.
+
+**Prüfgrenze:** Kotlin-PSI-Syntaxprüfung bestanden; Android-Gradle-Gesamtbuild und tatsächlicher Smartphone-Test noch ausstehend. Cloud-Upload nutzt den existierenden Uploadpfad; ein eigenständiger automatischer Retry-Test für MON steht noch aus.
+
 ## v0.5.52 (versionCode 210) – MON Touch-Latenz, +120 dB, Setup-Gruppen (2026-10-13)
 
 - MON-Gain von −60 bis +120 dB erweitert, persistentes Gain und Fade weiterhin vorhanden. Anzeige-Skalierung und vertikale Swipe-Empfindlichkeit aktualisiert.

@@ -379,7 +379,9 @@ object AudioArchive {
         endTime: String,
         deviceLabel: String,
         ratingTag: String,
-        comment: String? = null
+        comment: String? = null,
+        origin: String = "OBSERVER",
+        isRolling: Boolean = true
     ): AudioArchiveEntry {
         val publication = publishWav(context.applicationContext, wavFile, targetDisplayName)
         val jsonName = targetDisplayName.substringBeforeLast('.') + ".json"
@@ -396,8 +398,8 @@ object AudioArchive {
             lastError = null,
             contentUri = publication.contentUri,
             legacyPublicPath = publication.legacyPublicPath,
-            origin = "OBSERVER",
-            rollingBuffer = true,
+            origin = origin,
+            rollingBuffer = isRolling,
             durationSeconds = durationSeconds.coerceAtLeast(0),
             companionJsonName = jsonName
         )

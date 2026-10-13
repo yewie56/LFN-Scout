@@ -72,6 +72,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.window.Popup
+import androidx.compose.ui.window.PopupProperties
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
@@ -127,6 +128,10 @@ internal fun LiveAnalyzerScreen(
     var previousBufferSeconds by remember { mutableStateOf(0) }
     var chosenInputId by remember { mutableStateOf(-1) }
     var monitoring by remember { mutableStateOf(false) }
+    var multiOpen by remember { mutableStateOf(false) }
+    var monRecRunning by remember { mutableStateOf(false) }
+    var monRecStatus by remember { mutableStateOf("") }
+    var monLocalOnly by remember { mutableStateOf(context.getSharedPreferences("mon_rec_053",Context.MODE_PRIVATE).getBoolean("only_local",true)) }
     var monitoringShift by remember { mutableStateOf(false) }
     var monitorCenter by remember { mutableStateOf(20.0) }
     var monitorLevel by remember { mutableStateOf(-24.0) }
@@ -194,6 +199,7 @@ internal fun LiveAnalyzerScreen(
     }
     LaunchedEffect(state.running) {
         if(!state.running && AnalyzerMonitor.enabled) {
+            if(monRecRunning) { modeScope.launch { AnalyzerMonitorRecording.stop(context) }; monRecRunning=false }
             AnalyzerMonitor.stop()
             monitoring=false;monitoringShift=false
         }
@@ -470,6 +476,11 @@ internal fun LiveAnalyzerScreen(
             var monitorTone by remember { mutableStateOf(AnalyzerMonitor.diagnosticToneEnabled) }
             OutlinedButton(onClick={ AnalyzerMonitor.toggleDiagnosticTone();monitorTone=AnalyzerMonitor.diagnosticToneEnabled },
                 enabled=monitoring) { Text(if(monitorTone) "440-Hz-Ausgangstest AUS" else "440-Hz-Ausgangstest EIN") }
+            if(state.showMaxHold) OutlinedButton(onClick={
+                LiveAnalyzerController.resetSpectrumMaxHold()
+                state=LiveAnalyzerController.snapshot()
+            }) { Text("MAX HOLD zurücksetzen") }
+            Row(verticalAlignment=Alignment.CenterVertically) { Text("MON-Aufnahme nur lokal speichern (Standard EIN)",modifier=Modifier.weight(1f)); Switch(checked=monLocalOnly,onCheckedChange={ v -> monLocalOnly=v; context.getSharedPreferences("mon_rec_053",Context.MODE_PRIVATE).edit().putBoolean("only_local",v).apply() }) }
             Text("440 Hz mit festem niedrigem Pegel prüft nur die Audio-Ausgabe (ohne Mikrofon, MON-Filter oder Gain).",
                 color=muted,fontSize=11.sp)
             Text("Mithörpegel und Mittenfrequenz: Wischen im Wasserfall, solange MON aktiv ist. " +
@@ -932,8 +943,172 @@ internal fun LiveAnalyzerScreen(
         LaunchedEffect(Unit) {
             while (true) { noiseState = NoiseFloorReference.state(); delay(500) }
         }
-        Row(Modifier.fillMaxWidth().padding(top=4.dp),horizontalArrangement=Arrangement.Start){
-            Box(Modifier.size(52.dp).border(BorderStroke(1.dp,
+        Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(top=4.dp),horizontalArrangement=Arrangement.Start){
+            // Tap toggles auto images, long-press requests exactly one independent manual image.
+            // No separate Auto EIN/AUS label; the crossed camera represents OFF.
+            Box(Modifier.size(48.dp).border(BorderStroke(1.dp,muted),RoundedCornerShape(6.dp)).pointerInput(state.validSignal) {
+                detectTapGestures(
+                    onTap = {
+                        LiveAnalyzerController.setAutoSave(context,!LiveAnalyzerController.snapshot().autoSave)
+                        state=LiveAnalyzerController.snapshot()
+                        saveMessage=""
+                    },
+                    onLongPress = {
+                        saveMessage=""
+                        val captured = LiveAnalyzerController.captureManualImage()
+                        if (captured == null) {
+                            saveMessage="Bild nicht gespeichert: kein Nutzsignal oder Bildexport beschäftigt"
+                        } else {
+                            pendingImageSnapshot = captured
+                            imageComment = ""
+                        }
+                    }
+                )
+            },contentAlignment=Alignment.Center) {
+                Text("📷",color=white,fontSize=27.sp)
+                LongPressMark()
+                if (!state.autoSave) Canvas(Modifier.matchParentSize()) {
+                    val margin=7.dp.toPx()
+                    drawLine(Color(0xFFF04438),Offset(margin,margin),
+                        Offset(size.width-margin,size.height-margin),strokeWidth=3.dp.toPx())
+                    drawLine(Color(0xFFF04438),Offset(size.width-margin,margin),
+                        Offset(margin,size.height-margin),strokeWidth=3.dp.toPx())
+                }
+                // Anchor the actual completed-save notification at the CAMERA, rather than
+                // at the top of the screen. Popup is an independent window and does not
+                // expand or clip the 48-dp button's layout.
+                if (saveMessage.isNotEmpty()) {
+                    val popY = with(LocalDensity.current) { (-82).dp.roundToPx() }
+                    Popup(alignment=Alignment.TopStart,offset=IntOffset(0,popY)) {
+                        Box(Modifier.border(BorderStroke(1.dp,
+                            if(saveMessage.startsWith("Bild gespeichert")) cyan else Color(0xFFFF6655)),
+                            RoundedCornerShape(9.dp))
+                            .background(Color(0xFF102E36),RoundedCornerShape(9.dp))
+                            .padding(horizontal=12.dp,vertical=9.dp)) {
+                            Text(saveMessage,
+                                color=if(saveMessage.startsWith("Bild gespeichert")) cyan else Color(0xFFFF6655),
+                                fontSize=13.sp,fontWeight=FontWeight.Bold)
+                        }
+                    }
+                }
+            }
+            // AUDIO: red dot, actual rolling-buffer time, local archive count and last cloud result.
+            // No external status text, popups, or fake background recording indicator.
+            Box(Modifier.size(48.dp).border(BorderStroke(1.dp,if(monRecRunning) Color(0xFFFFCB55) else muted),RoundedCornerShape(6.dp))
+                .pointerInput(canLocalSave,monitoring,monRecRunning) { detectTapGestures(onLongPress={
+                    if(AnalyzerMonitor.enabled && !monRecRunning) {
+                        monRecRunning=AnalyzerMonitorRecording.start(context)
+                        monRecStatus=if(monRecRunning) "MON REC" else "MON FEHLER"
+                    }
+                },onTap={
+                    if(monRecRunning) {
+                        monRecRunning=false
+                        modeScope.launch {
+                            val output=AnalyzerMonitorRecording.stop(context)
+                            if(output==null) monRecStatus="MON FEHLER"
+                            else {
+                                monRecStatus="MON LOKAL"
+                                if(!monLocalOnly) {
+                                    monRecStatus="MON CLOUD…"
+                                    val result=runCatching { onAnalyzerAudioArchived(output) }.getOrDefault(false)
+                                    monRecStatus=if(result) "MON CLOUD ✓" else "MON CLOUD OFFEN"
+                                }
+                            }
+                        }
+                    } else if(canLocalSave) {
+                    val clip=LocalAnalyzerAudioBuffer.take(localSaveConfig.durationSeconds,state.paused)
+                    if(clip==null) audioSaveStatus="Audiofenster nicht vollständig verfügbar"
+                    else {
+                        pendingAudioClip=clip
+                        pendingAudioConfig=StatisticsWindowEngine.Configuration(
+                            localSaveConfig.minHz.toDouble(),localSaveConfig.maxHz.toDouble(),
+                            if(state.direct48k) localSaveConfig.minHz.toDouble() else state.filterMinHz,
+                            if(state.direct48k) localSaveConfig.maxHz.toDouble() else state.filterMaxHz,
+                            if(state.direct48k) 10 else state.filterBandCount)
+                        pendingAudioDisplayGainDb=state.analysisGainDb
+                        audioSaveStatus=""
+                    }
+                    }
+                }) },contentAlignment=Alignment.Center) {
+                val cloud=when(lastAudioCloudState) {
+                    "PENDING"->RecordingButtonPolicy.Cloud.PENDING
+                    "OK"->RecordingButtonPolicy.Cloud.CONFIRMED
+                    else->RecordingButtonPolicy.Cloud.NONE
+                }
+                val display=RecordingButtonPolicy.view(availableSeconds,localSaveConfig.durationSeconds,
+                    dailyCount,dailyLimit,cloud)
+                Column(horizontalAlignment=Alignment.CenterHorizontally,
+                    verticalArrangement=Arrangement.Center) {
+                    Box(Modifier.size(19.dp).background(Color(0xFFFF3030),RoundedCornerShape(50)),
+                        contentAlignment=Alignment.Center) {
+                        when(display.cloud) {
+                            RecordingButtonPolicy.Cloud.PENDING -> Text("◷",color=Color.White,fontSize=15.sp,lineHeight=16.sp)
+                            RecordingButtonPolicy.Cloud.CONFIRMED -> Text("✓",color=Color.White,fontSize=15.sp,lineHeight=16.sp)
+                            else -> Unit
+                        }
+                    }
+                    Text(display.seconds,
+                        color=white,fontSize=8.sp,lineHeight=10.sp,maxLines=1)
+                    Text(display.recordings,color=white,fontSize=8.sp,lineHeight=10.sp,maxLines=1)
+                    if(monRecRunning) Text("MON",color=Color(0xFFFFCB55),fontSize=7.sp,lineHeight=8.sp)
+                    else if(monRecStatus.isNotEmpty()) Text(monRecStatus,color=Color(0xFFFFCB55),fontSize=6.sp,lineHeight=7.sp,maxLines=1)
+                }
+                LongPressMark()
+            }
+            // Monitoring uses an independent PCM subscriber. Long press switches SHIFT only
+            // while listening; detectTapGestures does not fire onTap after onLongPress.
+            Box(Modifier.size(48.dp).border(BorderStroke(1.dp,
+                if(monitoringShift) Color(0xFFFFCF65) else if(monitoring) cyan else muted),
+                RoundedCornerShape(6.dp)).pointerInput(monitoring) {
+                detectTapGestures(onTap={
+                    if(AnalyzerMonitor.enabled) {
+                        if(monRecRunning) {
+                            monRecRunning=false
+                            modeScope.launch {
+                                val output=AnalyzerMonitorRecording.stop(context)
+                                if(output!=null) {
+                                    monRecStatus="MON LOKAL"
+                                    if(!monLocalOnly) {
+                                        monRecStatus="MON CLOUD…"
+                                        val ok=runCatching { onAnalyzerAudioArchived(output) }.getOrDefault(false)
+                                        monRecStatus=if(ok) "MON CLOUD ✓" else "MON CLOUD OFFEN"
+                                    }
+                                } else monRecStatus="MON FEHLER"
+                            }
+                        }
+                        AnalyzerMonitor.stop()
+                    } else if(state.running) AnalyzerMonitor.start(context)
+                    monitoringTouch=false;frozenSpectrum=null
+                    monitoring=AnalyzerMonitor.enabled;monitoringShift=AnalyzerMonitor.shifted
+                },onLongPress={
+                    if(AnalyzerMonitor.enabled)AnalyzerMonitor.toggleShift()
+                    monitoringShift=AnalyzerMonitor.shifted
+                })
+            },contentAlignment=Alignment.Center) {
+                Column(horizontalAlignment=Alignment.CenterHorizontally,
+                    verticalArrangement=Arrangement.spacedBy(0.dp)) {
+                    Text("🎧",color=if(monitoringShift) Color(0xFFFFCF65) else if(monitoring) cyan else muted,
+                        fontSize=23.sp,lineHeight=24.sp)
+                    Text(if(monitoringShift) "SHIFT" else if(monitoring) "MON" else "AUS",
+                        color=white,fontSize=8.sp,lineHeight=10.sp)
+                }
+                LongPressMark()
+            }
+            if(!state.direct48k) {
+                WaterfallSwitchIcon(original=true,active=state.showOriginalWaterfall, onLongPress={}) {
+                    LiveAnalyzerController.setWaterfallVisibility(context,!state.showOriginalWaterfall,state.showFilterWaterfall)
+                    state=LiveAnalyzerController.snapshot()
+                }
+                WaterfallSwitchIcon(original=false,active=state.showFilterWaterfall, onLongPress={
+                    LiveAnalyzerController.startFilterAutoRange()
+                    state=LiveAnalyzerController.snapshot()
+                }) {
+                    LiveAnalyzerController.setWaterfallVisibility(context,state.showOriginalWaterfall,!state.showFilterWaterfall)
+                    state=LiveAnalyzerController.snapshot()
+                }
+            }
+            // Noise and DIAG follow both waterfall toggles; MULTI stays at far right.
+            Box(Modifier.size(48.dp).border(BorderStroke(1.dp,
                 if (noiseState.enabled) cyan else muted), RoundedCornerShape(6.dp))
                 .pointerInput(Unit) { detectTapGestures(
                     onTap = { noiseMessage=LiveAnalyzerController.toggleNoiseCalibration(); noiseState=NoiseFloorReference.state() },
@@ -948,10 +1123,11 @@ internal fun LiveAnalyzerScreen(
                             else if(noiseState.enabled) cyan else muted,
                         fontSize=11.sp, lineHeight=12.sp, maxLines=1)
                 }
+                LongPressMark()
             }
 
             var diagnosticOpen by remember { mutableStateOf(false) }
-            Box(Modifier.size(48.dp).padding(start=2.dp)
+            Box(Modifier.size(48.dp)
                 .border(BorderStroke(1.dp,muted),RoundedCornerShape(6.dp))
                 .clickable { diagnosticOpen=true },contentAlignment=Alignment.Center) {
                 Text("DIAG",color=cyan,fontSize=12.sp)
@@ -994,138 +1170,21 @@ internal fun LiveAnalyzerScreen(
                     confirmButton={TextButton(onClick={diagnosticOpen=false}) { Text("Schließen") }})
             }
 
-            // Tap toggles auto images, long-press requests exactly one independent manual image.
-            // No separate Auto EIN/AUS label; the crossed camera represents OFF.
-            Box(Modifier.size(48.dp).pointerInput(state.validSignal) {
-                detectTapGestures(
-                    onTap = {
-                        LiveAnalyzerController.setAutoSave(context,!LiveAnalyzerController.snapshot().autoSave)
-                        state=LiveAnalyzerController.snapshot()
-                        saveMessage=""
-                    },
-                    onLongPress = {
-                        saveMessage=""
-                        val captured = LiveAnalyzerController.captureManualImage()
-                        if (captured == null) {
-                            saveMessage="Bild nicht gespeichert: kein Nutzsignal oder Bildexport beschäftigt"
-                        } else {
-                            pendingImageSnapshot = captured
-                            imageComment = ""
-                        }
-                    }
-                )
-            },contentAlignment=Alignment.Center) {
-                Text("📷",color=white,fontSize=27.sp)
-                if (!state.autoSave) Canvas(Modifier.matchParentSize()) {
-                    val margin=7.dp.toPx()
-                    drawLine(Color(0xFFF04438),Offset(margin,margin),
-                        Offset(size.width-margin,size.height-margin),strokeWidth=3.dp.toPx())
-                    drawLine(Color(0xFFF04438),Offset(size.width-margin,margin),
-                        Offset(margin,size.height-margin),strokeWidth=3.dp.toPx())
-                }
-                // Anchor the actual completed-save notification at the CAMERA, rather than
-                // at the top of the screen. Popup is an independent window and does not
-                // expand or clip the 48-dp button's layout.
-                if (saveMessage.isNotEmpty()) {
-                    val popY = with(LocalDensity.current) { (-82).dp.roundToPx() }
-                    Popup(alignment=Alignment.TopStart,offset=IntOffset(0,popY)) {
-                        Box(Modifier.border(BorderStroke(1.dp,
-                            if(saveMessage.startsWith("Bild gespeichert")) cyan else Color(0xFFFF6655)),
-                            RoundedCornerShape(9.dp))
-                            .background(Color(0xFF102E36),RoundedCornerShape(9.dp))
-                            .padding(horizontal=12.dp,vertical=9.dp)) {
-                            Text(saveMessage,
-                                color=if(saveMessage.startsWith("Bild gespeichert")) cyan else Color(0xFFFF6655),
-                                fontSize=13.sp,fontWeight=FontWeight.Bold)
-                        }
-                    }
-                }
-            }
-            // AUDIO: red dot, actual rolling-buffer time, local archive count and last cloud result.
-            // No external status text, popups, or fake background recording indicator.
             Box(Modifier.size(48.dp).border(BorderStroke(1.dp,muted),RoundedCornerShape(6.dp))
-                .clickable(enabled=canLocalSave) {
-                    val clip=LocalAnalyzerAudioBuffer.take(localSaveConfig.durationSeconds,state.paused)
-                    if(clip==null) audioSaveStatus="Audiofenster nicht vollständig verfügbar"
-                    else {
-                        pendingAudioClip=clip
-                        pendingAudioConfig=StatisticsWindowEngine.Configuration(
-                            localSaveConfig.minHz.toDouble(),localSaveConfig.maxHz.toDouble(),
-                            if(state.direct48k) localSaveConfig.minHz.toDouble() else state.filterMinHz,
-                            if(state.direct48k) localSaveConfig.maxHz.toDouble() else state.filterMaxHz,
-                            if(state.direct48k) 10 else state.filterBandCount)
-                        pendingAudioDisplayGainDb=state.analysisGainDb
-                        audioSaveStatus=""
-                    }
-                },contentAlignment=Alignment.Center) {
-                val cloud=when(lastAudioCloudState) {
-                    "PENDING"->RecordingButtonPolicy.Cloud.PENDING
-                    "OK"->RecordingButtonPolicy.Cloud.CONFIRMED
-                    else->RecordingButtonPolicy.Cloud.NONE
-                }
-                val display=RecordingButtonPolicy.view(availableSeconds,localSaveConfig.durationSeconds,
-                    dailyCount,dailyLimit,cloud)
-                Column(horizontalAlignment=Alignment.CenterHorizontally,
-                    verticalArrangement=Arrangement.Center) {
-                    Box(Modifier.size(19.dp).background(Color(0xFFFF3030),RoundedCornerShape(50)),
-                        contentAlignment=Alignment.Center) {
-                        when(display.cloud) {
-                            RecordingButtonPolicy.Cloud.PENDING -> Text("◷",color=Color.White,fontSize=15.sp,lineHeight=16.sp)
-                            RecordingButtonPolicy.Cloud.CONFIRMED -> Text("✓",color=Color.White,fontSize=15.sp,lineHeight=16.sp)
-                            else -> Unit
+                .clickable { multiOpen=!multiOpen },contentAlignment=Alignment.Center) {
+                Text("MULTI",color=cyan,fontSize=9.sp)
+                if(multiOpen) Popup(alignment=Alignment.TopStart,
+                    offset=IntOffset(0,with(LocalDensity.current){(-5*52).dp.roundToPx()}),
+                    properties=PopupProperties(focusable=false)) {
+                    Column(verticalArrangement=Arrangement.spacedBy(4.dp)) {
+                        for(n in 1..5) {
+                            Box(Modifier.size(48.dp).border(BorderStroke(1.dp,muted),RoundedCornerShape(6.dp))
+                                .background(bg,RoundedCornerShape(6.dp))
+                                .clickable { multiOpen=false },contentAlignment=Alignment.Center) {
+                                Text("$n",color=white,fontSize=16.sp)
+                            }
                         }
                     }
-                    Text(display.seconds,
-                        color=white,fontSize=8.sp,lineHeight=10.sp,maxLines=1)
-                    Text(display.recordings,color=white,fontSize=8.sp,lineHeight=10.sp,maxLines=1)
-                }
-            }
-            // Monitoring uses an independent PCM subscriber. Long press switches SHIFT only
-            // while listening; detectTapGestures does not fire onTap after onLongPress.
-            Box(Modifier.size(48.dp).border(BorderStroke(1.dp,
-                if(monitoringShift) Color(0xFFFFCF65) else if(monitoring) cyan else muted),
-                RoundedCornerShape(6.dp)).pointerInput(monitoring) {
-                detectTapGestures(onTap={
-                    if(AnalyzerMonitor.enabled) AnalyzerMonitor.stop()
-                    else if(state.running) AnalyzerMonitor.start(context)
-                    monitoringTouch=false;frozenSpectrum=null
-                    monitoring=AnalyzerMonitor.enabled;monitoringShift=AnalyzerMonitor.shifted
-                },onLongPress={
-                    if(AnalyzerMonitor.enabled)AnalyzerMonitor.toggleShift()
-                    monitoringShift=AnalyzerMonitor.shifted
-                })
-            },contentAlignment=Alignment.Center) {
-                Column(horizontalAlignment=Alignment.CenterHorizontally,
-                    verticalArrangement=Arrangement.spacedBy(0.dp)) {
-                    Text("🎧",color=if(monitoringShift) Color(0xFFFFCF65) else if(monitoring) cyan else muted,
-                        fontSize=23.sp,lineHeight=24.sp)
-                    Text(if(monitoringShift) "SHIFT" else if(monitoring) "MON" else "AUS",
-                        color=white,fontSize=8.sp,lineHeight=10.sp)
-                }
-            }
-            if(!state.direct48k) {
-                WaterfallSwitchIcon(original=true,active=state.showOriginalWaterfall, onLongPress={}) {
-                    LiveAnalyzerController.setWaterfallVisibility(context,!state.showOriginalWaterfall,state.showFilterWaterfall)
-                    state=LiveAnalyzerController.snapshot()
-                }
-                WaterfallSwitchIcon(original=false,active=state.showFilterWaterfall, onLongPress={
-                    LiveAnalyzerController.startFilterAutoRange()
-                    state=LiveAnalyzerController.snapshot()
-                }) {
-                    LiveAnalyzerController.setWaterfallVisibility(context,state.showOriginalWaterfall,!state.showFilterWaterfall)
-                    state=LiveAnalyzerController.snapshot()
-                }
-            }
-            if (state.showMaxHold) Box(Modifier.size(48.dp).padding(start=2.dp)
-                .border(BorderStroke(1.dp, cyan),RoundedCornerShape(6.dp))
-                .clickable {
-                    LiveAnalyzerController.resetSpectrumMaxHold()
-                    state=LiveAnalyzerController.snapshot()
-                }, contentAlignment=Alignment.Center) {
-                Column(horizontalAlignment=Alignment.CenterHorizontally,
-                    verticalArrangement=Arrangement.spacedBy(0.dp)) {
-                    Text("MAX",color=cyan,fontSize=10.sp,fontWeight=FontWeight.Bold,lineHeight=11.sp)
-                    Text("CLR",color=cyan,fontSize=10.sp,fontWeight=FontWeight.Bold,lineHeight=11.sp)
                 }
             }
         } // bottom action row
@@ -1208,9 +1267,17 @@ private fun WaterfallSwitchIcon(original: Boolean, active: Boolean,
                 }
             }
         }
+        if(!original) LongPressMark()
         if(!active) Canvas(Modifier.matchParentSize()) {
             drawLine(Color(0xFFFA5252),Offset(5.dp.toPx(),size.height-5.dp.toPx()),
                 Offset(size.width-5.dp.toPx(),5.dp.toPx()),strokeWidth=1.5.dp.toPx())
         }
     }
+}
+
+@Composable
+private fun androidx.compose.foundation.layout.BoxScope.LongPressMark() {
+    Box(Modifier.align(Alignment.TopStart).padding(2.dp).size(11.dp)
+        .border(BorderStroke(0.7.dp,Color(0xFFB5BDC5)),RoundedCornerShape(50)),
+        contentAlignment=Alignment.Center) { Text("L",fontSize=7.sp,lineHeight=8.sp,color=Color(0xFFC2CBD3)) }
 }

@@ -263,6 +263,7 @@ internal object AnalyzerMonitor {
         // Bluetooth/AudioTrack can block here; never hold the shared DSP/config lock.
         if(packet != null) {
             val (track,buffer)=packet
+            AnalyzerMonitorRecording.accept(buffer)
             try {
                 val wrote=track.write(buffer,0,buffer.size,AudioTrack.WRITE_BLOCKING)
                 if(wrote<0) { outputErrors++;outputDiagnostic="AudioTrack.write Fehler $wrote" }
