@@ -77,6 +77,9 @@ internal fun AnalyzerJsonSetupBrowser(context: Context) {
     }.onFailure { warning = "Speichern fehlgeschlagen: ${it.message}" }.isSuccess
     fun activate(id: String) {
         runCatching {
+            check(AnalyzerDisplayPreviewSession.activeSetupId == null) {
+                "Anzeige-Vorschau zuerst speichern oder verwerfen"
+            }
             check(!AnalyzerMonitorRecording.isActive()) { "MON-Aufnahme zuerst beenden" }
             // No switching while the MON DSP is operating; prevents unexpected live jumps.
             check(!AnalyzerMonitor.enabled) { "MON vor dem Setupwechsel stoppen" }
@@ -96,6 +99,10 @@ internal fun AnalyzerJsonSetupBrowser(context: Context) {
         }.onFailure { warning = "MON-Entwurf nicht aktiviert: ${it.message}" }
     }
     fun requestActivate(id: String) {
+        if (AnalyzerDisplayPreviewSession.activeSetupId != null) {
+            warning = "Anzeige-Vorschau zuerst speichern oder verwerfen"
+            return
+        }
         requestedId = id
         if (monDraftId != null && isDirty()) {
             confirmActivation = false // Save / discard / cancel dialog
@@ -136,22 +143,20 @@ internal fun AnalyzerJsonSetupBrowser(context: Context) {
                     warning = "Anzeige gespeichert ($count Parameter)."
                 }.onFailure { warning = "Anzeige nicht gespeichert: ${it.message}" }
             }) { Text("Speichern") } },
-            dismissButton = { Row {
-                Text("Abweichungen vom Zustand vor Vorschau: ${AnalyzerDisplayPreviewSession.changedKeys().size}",
-                    color = Color(0xFFABB8C0), fontSize = 12.sp)
-                OutlinedButton(onClick = { requestedDisplayFinish = true },
-                    enabled = !AnalyzerMonitor.enabled && !AnalyzerMonitorRecording.isActive()) {
-                    Text("Vorschau beenden: Speichern / Verwerfen / Abbrechen")
+            dismissButton = {
+                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    OutlinedButton(onClick = {
+                        runCatching {
+                            AnalyzerDisplayPreviewSession.restore(context)
+                            displayPreviewId = AnalyzerDisplayPreviewSession.activeSetupId
+                            requestedDisplayFinish = false
+                            warning = "Anzeige-Vorschau verworfen; ursprüngliche Anzeige wiederhergestellt."
+                        }.onFailure { warning = "Verwerfen fehlgeschlagen: ${it.message}" }
+                    }) { Text("Verwerfen") }
+                    OutlinedButton(onClick = { requestedDisplayFinish = false }) {
+                        Text("Abbrechen")
+                    }
                 }
-                OutlinedButton(onClick = {
-                    runCatching {
-                        AnalyzerDisplayPreviewSession.restore(context)
-                        displayPreviewId = AnalyzerDisplayPreviewSession.activeSetupId
-                        requestedDisplayFinish = false
-                        warning = "Anzeige-Vorschau verworfen; ursprüngliche Anzeige wiederhergestellt."
-                    }.onFailure { warning = "Verwerfen fehlgeschlagen: ${it.message}" }
-                }) { Text("Verwerfen") }
-                OutlinedButton(onClick = { requestedDisplayFinish = false }) { Text("Abbrechen") }
             } })
     }
     if (requestedId != null) {
@@ -249,7 +254,7 @@ internal fun AnalyzerJsonSetupBrowser(context: Context) {
             }
             if (monDraftId != null) {
                 Text("MON-Entwurf aktiv: ${data.entries.firstOrNull { it.id == monDraftId }?.name ?: monDraftId}" +
-                    if (isDirty()) " · ungespeichert" else " · gespeichert", color = Color(0xFFFFB33B), fontSize = 12.sp)
+                    if (isDirty()) " · geändert" else " · unverändert", color = Color(0xFFFFB33B), fontSize = 12.sp)
                 OutlinedButton(onClick = { saveDraft() }, enabled = !AnalyzerMonitorRecording.isActive() && isDirty()) {
                     Text("MON speichern")
                 }

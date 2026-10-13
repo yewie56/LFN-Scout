@@ -24,6 +24,9 @@ internal object AnalyzerDisplayPreviewSession {
     var activeSetupId: String? = null
         private set
     private var appliedKeys: List<String> = emptyList()
+    // Original field values at preview start for optimistic conflict detection.
+    // Unrelated JSON changes are not blocked or replaced.
+    private var originalSetupFields: JSONObject? = null
 
     /** Only values actually previewed may be written back on explicit Save. */
     @Synchronized fun changedKeys(): List<String> {
@@ -43,6 +46,15 @@ internal object AnalyzerDisplayPreviewSession {
         val doc = repository.load(id)
         val legacy = doc.getJSONObject("parameters").optJSONObject("legacy")
             ?: error("Setup enthält keine Legacy-Parameter")
+        // If another edit changed any previewed field meanwhile, do not silently
+        // overwrite it. The draft stays active so the user may discard/retry.
+        val original = originalSetupFields ?: error("Vorschau-Ursprungswerte fehlen")
+        for (key in appliedKeys) {
+            check(original.has(key) && legacy.has(key) &&
+                original.get(key) == legacy.get(key)) {
+                "Setup wurde seit Vorschau-Start geändert ($key). Vorschau verwerfen und neu starten."
+            }
+        }
         // Preserve absent fields and every unrelated setting. Never infer missing values.
         for (key in appliedKeys) {
             check(now.has(key)) { "Anzeigeparameter nicht mehr verfügbar: $key" }
@@ -60,6 +72,7 @@ internal object AnalyzerDisplayPreviewSession {
         baselineDirect48k = null
         activeSetupId = null
         appliedKeys = emptyList()
+        originalSetupFields = null
     }
 
     private fun displayFromLive(): JSONObject {
@@ -84,6 +97,11 @@ internal object AnalyzerDisplayPreviewSession {
         baseline = snapshot
         activeSetupId = setupId
         appliedKeys = result.appliedKeys
+        originalSetupFields = JSONObject().apply {
+            result.appliedKeys.forEach { key ->
+                put(key, parameters.get(key))
+            }
+        }
         return result
     }
 
