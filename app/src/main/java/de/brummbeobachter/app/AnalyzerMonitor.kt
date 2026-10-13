@@ -12,7 +12,7 @@ import kotlin.math.*
 internal object AnalyzerMonitor {
     private const val PREFS = "lfn_analyzer_monitor_049"
     private const val OUTPUT_RATE = 48000
-    private const val OUTPUT_LIMIT = 0.10 // -20 dBFS peak, digital ceiling only
+    private const val OUTPUT_RATE_LIMIT = 0.50 // fixed -6 dBFS digital safety ceiling, also with optional limiter OFF
     private val lock = Any()
     @Volatile var enabled = false; private set
     @Volatile var shifted = false; private set
@@ -27,6 +27,24 @@ internal object AnalyzerMonitor {
     @Volatile var outputErrors: Long = 0; private set
     @Volatile var limiterHits: Long = 0; private set
     @Volatile var diagnosticToneEnabled = false; private set
+    @Volatile var compressorEnabled = false; private set
+    @Volatile var compressorThresholdDb = -30.0; private set
+    @Volatile var compressorRatio = 4.0; private set
+    @Volatile var compressorAttackMs = 15.0; private set
+    @Volatile var compressorReleaseMs = 300.0; private set
+    @Volatile var compressorKneeDb = 6.0; private set
+    @Volatile var compressorMakeupDb = 0.0; private set
+    @Volatile var limiterEnabled = true; private set
+    @Volatile var limiterCeilingDb = -20.0; private set
+    @Volatile var limiterAttackMs = 1.0; private set
+    @Volatile var limiterReleaseMs = 100.0; private set
+    @Volatile var fadeSeconds = 1.5; private set
+    @Volatile var outputPeakDbfs = -120.0; private set
+    @Volatile var gainReductionDb = 0.0; private set
+    private var compressorEnvelope = 0.0
+    private var compressorGain = 1.0
+    private var limiterEnvelope = 0.0
+    private var limiterGain = 1.0
     private var tonePhase = 0.0
     private var subscription: Closeable? = null
     private var output: AudioTrack? = null
@@ -46,6 +64,18 @@ internal object AnalyzerMonitor {
         levelDb=p.getFloat("level",-24f).toDouble().coerceIn(-60.0,100.0)
         bandwidthHz=p.getFloat("width",12f).toDouble().coerceIn(2.0,150.0)
         shiftHz=p.getFloat("shift",100f).toDouble().coerceIn(20.0,400.0)
+        compressorEnabled=p.getBoolean("comp_on",false)
+        compressorThresholdDb=p.getFloat("comp_thr",-30f).toDouble().coerceIn(-60.0,0.0)
+        compressorRatio=p.getFloat("comp_ratio",4f).toDouble().coerceIn(1.0,20.0)
+        compressorAttackMs=p.getFloat("comp_attack",15f).toDouble().coerceIn(1.0,200.0)
+        compressorReleaseMs=p.getFloat("comp_release",300f).toDouble().coerceIn(20.0,2000.0)
+        compressorKneeDb=p.getFloat("comp_knee",6f).toDouble().coerceIn(0.0,20.0)
+        compressorMakeupDb=p.getFloat("comp_makeup",0f).toDouble().coerceIn(0.0,30.0)
+        limiterEnabled=p.getBoolean("limit_on",true)
+        limiterCeilingDb=p.getFloat("limit_ceiling",-20f).toDouble().coerceIn(-30.0,-1.0)
+        limiterAttackMs=p.getFloat("limit_attack",1f).toDouble().coerceIn(0.1,20.0)
+        limiterReleaseMs=p.getFloat("limit_release",100f).toDouble().coerceIn(10.0,1000.0)
+        fadeSeconds=p.getFloat("fade",1.5f).toDouble().coerceIn(0.2,5.0)
         shifted=false; enabled=false
     }
     fun setCenter(context:Context,hz:Double)=synchronized(lock) {
@@ -60,16 +90,43 @@ internal object AnalyzerMonitor {
     fun setShift(context:Context,hz:Double)=synchronized(lock) {
         shiftHz=hz.coerceIn(20.0,400.0);initialized=false;save(context)
     }
+    fun setDynamics(context:Context, key:String, value:Double)=synchronized(lock) {
+        when(key) {
+            "comp_thr" -> compressorThresholdDb=value.coerceIn(-60.0,0.0)
+            "comp_ratio" -> compressorRatio=value.coerceIn(1.0,20.0)
+            "comp_attack" -> compressorAttackMs=value.coerceIn(1.0,200.0)
+            "comp_release" -> compressorReleaseMs=value.coerceIn(20.0,2000.0)
+            "comp_knee" -> compressorKneeDb=value.coerceIn(0.0,20.0)
+            "comp_makeup" -> compressorMakeupDb=value.coerceIn(0.0,30.0)
+            "limit_ceiling" -> limiterCeilingDb=value.coerceIn(-30.0,-1.0)
+            "limit_attack" -> limiterAttackMs=value.coerceIn(0.1,20.0)
+            "limit_release" -> limiterReleaseMs=value.coerceIn(10.0,1000.0)
+            "fade" -> fadeSeconds=value.coerceIn(0.2,5.0)
+        }; save(context)
+    }
+    fun setDynamicsEnabled(context:Context, compressor:Boolean?=null, limiter:Boolean?=null)=synchronized(lock) {
+        compressor?.let { compressorEnabled=it }
+        limiter?.let { limiterEnabled=it }
+        save(context)
+    }
     private fun save(context: Context) {
         context.getSharedPreferences(PREFS,Context.MODE_PRIVATE).edit()
             .putFloat("center",centerHz.toFloat()).putFloat("level",levelDb.toFloat())
-            .putFloat("width",bandwidthHz.toFloat()).putFloat("shift",shiftHz.toFloat()).apply()
+            .putFloat("width",bandwidthHz.toFloat()).putFloat("shift",shiftHz.toFloat())
+            .putBoolean("comp_on",compressorEnabled).putFloat("comp_thr",compressorThresholdDb.toFloat())
+            .putFloat("comp_ratio",compressorRatio.toFloat()).putFloat("comp_attack",compressorAttackMs.toFloat())
+            .putFloat("comp_release",compressorReleaseMs.toFloat()).putFloat("comp_knee",compressorKneeDb.toFloat())
+            .putFloat("comp_makeup",compressorMakeupDb.toFloat()).putBoolean("limit_on",limiterEnabled)
+            .putFloat("limit_ceiling",limiterCeilingDb.toFloat()).putFloat("limit_attack",limiterAttackMs.toFloat())
+            .putFloat("limit_release",limiterReleaseMs.toFloat()).putFloat("fade",fadeSeconds.toFloat()).apply()
     }
     fun start(context:Context):Boolean = synchronized(lock) {
         if(enabled)return true
         load(context)
         val engine = AnalyzerSessionGateway.rawPcm
         ramp=0.0;phase=0.0;rate=0;initialized=false
+        compressorEnvelope=0.0;compressorGain=1.0;limiterEnvelope=0.0;limiterGain=1.0
+        outputPeakDbfs=-120.0;gainReductionDb=0.0
         outputBlocks=0;outputErrors=0;limiterHits=0;outputDiagnostic="Start angefordert"
         diagnosticToneEnabled=false;tonePhase=0.0
         subscription=engine.subscribe(queueCapacity=8) { frame -> process(frame) }
@@ -79,6 +136,7 @@ internal object AnalyzerMonitor {
         enabled=false;shifted=false;diagnosticToneEnabled=false;subscription?.close();subscription=null
         try { output?.pause();output?.flush();output?.release() } catch (_:Exception) {}
         output=null;actualDevice="";outputRoute="Kein AudioTrack";rate=0;initialized=false;ramp=0.0
+        outputPeakDbfs=-120.0
     }
     fun toggleDiagnosticTone()=synchronized(lock) { if(enabled) { diagnosticToneEnabled=!diagnosticToneEnabled; tonePhase=0.0 } }
     fun toggleShift()=synchronized(lock) { if(enabled) { shifted=!shifted;ramp=0.0;initialized=false } }
@@ -107,6 +165,18 @@ internal object AnalyzerMonitor {
         }
         initialized=true
     }
+    private fun smootherCoeff(timeMs:Double):Double = exp(-1.0/(OUTPUT_RATE*timeMs*0.001).coerceAtLeast(1.0))
+    private fun compressorTarget(db:Double):Double {
+        val over=db-compressorThresholdDb
+        val knee=compressorKneeDb
+        val reduction=when {
+            knee<=0.0 -> max(0.0,over)*(1.0-1.0/compressorRatio)
+            over<=-knee/2 -> 0.0
+            over>=knee/2 -> over*(1.0-1.0/compressorRatio)
+            else -> (1.0-1.0/compressorRatio)*(over+knee/2).pow(2.0)/(2*knee)
+        }
+        return 10.0.pow((-reduction+compressorMakeupDb)/20.0)
+    }
     private fun process(frame:AnalyzerPcmHub.Frame) = synchronized(lock) {
         if(!enabled || frame.sampleRateHz !in 8000..48000)return@synchronized
         try {
@@ -133,12 +203,15 @@ internal object AnalyzerMonitor {
             // leaves ample separation from Nyquist for the current monitor use.
             val count=(processed.size.toLong()*OUTPUT_RATE/rate).toInt().coerceAtLeast(1)
             val buffer=ShortArray(count)
+            var blockPeak=0.0
+            var blockReduction=0.0
+            val ceiling=10.0.pow(limiterCeilingDb/20.0)
             for(i in 0 until count) {
                 val position=i.toDouble()*rate/OUTPUT_RATE
                 val idx=position.toInt().coerceIn(0,processed.lastIndex)
                 val fraction=position-idx
                 val x=processed[idx]*(1-fraction)+processed[min(idx+1,processed.lastIndex)]*fraction
-                ramp=(ramp+1.0/(OUTPUT_RATE*1.5)).coerceAtMost(1.0)
+                ramp=(ramp+1.0/(OUTPUT_RATE*fadeSeconds)).coerceAtMost(1.0)
                 val raw=if(diagnosticToneEnabled) {
                     // Fixed low-level output-only 440-Hz test: bypasses input,
                     // bandpass, SHIFT and +100-dB gain to isolate output routing.
@@ -147,12 +220,36 @@ internal object AnalyzerMonitor {
                     if(tonePhase>=2*PI)tonePhase-=2*PI
                     tone
                 } else x*gain*ramp
-                // Always keep the digital output below -20 dBFS even for +100 dB gain.
-                // Does NOT guarantee safe sound pressure from arbitrary headphones.
-                val limited=OUTPUT_LIMIT*tanh(raw/OUTPUT_LIMIT)
-                if(abs(raw)>OUTPUT_LIMIT) limiterHits++
+                // Feed-forward dynamics on the independent output branch only.
+                var y=raw
+                if(compressorEnabled && !diagnosticToneEnabled) {
+                    val power=abs(y)
+                    val envCoeff=smootherCoeff(if(power>compressorEnvelope)compressorAttackMs else compressorReleaseMs)
+                    compressorEnvelope=envCoeff*compressorEnvelope+(1-envCoeff)*power
+                    val db=20*log10(compressorEnvelope.coerceAtLeast(1e-9))
+                    val target=compressorTarget(db)
+                    val coeff=smootherCoeff(if(target<compressorGain)compressorAttackMs else compressorReleaseMs)
+                    compressorGain=coeff*compressorGain+(1-coeff)*target
+                    y*=compressorGain
+                }
+                if(limiterEnabled && !diagnosticToneEnabled) {
+                    val power=abs(y)
+                    val coeff=smootherCoeff(if(power>limiterEnvelope)limiterAttackMs else limiterReleaseMs)
+                    limiterEnvelope=coeff*limiterEnvelope+(1-coeff)*power
+                    val target=min(1.0,ceiling/limiterEnvelope.coerceAtLeast(1e-9))
+                    val gainCoeff=smootherCoeff(if(target<limiterGain)limiterAttackMs else limiterReleaseMs)
+                    limiterGain=gainCoeff*limiterGain+(1-gainCoeff)*target
+                    y*=limiterGain
+                    if(abs(y)>ceiling) { y=y.coerceIn(-ceiling,ceiling);limiterHits++ }
+                    blockReduction=max(blockReduction,-20*log10(limiterGain.coerceAtLeast(1e-9)))
+                }
+                // Hard digital safety ceiling remains active even if optional limiter is OFF.
+                val limited=y.coerceIn(-OUTPUT_RATE_LIMIT,OUTPUT_RATE_LIMIT)
+                blockPeak=max(blockPeak,abs(limited))
                 buffer[i]=(limited*32767.0).roundToInt().coerceIn(-32767,32767).toShort()
             }
+            outputPeakDbfs=20*log10(blockPeak.coerceAtLeast(1e-6))
+            gainReductionDb=blockReduction
             val track=output ?: return@synchronized
             val wrote=track.write(buffer,0,buffer.size,AudioTrack.WRITE_BLOCKING)
             if(wrote<0) { outputErrors++;outputDiagnostic="AudioTrack.write Fehler $wrote" }
@@ -169,7 +266,7 @@ internal object AnalyzerMonitor {
                     AudioDeviceInfo.TYPE_USB_DEVICE -> "USB-Audio"
                     else -> "Typ ${routed.type}: ${routed.productName}"
                 }
-                outputDiagnostic="PLAYING=${track.playState==AudioTrack.PLAYSTATE_PLAYING}; out=$outputRoute; ${rate}->${OUTPUT_RATE}Hz; write=$wrote/${buffer.size}; Gain=${"%.1f".format(java.util.Locale.US,levelDb)} dB; Test440=$diagnosticToneEnabled; Limiter=$limiterHits; Fehler=$outputErrors"
+                outputDiagnostic="PLAYING=${track.playState==AudioTrack.PLAYSTATE_PLAYING}; out=$outputRoute; ${rate}->${OUTPUT_RATE}Hz; write=$wrote/${buffer.size}; Gain=${"%.1f".format(java.util.Locale.US,levelDb)} dB; Test440=$diagnosticToneEnabled; Limiter=$limiterHits; Kompressor=$compressorEnabled; LimiterAktiv=$limiterEnabled; Peak=${"%.1f".format(java.util.Locale.US,outputPeakDbfs)}dBFS; GR=${"%.1f".format(java.util.Locale.US,gainReductionDb)}dB; Fehler=$outputErrors"
             }
         } catch (e:Exception) { outputErrors++;outputDiagnostic="Mithoer-Fehler: ${e.javaClass.simpleName}: ${e.message}"; stop() }
     }

@@ -42,6 +42,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.Slider
+import androidx.compose.material3.Switch
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -129,6 +130,9 @@ internal fun LiveAnalyzerScreen(
     var monitoringShift by remember { mutableStateOf(false) }
     var monitorCenter by remember { mutableStateOf(20.0) }
     var monitorLevel by remember { mutableStateOf(-24.0) }
+    var monitoringTouch by remember { mutableStateOf(false) }
+    var frozenSpectrum by remember { mutableStateOf<LiveAnalyzerController.Snapshot?>(null) }
+    var monitorOutputLevel by remember { mutableStateOf(-120.0) }
     var pendingAudioClip by remember { mutableStateOf<LocalAnalyzerAudioBuffer.Clip?>(null) }
     var pendingAudioConfig by remember { mutableStateOf<StatisticsWindowEngine.Configuration?>(null) }
     var pendingAudioDisplayGainDb by remember { mutableStateOf(0) }
@@ -183,6 +187,7 @@ internal fun LiveAnalyzerScreen(
             state = LiveAnalyzerController.snapshot()
             monitoring=AnalyzerMonitor.enabled
             monitoringShift=AnalyzerMonitor.shifted
+            monitorOutputLevel=AnalyzerMonitor.outputPeakDbfs
             // Display refresh is independent from FFT computation and waterfall decimation.
             delay(if (state.fftHopSamples <= 50) 50L else 100L)
         }
@@ -429,6 +434,35 @@ internal fun LiveAnalyzerScreen(
             Text("Frequenzverschiebung: +${monitorShiftHz.toInt()} Hz",color=white,fontSize=12.sp)
             Slider(value=monitorShiftHz,onValueChange={ monitorShiftHz=it },valueRange=20f..400f,
                 onValueChangeFinished={ AnalyzerMonitor.setShift(context,monitorShiftHz.toDouble()) })
+            Text("Ausgangsdynamik · nur Mithörzweig",color=cyan,fontSize=14.sp)
+            var compOn by remember { mutableStateOf(AnalyzerMonitor.compressorEnabled) }
+            var limitOn by remember { mutableStateOf(AnalyzerMonitor.limiterEnabled) }
+            Row(verticalAlignment=Alignment.CenterVertically) {
+                Text("Kompressor",color=white,modifier=Modifier.weight(1f))
+                Switch(checked=compOn,onCheckedChange={ compOn=it;AnalyzerMonitor.setDynamicsEnabled(context,compressor=it) })
+            }
+            Row(verticalAlignment=Alignment.CenterVertically) {
+                Text("Limiter",color=white,modifier=Modifier.weight(1f))
+                Switch(checked=limitOn,onCheckedChange={ limitOn=it;AnalyzerMonitor.setDynamicsEnabled(context,limiter=it) })
+            }
+            @Composable fun DynamicsSetting(label:String,key:String,initial:Double,limits:ClosedFloatingPointRange<Float>,unit:String="") {
+                var setting by remember(key) { mutableStateOf(initial.toFloat()) }
+                Text("$label: ${"%.1f".format(Locale.US,setting)} $unit",color=white,fontSize=11.sp)
+                Slider(value=setting,onValueChange={setting=it},valueRange=limits,
+                    onValueChangeFinished={AnalyzerMonitor.setDynamics(context,key,setting.toDouble())})
+            }
+            DynamicsSetting("Threshold","comp_thr",AnalyzerMonitor.compressorThresholdDb,-60f..0f,"dBFS")
+            DynamicsSetting("Ratio","comp_ratio",AnalyzerMonitor.compressorRatio,1f..20f,":1")
+            DynamicsSetting("Attack","comp_attack",AnalyzerMonitor.compressorAttackMs,1f..200f,"ms")
+            DynamicsSetting("Release","comp_release",AnalyzerMonitor.compressorReleaseMs,20f..2000f,"ms")
+            DynamicsSetting("Soft Knee","comp_knee",AnalyzerMonitor.compressorKneeDb,0f..20f,"dB")
+            DynamicsSetting("Makeup","comp_makeup",AnalyzerMonitor.compressorMakeupDb,0f..30f,"dB")
+            DynamicsSetting("Limiter-Grenze","limit_ceiling",AnalyzerMonitor.limiterCeilingDb,-30f..-1f,"dBFS")
+            DynamicsSetting("Limiter Attack","limit_attack",AnalyzerMonitor.limiterAttackMs,0.1f..20f,"ms")
+            DynamicsSetting("Limiter Release","limit_release",AnalyzerMonitor.limiterReleaseMs,10f..1000f,"ms")
+            DynamicsSetting("Fade-in","fade",AnalyzerMonitor.fadeSeconds,0.2f..5f,"s")
+            Text("Auch bei deaktiviertem Limiter bleibt eine digitale Clipping-Grenze erhalten. Kopfhörerlautstärke niedrig beginnen.",
+                color=muted,fontSize=11.sp)
             var monitorTone by remember { mutableStateOf(AnalyzerMonitor.diagnosticToneEnabled) }
             OutlinedButton(onClick={ AnalyzerMonitor.toggleDiagnosticTone();monitorTone=AnalyzerMonitor.diagnosticToneEnabled },
                 enabled=monitoring) { Text(if(monitorTone) "440-Hz-Ausgangstest AUS" else "440-Hz-Ausgangstest EIN") }
@@ -576,7 +610,8 @@ internal fun LiveAnalyzerScreen(
                     modifier=Modifier.align(Alignment.TopEnd).padding(end=17.dp,top=5.dp),
                     color=if(monitoringShift)Color(0xFFFFCF65) else cyan,fontSize=10.sp)
             }
-            val freq=state.frequencyHz
+            val drawnState=if(monitoring && monitoringTouch) frozenSpectrum ?: state else state
+            val freq=drawnState.frequencyHz
             Canvas(Modifier.matchParentSize()) {
                 val left=plotLeftDp.toPx(); val right=size.width-plotRightDp.toPx()
                 val top=plotTopDp.toPx(); val bottom=size.height-plotBottomDp.toPx()
@@ -593,6 +628,28 @@ internal fun LiveAnalyzerScreen(
                     drawLine(cyan,Offset(hi,top),Offset(hi,bottom),strokeWidth=1.dp.toPx())
                     val center=xFor(monitorCenter)
                     if(center in left..right)drawLine(Color(0xFFFFCF65),Offset(center,top),Offset(center,bottom),strokeWidth=1.5.dp.toPx())
+                }
+                if(monitoring) {
+                    // Narrow vertical MON gain bar, and separate even narrower post-dynamics meter.
+                    // Both stop at the exact spectrum top/bottom, left of dBFS axis.
+                    val gainL=3.dp.toPx(); val gainR=20.dp.toPx()
+                    val meterL=24.dp.toPx();val meterR=30.dp.toPx()
+                    drawRect(Color(0xFF213445),Offset(gainL,top),Size(gainR-gainL,plotH))
+                    val gainFrac=((monitorLevel+60)/160).coerceIn(0.0,1.0).toFloat()
+                    drawRect(cyan.copy(alpha=0.8f),Offset(gainL,bottom-plotH*gainFrac),Size(gainR-gainL,plotH*gainFrac))
+                    val gainPaint=NativePaint(NativePaint.ANTI_ALIAS_FLAG).apply {
+                        color=AndroidColor.WHITE;textSize=9.sp.toPx();isFakeBoldText=true
+                    }
+                    drawIntoCanvas { canvas ->
+                        val c=canvas.nativeCanvas
+                        c.save();c.rotate(-90f,gainR-3.dp.toPx(),bottom-4.dp.toPx())
+                        c.drawText("${"%.0f".format(Locale.US,monitorLevel)} dB",gainR-3.dp.toPx(),bottom-4.dp.toPx(),gainPaint)
+                        c.restore()
+                    }
+                    drawRect(Color(0xFF23313A),Offset(meterL,top),Size(meterR-meterL,plotH))
+                    val meterFrac=((monitorOutputLevel+80)/80).coerceIn(0.0,1.0).toFloat()
+                    drawRect(if(monitorOutputLevel > -6)Color.Red else if(monitorOutputLevel > -18)Color.Yellow else Color.Green,
+                        Offset(meterL,bottom-plotH*meterFrac),Size(meterR-meterL,plotH*meterFrac))
                 }
                 val tickColor=Color(0xFFABB6BE)
                 val textPaint=NativePaint(NativePaint.ANTI_ALIAS_FLAG).apply {
@@ -633,7 +690,7 @@ internal fun LiveAnalyzerScreen(
                 val lo=freq.indexOfFirst { it>=state.minFrequencyHz.toDouble() }
                 val hi=freq.indexOfLast { it<=state.rangeHz.toDouble() }
                 fun curve(samples:DoubleArray,traceColor:Color) {
-                    if(!state.validSignal || lo<0 || hi<=lo || samples.size<=hi) return
+                    if(!drawnState.validSignal || lo<0 || hi<=lo || samples.size<=hi) return
                     val path=Path()
                     for(i in lo..hi) {
                         val x=left+((freq[i]-state.minFrequencyHz)/(state.rangeHz-state.minFrequencyHz)*plotW).toFloat()
@@ -642,12 +699,12 @@ internal fun LiveAnalyzerScreen(
                     }
                     drawPath(path,traceColor,style=Stroke(width=1.0.dp.toPx()))
                 }
-                if(state.showFloor) curve(state.floor,Color(0xFFB5B7BC))
-                if(state.showAverage) curve(state.average,Color(0xFFE62B38))
-                if(state.showMaxHold) curve(state.maxHold,Color(0xFF30D7EF))
-                if(state.showCurrent) curve(state.live,Color(0xFFFFDC24))
-                if(state.direct48k && state.directPeakMarkers > 0 && state.validSignal) {
-                    val peaks = AnalyzerPeakMarkers.find(freq,state.live,state.minFrequencyHz,state.rangeHz,state.directPeakMarkers)
+                if(drawnState.showFloor) curve(drawnState.floor,Color(0xFFB5B7BC))
+                if(drawnState.showAverage) curve(drawnState.average,Color(0xFFE62B38))
+                if(drawnState.showMaxHold) curve(drawnState.maxHold,Color(0xFF30D7EF))
+                if(drawnState.showCurrent) curve(drawnState.live,Color(0xFFFFDC24))
+                if(drawnState.direct48k && drawnState.directPeakMarkers > 0 && drawnState.validSignal) {
+                    val peaks = AnalyzerPeakMarkers.find(freq,drawnState.live,state.minFrequencyHz,state.rangeHz,drawnState.directPeakMarkers)
                     val labelPaint = NativePaint(NativePaint.ANTI_ALIAS_FLAG).apply {
                         textSize=9.sp.toPx(); color=AndroidColor.WHITE
                         setShadowLayer(3f,0f,0f,AndroidColor.BLACK)
@@ -717,7 +774,11 @@ internal fun LiveAnalyzerScreen(
         Box(Modifier.fillMaxWidth().height(waterfallHeight).background(Color(0xFF130C29))
             .clickable { if(!monitoring)expanded=!expanded }
             .pointerInput(monitoring) {
-                if(monitoring)detectDragGestures { change, delta ->
+                if(monitoring)detectDragGestures(
+                    onDragStart={ monitoringTouch=true;frozenSpectrum=state },
+                    onDragEnd={ monitoringTouch=false;frozenSpectrum=null },
+                    onDragCancel={ monitoringTouch=false;frozenSpectrum=null }
+                ) { change, delta ->
                     if(kotlin.math.abs(delta.x)>kotlin.math.abs(delta.y)) {
                         AnalyzerMonitor.setCenter(context,AnalyzerMonitor.centerHz+
                             delta.x.toDouble()/size.width*state.rangeHz)
@@ -1023,6 +1084,7 @@ internal fun LiveAnalyzerScreen(
                 detectTapGestures(onTap={
                     if(AnalyzerMonitor.enabled) AnalyzerMonitor.stop()
                     else if(state.running) AnalyzerMonitor.start(context)
+                    monitoringTouch=false;frozenSpectrum=null
                     monitoring=AnalyzerMonitor.enabled;monitoringShift=AnalyzerMonitor.shifted
                 },onLongPress={
                     if(AnalyzerMonitor.enabled)AnalyzerMonitor.toggleShift()

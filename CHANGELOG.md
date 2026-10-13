@@ -1,3 +1,14 @@
+## v0.5.51 (versionCode 209) – MON Dynamics, Touch & Spectrum UI (2026-10-13)
+
+- MON: Persistierender Gain wird per 1,5-s-Fade-in (im Setup 0,2–5 s) eingeblendet.
+- MON: Einstellbarer Kompressor (Threshold/Ratio/Attack/Release/Knee/Makeup) und einstellbarer Limiter (Ceiling/Attack/Release), getrennt schaltbar, persistent.
+- Ausgang bleibt mit separatem digitalen Sicherheitsclip von -6 dBFS versehen; dies garantiert **keine** sichere Kopfhörerlautstärke.
+- DIAG meldet Ausgangspeak, Kompressorstatus, Limiterstatus, Limiter-Eingriffe und Gain Reduction.
+- Spektrum: Gain-Bar mit links um 90° gedrehter Beschriftung im schmalen Balken links der dB-Achse; daneben schmaler Ausgangsmesser nach Dynamikbearbeitung, beide auf Spektrumhöhe begrenzt.
+- Wasserfall-Touch bei MON: Kein Zoom; horizontale Geste Mittenfrequenz, vertikale Geste Gain; während Drag werden Spektralwerte aus einem Snapshot angezeigt, bis Touch endet. Filter- und Pegelanzeigen aktualisieren weiter.
+- Keine Änderungen an Windows-Buildwegen und GitHub-Buildworkflow.
+- Offline geprüft: Kotlin-Parser; Android-Build und Audio-Gerätetest ausstehend.
+
 ## v0.5.50 (versionCode 208) – Bluetooth-Mithören und Gain
 - 48-kHz-Mono-AudioTrack-Ausgabe mit linearer Interpolation der bandbegrenzten Monitoring-PCM-Eingangsdaten.
 - Mithör-Gain −60 bis +100 dB per vertikaler Wischgeste im Wasserfall und persistentem Setupwert. Sanftes Fade-in 1,5 s, digitaler Softlimiter mit −20 dBFS Spitzengrenze.
