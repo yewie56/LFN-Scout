@@ -35,7 +35,8 @@ internal object AnalyzerMonitorRecording {
     }
     private fun number(value:Double):String =
         java.math.BigDecimal.valueOf(value).stripTrailingZeros().toPlainString()
-    private fun safe(value:Double) = (if (value >= 0.0) "+" else "") + number(value).replace(".","p")
+    private fun safe(value:Double) = (if (value >= 0.0) "+" else "") + kotlin.math.round(value).toLong().toString()
+    private fun rounded(value:Double):Double = java.math.BigDecimal.valueOf(value).setScale(2,java.math.RoundingMode.HALF_UP).toDouble()
 
 
     fun isActive() = active
@@ -116,9 +117,9 @@ internal object AnalyzerMonitorRecording {
         val base="MON_${startTime.format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss_SSS"))}" +
             "_FP${safe(firstParams.center)}Hz_FB${safe(firstParams.width)}Hz_G${safe(firstParams.gain)}dB"
         val metadata=JSONObject().apply {
-            put("filter_position_hz",firstParams.center)
-            put("filter_width_hz",firstParams.width)
-            put("gain_db",firstParams.gain)
+            put("filter_position_hz",rounded(firstParams.center))
+            put("filter_width_hz",rounded(firstParams.width))
+            put("gain_db",rounded(firstParams.gain))
             put("sample_rate_hz",RATE)
             put("changes",JSONArray().apply {
                 synchronized(mutex) {
@@ -126,9 +127,9 @@ internal object AnalyzerMonitorRecording {
                         put(JSONObject().apply {
                             put("time_epoch_ms",t)
                             put("offset_seconds",((t-startTime.toInstant().toEpochMilli())/1000.0).coerceAtLeast(0.0))
-                            put("filter_position_hz",v.center)
-                            put("filter_width_hz",v.width)
-                            put("gain_db",v.gain)
+                            put("filter_position_hz",rounded(v.center))
+                            put("filter_width_hz",rounded(v.width))
+                            put("gain_db",rounded(v.gain))
                         })
                     }
                 }

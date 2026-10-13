@@ -92,6 +92,7 @@ internal fun LiveAnalyzerScreen(
     onLocalAudioSaved: suspend () -> Boolean,
     onAnalyzerAudioArchived: suspend (AudioArchiveEntry) -> Boolean,
     observerId: String,
+    participantKey: String,
     recentObservations: List<RecentObservation>,
     audioNoCommentTimeoutSeconds: Int,
     audioCommentTimeoutSeconds: Int,
@@ -128,6 +129,10 @@ internal fun LiveAnalyzerScreen(
     var chosenInputId by remember { mutableStateOf(-1) }
     var monitoring by remember { mutableStateOf(false) }
     var multiOpen by remember { mutableStateOf(false) }
+    var keyTestOpen by remember { mutableStateOf(false) }
+    var keyTestBusy by remember { mutableStateOf(false) }
+    var keyTestResult by remember { mutableStateOf("Noch kein Test durchgeführt") }
+    var exitConfirmOpen by remember { mutableStateOf(false) }
     var monRecRunning by remember { mutableStateOf(false) }
     var monRecStatus by remember { mutableStateOf("") }
     var monLocalOnly by remember { mutableStateOf(context.getSharedPreferences("mon_rec_053",Context.MODE_PRIVATE).getBoolean("only_local",true)) }
@@ -165,7 +170,7 @@ internal fun LiveAnalyzerScreen(
     var modeBusy by remember { mutableStateOf(false) }
     var modeError by remember { mutableStateOf("") }
     val modeScope = rememberCoroutineScope()
-    fun leavePanel() {
+    fun finishLeavePanel() {
         if (state.running) { onBack(); return } // Panel change while running NEVER changes the source.
         modeScope.launch {
             val left = AnalyzerModeCoordinator.finishStopped(context)
@@ -173,7 +178,33 @@ internal fun LiveAnalyzerScreen(
             else modeError = "Analyzer muss vor dem Beenden gestoppt sein"
         }
     }
+    fun leavePanel() { exitConfirmOpen = true }
     BackHandler(enabled = !settings) { leavePanel() }
+    if(exitConfirmOpen) AlertDialog(onDismissRequest={exitConfirmOpen=false},
+        title={Text("Analyzer verlassen?")},
+        text={Text("Soll der Analyzer im Hintergrund weiterlaufen? Standard: Nein")},
+        confirmButton={TextButton(onClick={exitConfirmOpen=false;finishLeavePanel()}) {Text("Ja – weiterlaufen")} },
+        dismissButton={Row {
+            TextButton(onClick={exitConfirmOpen=false;modeScope.launch {
+                if(monRecRunning) {
+                    monRecRunning=false
+                    val archived=AnalyzerMonitorRecording.stop(context)
+                    if(archived!=null && !monLocalOnly) runCatching { onAnalyzerAudioArchived(archived) }
+                }
+                AnalyzerMonitor.stop()
+                LiveAnalyzerController.stop()
+                state=LiveAnalyzerController.snapshot()
+                finishLeavePanel()
+            }}) {Text("Nein – stoppen")}
+            TextButton(onClick={exitConfirmOpen=false}) {Text("Abbrechen")}
+        }})
+    if(keyTestOpen) AlertDialog(onDismissRequest={if(!keyTestBusy)keyTestOpen=false},
+        title={Text("Supabase-Schlüsseltest")},
+        text={Column {
+            Text("Testvarianten: BB1-… und BB-… (gleiche Vierergruppen)")
+            Text(keyTestResult)
+        }},
+        confirmButton={TextButton(onClick={keyTestOpen=false},enabled=!keyTestBusy) {Text("Schließen")} })
     DisposableEffect(Unit) {
         AnalyzerRouteTracker.start()
         onDispose { AnalyzerMonitor.stop();AnalyzerRouteTracker.stop() }
@@ -620,11 +651,6 @@ internal fun LiveAnalyzerScreen(
                     }
                 })
             }) {
-            if(monitoring) {
-                Text("MON ${"%.0f".format(java.util.Locale.US,monitorCenter)} Hz · ${"%.0f".format(java.util.Locale.US,monitorLevel)} dB${if(monitoringShift) " · SHIFT" else ""}",
-                    modifier=Modifier.align(Alignment.TopEnd).padding(end=17.dp,top=5.dp),
-                    color=if(monitoringShift)Color(0xFFFFCF65) else cyan,fontSize=10.sp)
-            }
             val drawnState=if(monitoring && monitoringTouch) frozenSpectrum ?: state else state
             val freq=drawnState.frequencyHz
             Canvas(Modifier.matchParentSize()) {
@@ -940,6 +966,10 @@ internal fun LiveAnalyzerScreen(
                     if (y in top..bottom) drawLine(cyan,Offset(left,y),Offset(right,y),strokeWidth=1.dp.toPx())
                 }
             }
+            if(monitoring) Text("MON ${"%.0f".format(Locale.US,monitorCenter)} Hz · ${"%.0f".format(Locale.US,monitorLevel)} dB${if(monitoringShift) " · SHIFT" else ""}",
+                modifier=Modifier.align(Alignment.TopEnd).padding(end=plotRightDp + 4.dp,top=plotTopDp + 4.dp)
+                    .background(Color(0xD9081016),RoundedCornerShape(4.dp)).padding(horizontal=4.dp,vertical=2.dp),
+                color=if(monitoringShift)Color(0xFFFFCF65) else cyan,fontSize=10.sp)
             // Two-line waterfall notification is a composited overlay at the LOWER-RIGHT
             // of the plot (inside Hz-axis margins). It does not change the Bitmap, plot
             // coordinates, underlying pixels, colorbar, time axis, or PNG/JPG export.
@@ -1109,7 +1139,7 @@ internal fun LiveAnalyzerScreen(
                             }
                         }
                         AnalyzerMonitor.stop()
-                    } else if(state.running) AnalyzerMonitor.start(context)
+                    } else if(state.running) { expanded=false;AnalyzerMonitor.start(context) }
                     monitoringTouch=false;frozenSpectrum=null
                     monitoring=AnalyzerMonitor.enabled;monitoringShift=AnalyzerMonitor.shifted
                 },onLongPress={
@@ -1210,7 +1240,7 @@ internal fun LiveAnalyzerScreen(
 
             Box(Modifier.size(buttonWidth,buttonHeight).border(BorderStroke(1.dp,muted),RoundedCornerShape(6.dp))
                 .clickable { multiOpen=!multiOpen },contentAlignment=Alignment.Center) {
-                Text("MULTI",color=cyan,fontSize=9.sp)
+                Text("...",color=cyan,fontSize=16.sp)
                 if(multiOpen) Popup(alignment=Alignment.TopStart,
                     offset=IntOffset(0,with(LocalDensity.current){(-(buttonHeight * 5 + 4.dp * 5)).roundToPx()}),
                     properties=PopupProperties(focusable=false)) {
@@ -1218,7 +1248,28 @@ internal fun LiveAnalyzerScreen(
                         for(n in 1..5) {
                             Box(Modifier.size(buttonWidth,buttonHeight).border(BorderStroke(1.dp,muted),RoundedCornerShape(6.dp))
                                 .background(bg,RoundedCornerShape(6.dp))
-                                .clickable { multiOpen=false },contentAlignment=Alignment.Center) {
+                                .clickable {
+                                    multiOpen=false
+                                    if(n==1) {
+                                        keyTestOpen=true;keyTestBusy=true;keyTestResult="Prüfe Supabase …"
+                                        modeScope.launch {
+                                            val suffix=participantKey.trim().substringAfter('-',"")
+                                            if(suffix.isBlank()) keyTestResult="Kein gültiger Teilnehmerschlüssel eingetragen"
+                                            else {
+                                                val client=SupabaseClient()
+                                                val a=client.getRecentObservations("BB1-$suffix")
+                                                val b=client.getRecentObservations("BB-$suffix")
+                                                fun verdict(r:RecentObservationsResult):String = when {
+                                                    r.success -> "AKZEPTIERT"
+                                                    r.message.contains("HTTP 401") || r.message.contains("HTTP 403") -> "ABGELEHNT (${r.message})"
+                                                    else -> "NICHT PRÜFBAR (${r.message})"
+                                                }
+                                                keyTestResult="BB1-${suffix}: ${verdict(a)}\nBB-${suffix}: ${verdict(b)}"
+                                            }
+                                            keyTestBusy=false
+                                        }
+                                    }
+                                },contentAlignment=Alignment.Center) {
                                 Text("$n",color=white,fontSize=16.sp)
                             }
                         }

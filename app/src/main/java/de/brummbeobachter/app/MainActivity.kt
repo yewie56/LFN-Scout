@@ -2700,6 +2700,7 @@ onRollingBufferEnabledChange = { enabled ->
                     }
                 },
                 observerId = observerId,
+                participantKey = keyInput,
                 recentObservations = recentItems,
                 audioNoCommentTimeoutSeconds = reminderSettings.audioNoCommentTimeoutSeconds,
                 audioCommentTimeoutSeconds = reminderSettings.audioCommentTimeoutSeconds,

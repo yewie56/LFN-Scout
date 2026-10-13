@@ -1,3 +1,12 @@
+## v0.5.55 / versionCode 213 (2026-10-13)
+
+- MON-Dateiname: auf ganze Zahlen gerundete FP/FB/G-Parameter; numerische JSON-Werte auf zwei Nachkommastellen.
+- MULTI-Beschriftung `...`; Untertaste 1 testet zwei Schlüsselpräfixe via lesenden Supabase-Endpunkt.
+- MON setzt erweiterten Wasserfall zurück und zeigt MON-Status oben rechts im Wasserfall.
+- Rückfrage beim Verlassen (Ja Hintergrund / Nein stoppen / Abbrechen); Default Nein.
+- Einzelheiten und Grenzen: `ANLEITUNG_TEST_v0.5.55.md`.
+- Kein Android-Buildnachweis für diese Quellversion.
+
 ## v0.5.54 (versionCode 212) – Adaptive Tasten, dynamisches Ⓛ, MON-Metadaten und Gainbar (2026-10-13)
 
 - Acht Tasten passen ohne horizontales Scrollen in die tatsächliche Breite: maximale Breite 48 dp; Rest wird proportional pro Taste auf acht gleiche Breiten verteilt, 2-dp-Abstand; gleiche Tastenhöhe 48 dp. MULTI-Popup-Tasten erhalten exakt dieselben Außenmaße.
