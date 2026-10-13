@@ -42,6 +42,7 @@ internal fun AnalyzerJsonSetupBrowser(context: Context) {
     var runtimeComparison by remember { mutableStateOf("") }
     var displayPreviewId by remember { mutableStateOf(AnalyzerDisplayPreviewSession.activeSetupId) }
     var requestedDisplayPreview by remember { mutableStateOf<String?>(null) }
+    var requestedDisplayFinish by remember { mutableStateOf(false) }
     var expanded by remember { mutableStateOf(false) }
     var monDraftId by remember { mutableStateOf(AnalyzerMonDraftSession.setupId) }
     var monBaseline by remember { mutableStateOf(AnalyzerMonDraftSession.baseline) }
@@ -122,6 +123,37 @@ internal fun AnalyzerJsonSetupBrowser(context: Context) {
             }) { Text("Vorschau starten") } },
             dismissButton = { OutlinedButton(onClick = { requestedDisplayPreview = null }) { Text("Abbrechen") } })
     }
+    if (requestedDisplayFinish) {
+        AlertDialog(onDismissRequest = { requestedDisplayFinish = false },
+            title = { Text("Anzeige-Vorschau beenden") },
+            text = { Text("Speichern übernimmt ausschließlich die 12 unterstützten bzw. tatsächlich geladenen Anzeigeparameter ins ausgewählte JSON-Setup. Verwerfen stellt den Zustand vor Vorschau-Beginn wieder her. Abbrechen behält die Vorschau bei. Andere Setup-Parameter und alte SharedPreferences bleiben unverändert.") },
+            confirmButton = { OutlinedButton(onClick = {
+                runCatching {
+                    val count = AnalyzerDisplayPreviewSession.saveToSetup(repository)
+                    displayPreviewId = AnalyzerDisplayPreviewSession.activeSetupId
+                    requestedDisplayFinish = false
+                    refresh()
+                    warning = "Anzeige gespeichert ($count Parameter)."
+                }.onFailure { warning = "Anzeige nicht gespeichert: ${it.message}" }
+            }) { Text("Speichern") } },
+            dismissButton = { Row {
+                Text("Abweichungen vom Zustand vor Vorschau: ${AnalyzerDisplayPreviewSession.changedKeys().size}",
+                    color = Color(0xFFABB8C0), fontSize = 12.sp)
+                OutlinedButton(onClick = { requestedDisplayFinish = true },
+                    enabled = !AnalyzerMonitor.enabled && !AnalyzerMonitorRecording.isActive()) {
+                    Text("Vorschau beenden: Speichern / Verwerfen / Abbrechen")
+                }
+                OutlinedButton(onClick = {
+                    runCatching {
+                        AnalyzerDisplayPreviewSession.restore(context)
+                        displayPreviewId = AnalyzerDisplayPreviewSession.activeSetupId
+                        requestedDisplayFinish = false
+                        warning = "Anzeige-Vorschau verworfen; ursprüngliche Anzeige wiederhergestellt."
+                    }.onFailure { warning = "Verwerfen fehlgeschlagen: ${it.message}" }
+                }) { Text("Verwerfen") }
+                OutlinedButton(onClick = { requestedDisplayFinish = false }) { Text("Abbrechen") }
+            } })
+    }
     if (requestedId != null) {
         val pending = requestedId!!
         if (!confirmActivation && isDirty()) {
@@ -199,6 +231,12 @@ internal fun AnalyzerJsonSetupBrowser(context: Context) {
                     color = Color(0xFFFFB33B), fontSize = 12.sp)
                 Text("Zurücksetzen stellt den Zustand vor Vorschau-Beginn wieder her. Spätere manuelle Anzeigeänderungen gehen dabei ebenfalls verloren.",
                     color = Color(0xFFABB8C0), fontSize = 12.sp)
+                Text("Abweichungen vom Zustand vor Vorschau: ${AnalyzerDisplayPreviewSession.changedKeys().size}",
+                    color = Color(0xFFABB8C0), fontSize = 12.sp)
+                OutlinedButton(onClick = { requestedDisplayFinish = true },
+                    enabled = !AnalyzerMonitor.enabled && !AnalyzerMonitorRecording.isActive()) {
+                    Text("Vorschau beenden: Speichern / Verwerfen / Abbrechen")
+                }
                 OutlinedButton(onClick = {
                     runCatching {
                         AnalyzerDisplayPreviewSession.restore(context)
