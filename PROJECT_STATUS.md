@@ -1,3 +1,7 @@
+## 2026-10-14 – Phase 3O / Arbeitspaket 10 (Quellkandidat)
+
+Arbeitspaket 9 GitHub-TEST **GRÜN**. Legacy-Eintrittspunkte erhalten dieselben fail-closed Start-Blocker wie die modernen getrackten Pfade, ohne Lifecycle-Tracking vorzutäuschen. Drei neue JUnit-Regressionen; Paket 10 GitHub-TEST offen. `Plan.executable=false`; Gradle `0.5.55 / 213` unverändert.
+
 ## 2026-10-14 – Phase 3O, Arbeitspaket 9 (Quellkandidat)
 
 Arbeitspaket 8: GitHub-TEST vom Benutzer **GRÜN** bestätigt. Paket 9 verhindert getrackte Rolling-/Direct-Startabgaben schon beim Belegen eines existierenden Arbiter-Tokens. Drei JUnit-Regressionen; tatsächliche Android-/GitHub-Ausführung ausstehend. Vorprüfung ist kein atomarer künftiger Hardware-Lease. Reale Setup-Umschaltung bleibt gesperrt (`Plan.executable=false`), Gradle `0.5.55 / 213` unverändert.

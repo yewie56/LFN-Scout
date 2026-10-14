@@ -1,3 +1,7 @@
+## 2026-10-14 – Phase 3O, Arbeitspaket 10 (Quellkandidat)
+- Legacy MON-/Service-Start-Helper verweigern bei vorhandenen Koordinator-Markern, aktiver MON-Aufnahme und belegtem Mikrofon. Drei neue JUnit-Regressionen; neue asynchrone Starts müssen den getrackten Startpfad verwenden.
+- Arbeitspaket 9 GitHub-TEST vom Benutzer GRÜN. Keine produktive Setup-Freigabe oder Version-/Workflow-/Cloud-Änderungen.
+
 ## 2026-10-14 – Phase 3O, Arbeitspaket 9 (Quellkandidat)
 - Rolling-/Direct-Startabgabe unter bestehendem Koordinator jetzt zusätzlich bei belegtem `MicCaptureArbiter` abgewiesen; keine Markeranlage oder Android-Service-Einreichung bei Vorabkonflikt.
 - Drei JUnit-Regressionstests plus statische Quellenprüfung ergänzt. Keine Aktivierung des Setup-Executors (`Plan.executable=false`), keine Gradle-/Cloud-/Workflow-/Recorder-Änderung.

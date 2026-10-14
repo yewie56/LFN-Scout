@@ -7,6 +7,41 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 
 class AnalyzerSetupTransitionCoordinatorTest {
+    @Test fun legacyMonStartRejectsOccupiedMicWithoutCallback() {
+        val lease = MicCaptureArbiter.tryAcquire("outside_recorder")
+        assertNotNull(lease)
+        try {
+            var called = false
+            assertFalse(AnalyzerSetupTransitionCoordinator.withMonStart { called = true; true })
+            assertFalse(called)
+        } finally { lease!!.close() }
+        assertTrue(AnalyzerSetupTransitionCoordinator.withMonStart { true })
+    }
+
+    @Test fun legacyServiceStartRejectsOccupiedMicWithoutCallback() {
+        val lease = MicCaptureArbiter.tryAcquire("outside_recorder")
+        assertNotNull(lease)
+        try {
+            var called = false
+            assertFalse(AnalyzerSetupTransitionCoordinator.withServiceStart { called = true; true })
+            assertFalse(called)
+        } finally { lease!!.close() }
+        assertTrue(AnalyzerSetupTransitionCoordinator.withServiceStart { true })
+    }
+
+    @Test fun legacyServiceSubmissionRejectedDuringTrackedLifecycle() {
+        val c = AnalyzerSetupTransitionCoordinator
+        assertTrue(c.withTrackedServiceStart(c.DIRECT) { true })
+        try {
+            var called = false
+            assertFalse(c.withServiceStart { called = true; true })
+            assertFalse(called)
+            assertFalse(c.withMonStart { called = true; true })
+            assertFalse(called)
+        } finally { c.serviceDestroyed(c.DIRECT) }
+        assertTrue(c.withServiceStart { true })
+    }
+
     @Test fun trackedRollingStartRejectsExistingMicOwnerWithoutSubmitting() {
         val lease = MicCaptureArbiter.tryAcquire("direct_recording")
         assertNotNull(lease)

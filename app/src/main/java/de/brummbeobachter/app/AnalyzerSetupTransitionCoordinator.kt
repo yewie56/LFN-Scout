@@ -165,17 +165,24 @@ internal object AnalyzerSetupTransitionCoordinator {
 
     internal fun hasInFlightServiceStarts(): Boolean = synchronized(mutex) { inFlightServices.isNotEmpty() }
 
-    /** Serializes MON start against acquisition of a setup reservation. */
+    /** Legacy MON submission gate. This is a deny-only check, not a hardware lease.
+     * Keep the start callback under the same coordinator mutex as setup reservation.
+     */
     fun withMonStart(start: () -> Boolean): Boolean = synchronized(mutex) {
-        if (setupReserved || inFlightServices.isNotEmpty() || captureJobsPending.isNotEmpty() || destroyedServices.isNotEmpty()) false else start()
+        if (blockingReasonsLocked().isNotEmpty() || AnalyzerMonitorRecording.isActive() ||
+            MicCaptureArbiter.owner != null) return@synchronized false
+        start()
     }
 
-    /** Serialize service start submission against a future setup reservation.
-     * The service may start asynchronously AFTER the request returns. Thus this
-     * gate is necessary but NOT sufficient for a safe setup switch.
+    /** Legacy synchronous service-submission helper (no production callers).
+     * Apply the same conservative blockers as the tracked start path. Unlike
+     * withTrackedServiceStart this helper cannot track asynchronous lifecycles;
+     * it MUST NOT be used for a new asynchronous Android Service request.
      */
     fun withServiceStart(start: () -> Boolean): Boolean = synchronized(mutex) {
-        if (setupReserved) false else start()
+        if (blockingReasonsLocked().isNotEmpty() || AnalyzerMonitorRecording.isActive() ||
+            MicCaptureArbiter.owner != null) return@synchronized false
+        start()
     }
 
     /** Exclusive reservation across an arbitrary synchronous block. A null result

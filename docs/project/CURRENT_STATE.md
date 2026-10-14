@@ -1,3 +1,14 @@
+# LFN-Scout CURRENT_STATE – Phase 3O, Arbeitspaket 10 (Quellkandidat)
+
+**Stand:** 14.10.2026; Entwicklungsziel `0.5.56`; Gradle `0.5.55` / `213` unverändert.
+**Letzter durch Benutzer bestätigter GitHub-TEST:** Arbeitspaket 9 **GRÜN**.
+**Arbeitspaket 10:** Bestehende Legacy-Eintrittspunkte `withMonStart` und `withServiceStart` verwenden nun die gemeinsame fail-closed-Markerprüfung und verweigern Starts bei belegtem `MicCaptureArbiter` oder aktiver MON-Aufnahme. Drei neue JUnit-Fälle für belegtes Mikrofon und offenes Service-Lifecycle. Keine neuen Audio-Koordinatoren oder Änderungen an produktiven Recorder-Routinen.
+**Grenze:** `withServiceStart` hält KEINE asynchrone Lifecycle-Reservierung; neue Android-Service-Starts müssen `withTrackedServiceStart` verwenden. Noch keine Ende-zu-Ende-Atomarität, kein Hardware-Rollback, keine Controller-Anbindung oder Gerätetest. `Plan.executable=false` bleibt bestehen.
+**Schutz:** Versionsnummern, Termux v4, Cloud, Workflows, Signierung, `.gitignore` unverändert. Historisches Supabase-Storage-Backup bleibt ausschließlich auf GitHub.
+**Teststatus:** Lokale statische Quellprüfungen separat; GitHub-JUnit/Android-Build für Arbeitspaket 10 offen.
+
+---
+
 # LFN-Scout CURRENT_STATE – Phase 3O, Arbeitspaket 9 (Quellkandidat)
 
 **Stand:** 14.10.2026; Entwicklungsziel `0.5.56`; Gradle `0.5.55` / `213` unverändert.

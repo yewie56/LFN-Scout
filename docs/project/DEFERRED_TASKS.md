@@ -1,3 +1,9 @@
+## Phase 3O / Arbeitspaket 10 – weiterhin offen
+
+- [ ] Vollständig atomare Koordination der tatsächlichen Audio-Hardware aller Analyzer-/MON-/Scout-/Rolling-/Direct-Pfade einschließlich asynchronem Cleanup nachweisen. Die Legacy-Start-Helper sind nur ablehnende synchrone Prüfungen.
+- [ ] Produktiver Controller-Adapter, Hardware-STOP–Reconfigure–START, Rollback/Fault-Injection und Android-Gerätetest vor Freischaltung nachziehen. `Plan.executable=false` bis dahin.
+- [ ] Paket 10 GitHub-JUnit/Android-Build prüfen.
+
 ## Phase 3O / Arbeitspaket 9 – offen
 
 - [ ] Gesamte Audio-Hardware-/Lifecycle-Sperrung auch bei asynchroner Aufnahmefreigabe und allen Analyzer-/MON-/Scout-/Rolling-/Direct-Pfaden nachweisen. Das neue Owner-Snapshot vor dem getrackten Service-Start ist keine atomare Reservierung.
