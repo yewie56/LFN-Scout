@@ -7,6 +7,43 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 
 class AnalyzerSetupTransitionCoordinatorTest {
+    @Test fun legacyReservationSharesCoordinatorGateAndMicToken() {
+        val result = AnalyzerSetupMicrophoneReservation.withReservation {
+            assertTrue(AnalyzerSetupTransitionCoordinator.snapshotGate().setupReserved)
+            assertEquals("analyzer_setup_preflight", MicCaptureArbiter.owner)
+            assertNull(AnalyzerSetupMicrophoneReservation.withReservation { "nested" })
+            "ok"
+        }
+        assertEquals("ok", result)
+        assertNull(MicCaptureArbiter.owner)
+        assertFalse(AnalyzerSetupTransitionCoordinator.snapshotGate().setupReserved)
+    }
+
+    @Test fun legacyReservationRejectsOpenServiceLifecycle() {
+        val c = AnalyzerSetupTransitionCoordinator
+        assertTrue(c.withTrackedServiceStart(c.ROLLING) { true })
+        try {
+            var invoked = false
+            assertNull(AnalyzerSetupMicrophoneReservation.withReservation {
+                invoked = true
+                "unsafe"
+            })
+            assertFalse(invoked)
+        } finally { c.serviceDestroyed(c.ROLLING) }
+        assertFalse(c.snapshotGate().setupReserved)
+    }
+
+    @Test fun legacyReservationReleasesCoordinatorAndMicAfterException() {
+        try {
+            AnalyzerSetupMicrophoneReservation.withReservation<Unit> {
+                throw IllegalStateException("injected")
+            }
+            fail("expected exception")
+        } catch (_: IllegalStateException) { }
+        assertNull(MicCaptureArbiter.owner)
+        assertFalse(AnalyzerSetupTransitionCoordinator.snapshotGate().setupReserved)
+    }
+
     @Test fun checkedReservationHoldsMicTokenWithinCallback() {
         val c = AnalyzerSetupTransitionCoordinator
         val result = c.withOwnerCheckedReservation({ emptyList() }) {

@@ -1,3 +1,7 @@
+### Phase 3O – Arbeitspaket 12 (Quellkandidat)
+
+- Legacy-Mikrofonreservierungshelfer an zentrale Setup-Reservierung angebunden; drei JUnit-Regressionen und statischer Prüfer. Keine Freigabe des Setup-Executors.
+
 ## 0.5.56 – Phase 3O, Arbeitspaket 11 (Quellkandidat, nicht freigegeben)
 
 - Vereinheitlichte Koordinator- und MicCaptureArbiter-Reservierung in einem synchronisierten Zulassungsschritt; kein nachgelagerter Lease-Erwerb mehr.

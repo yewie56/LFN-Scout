@@ -1,3 +1,14 @@
+# LFN-Scout CURRENT_STATE – Phase 3O, Arbeitspaket 12 (Quellkandidat)
+
+**Stand:** 14.10.2026; Entwicklungsziel `0.5.56`; Gradle `0.5.55` / `213` unverändert.
+**Letzter durch Benutzer bestätigter GitHub-TEST:** Arbeitspaket 11 **GRÜN**.
+**Paket 12:** Der bestehende, bisher isolierte synchrone Hilfseinstieg `AnalyzerSetupMicrophoneReservation.withReservation` delegiert jetzt an `AnalyzerSetupTransitionCoordinator.withSetupReservation`. Dadurch ist ein isolierter Mikrofon-Token-Erwerb unter Umgehung der gemeinsamen Service-/Setup-Marker nicht mehr möglich. Dieser Helper besitzt derzeit keine produktiven Aufrufer. Die produktiven Recorder-Routinen sind unverändert.
+**Regressionen:** Drei JUnit-Fälle prüfen gemeinsame Sperre/Token, Verweigerung bei offenem Rolling-Lebenszyklus und Freigabe nach Ausnahme. Neuer statischer Quellprüfer.
+**Grenze:** Diese Änderung schließt einen Legacy-Nebenpfad, liefert aber noch KEINE atomare Ende-zu-Ende-Koordination asynchroner Audio-Starts oder den Hardware-STOP–Reconfigure–START-Rollback. `Plan.executable=false` bleibt bestehen. GitHub-JUnit/Android-Build und Gerätetest für Paket 12 stehen aus.
+**Schutz:** Termux v4, Workflows, Gradle, Signierung, `.gitignore`, Supabase/Cloud unverändert; historisches Storage-Backup nur auf GitHub.
+
+---
+
 # LFN-Scout CURRENT_STATE – Phase 3O, Arbeitspaket 11 (Quellkandidat)
 
 **Stand:** 14.10.2026; Zielversion `0.5.56`; Gradle `0.5.55` / `213` unverändert.

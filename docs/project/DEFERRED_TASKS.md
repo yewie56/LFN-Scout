@@ -1,3 +1,7 @@
+### Phase 3O – Weiter offen nach Arbeitspaket 12
+
+- End-to-End-Atomarität der asynchronen Service-/Audio-Starts, Controller-Adapter, Hardware-Rollback und Android-Gerätetests. `Plan.executable=false` bis zur vollständigen Verifikation beibehalten.
+
 ## Phase 3O – weiterhin offen nach Arbeitspaket 11
 
 - Gemeinsame atomare Koordination sämtlicher realer asynchroner Audio-Start-/Stop-Pfade auch über Service-Lebenszyklen nachweisen.

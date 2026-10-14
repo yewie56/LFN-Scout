@@ -1,3 +1,7 @@
+### Phase 3O – Arbeitspaket 12
+
+Arbeitspaket 11 GitHub-TEST GRÜN. Arbeitspaket 12 als Quellkandidat: isolierter Legacy-Reservierungspfad an Koordinator angeschlossen, drei JUnit-Regressionen ergänzt. GitHub-TEST offen, produktiver Setupwechsel gesperrt.
+
 ## Phase 3O – Arbeitspaket 11 (Quellkandidat)
 
 Arbeitspaket 10: GitHub-TEST durch Benutzer bestätigt **GRÜN**. Arbeitspaket 11 integriert die MicCaptureArbiter-Tokenübernahme in dieselbe koordinierte Reservierungsentscheidung und ergänzt drei JUnit-Regressionen. Der produktive Audio-/FFT-Setupwechsel bleibt deaktiviert (`Plan.executable=false`); JUnit und Android-Build für Arbeitspaket 11 noch offen. Version `0.5.55` / `213` unverändert. Siehe `docs/project/CURRENT_STATE.md`.
