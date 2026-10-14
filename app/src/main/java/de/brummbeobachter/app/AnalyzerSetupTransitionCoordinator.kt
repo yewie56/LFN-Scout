@@ -41,12 +41,16 @@ internal object AnalyzerSetupTransitionCoordinator {
 
     /** Invoked by Job.invokeOnCompletion, AFTER the coroutine completes its finally. */
     fun captureJobFinished(service: String) = synchronized(mutex) {
-        captureJobsPending.remove(service)
+        // A duplicate completion must not finalize an unrelated lifecycle.
+        if (!captureJobsPending.remove(service)) return@synchronized
         if (destroyedServices.contains(service)) clearCompletedService(service)
     }
 
     /** Android's lifecycle alone is insufficient: wait for any pending capture cleanup. */
     fun serviceDestroyed(service: String) = synchronized(mutex) {
+        // Ignore duplicate or late callbacks after an already completed lifecycle.
+        // In particular, do not leave a stale destroyed marker for a subsequent start.
+        if (!inFlightServices.contains(service) && !captureJobsPending.contains(service)) return@synchronized
         destroyedServices.add(service)
         if (!captureJobsPending.contains(service)) clearCompletedService(service)
     }

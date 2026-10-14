@@ -1,3 +1,9 @@
+## Phase 3O/18 (14.10.2026, Quellkandidat; GitHub TEST offen)
+
+- Koordinator ignoriert verspätete/doppelte Lifecycle- und Job-Ende-Callbacks ohne gültige aktive Vormerkung; zwei JUnit-Tests und Quelltest.
+- Historischer MON-Quelltest an bestehende Capture-Cleanup-Sperrbedingung angepasst.
+- Letzter bestätigter GitHub-TEST: 3O/17 GRÜN (Nutzerangabe). Setup-Executor weiterhin deaktiviert.
+
 ## Phase 3O/17 – Doppelstartschutz (Quellkandidat, GitHub TEST offen)
 
 - Gleichzeitige/wiederholte Rolling-/Direct-START-Anforderung desselben Services wird bei offenem Lifecycle-/Capture-Cleanup-Marker konservativ abgewiesen.

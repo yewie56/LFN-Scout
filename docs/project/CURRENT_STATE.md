@@ -1,8 +1,12 @@
-# LFN-Scout CURRENT_STATE – Phase 3O/17
+# LFN-Scout CURRENT_STATE – Phase 3O/18
 
 **Stand:** 14.10.2026 · Entwicklungsziel `0.5.56` · Gradle `versionName 0.5.55`, `versionCode 213` unverändert.
-**Letzter bestätigter GitHub TEST:** Phase 3O/16 **GRÜN (Nutzerbestätigung)**. Keine Commit-ID neu verifiziert.
-**Neuer Quellkandidat:** Phase 3O/17; GitHub TEST und Android-Gerätetest OFFEN.
+**Letzter bestätigter GitHub TEST:** Phase 3O/17 **GRÜN (Nutzerbestätigung)**. Keine Commit-ID neu verifiziert.
+**Neuer Quellkandidat:** Phase 3O/18; GitHub TEST und Android-Gerätetest OFFEN.
+
+## Implementiert in 3O/18
+
+Doppelte bzw. verspätete `serviceDestroyed()`-Callbacks erzeugen keine veralteten `destroyedServices`-Marker mehr, wenn weder Start noch Capture-Job ausstehen. Doppelte `captureJobFinished()`-Callbacks dürfen keine andere Sitzung abschließen. Zwei neue JUnit-Tests und ein zusätzlicher statischer Regressionstest. Der ältere MON-Quelltest wurde auf die strengere `captureJobsPending`-Abfrage aktualisiert. GitHub-TEST von 3O/18 offen. **Kein ausführbarer Setupwechsel.**
 
 ## Implementiert in 3O/17
 
@@ -33,6 +37,6 @@ Weitere Audio-/Recorder-Ressourcen inklusive Fremd-Coroutinen und stale `inFligh
 
 ## Prüfhistorie 3O/16
 
-Phase-3O-Quelltests PASS. Ältere Phase-3F-/3J-Quelltests schlagen wegen später hinzugefügter Setup-UI-/Session-Funktionen fehl (3F 3 von 12 Checks, 3J 2 von 18); diese Tests wurden nicht als PASS ausgegeben. GitHub TEST von 3O/16 GRÜN (Nutzerbestätigung); GitHub TEST von 3O/17 noch offen.
+Phase-3O-Quelltests PASS. Ältere Phase-3F-/3J-Quelltests schlagen wegen später hinzugefügter Setup-UI-/Session-Funktionen fehl (3F 3 von 12 Checks, 3J 2 von 18); diese Tests wurden nicht als PASS ausgegeben. GitHub TEST von 3O/16 GRÜN (Nutzerbestätigung); GitHub TEST von 3O/17 GRÜN (Nutzerbestätigung).
 
 Historie: Phase 3O/14 führte gemeinsame Rolling-/Direct-Startschranken ein; Phase 3O/14-FIX1 korrigierte den Kotlin-Return-Fehler.

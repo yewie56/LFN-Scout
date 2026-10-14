@@ -163,4 +163,28 @@ class AnalyzerSetupTransitionCoordinatorTest {
         assertFalse(coordinator.hasInFlightServiceStarts())
     }
 
+    @Test fun lateDuplicateDestroyDoesNotPoisonNextLifecycle() {
+        val c = AnalyzerSetupTransitionCoordinator
+        assertTrue(c.withTrackedServiceStart(c.DIRECT) { true })
+        c.serviceDestroyed(c.DIRECT)
+        c.serviceDestroyed(c.DIRECT) // repeated callback after release
+        assertTrue(c.withTrackedServiceStart(c.DIRECT) { true })
+        c.captureJobPending(c.DIRECT)
+        c.captureJobFinished(c.DIRECT) // must NOT release before actual destroy
+        assertTrue(c.hasInFlightServiceStarts())
+        c.serviceDestroyed(c.DIRECT)
+        assertFalse(c.hasInFlightServiceStarts())
+    }
+
+    @Test fun duplicateCaptureCompletionCannotReleaseActiveService() {
+        val c = AnalyzerSetupTransitionCoordinator
+        assertTrue(c.withTrackedServiceStart(c.ROLLING) { true })
+        c.captureJobPending(c.ROLLING)
+        c.captureJobFinished(c.ROLLING)
+        c.captureJobFinished(c.ROLLING) // duplicate callback
+        assertTrue(c.hasInFlightServiceStarts())
+        c.serviceDestroyed(c.ROLLING)
+        assertFalse(c.hasInFlightServiceStarts())
+    }
+
 }
