@@ -7,6 +7,44 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 
 class AnalyzerSetupTransitionCoordinatorTest {
+    @Test fun checkedReservationHoldsMicTokenWithinCallback() {
+        val c = AnalyzerSetupTransitionCoordinator
+        val result = c.withOwnerCheckedReservation({ emptyList() }) {
+            assertEquals("analyzer_setup_preflight", MicCaptureArbiter.owner)
+            assertNull(MicCaptureArbiter.tryAcquire("competing"))
+            "reserved"
+        }
+        assertEquals("reserved", result)
+        assertNull(MicCaptureArbiter.owner)
+    }
+
+    @Test fun checkedReservationFailsClosedIfMicAlreadyLeased() {
+        val occupied = MicCaptureArbiter.tryAcquire("another_recorder")
+        assertNotNull(occupied)
+        try {
+            var ran = false
+            assertNull(AnalyzerSetupTransitionCoordinator.withOwnerCheckedReservation({ emptyList() }) {
+                ran = true
+                "unexpected"
+            })
+            assertFalse(ran)
+            assertFalse(AnalyzerSetupTransitionCoordinator.snapshotGate().setupReserved)
+            assertEquals("another_recorder", MicCaptureArbiter.owner)
+        } finally { occupied!!.close() }
+    }
+
+    @Test fun checkedReservationReleasesMicAfterCallbackException() {
+        try {
+            AnalyzerSetupTransitionCoordinator.withOwnerCheckedReservation<Unit>({ emptyList() }) {
+                assertEquals("analyzer_setup_preflight", MicCaptureArbiter.owner)
+                throw IllegalStateException("test failure")
+            }
+            fail("exception expected")
+        } catch (_: IllegalStateException) { }
+        assertNull(MicCaptureArbiter.owner)
+        assertFalse(AnalyzerSetupTransitionCoordinator.snapshotGate().setupReserved)
+    }
+
     @Test fun legacyMonStartRejectsOccupiedMicWithoutCallback() {
         val lease = MicCaptureArbiter.tryAcquire("outside_recorder")
         assertNotNull(lease)

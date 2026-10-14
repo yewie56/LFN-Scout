@@ -1,3 +1,14 @@
+# LFN-Scout CURRENT_STATE – Phase 3O, Arbeitspaket 11 (Quellkandidat)
+
+**Stand:** 14.10.2026; Zielversion `0.5.56`; Gradle `0.5.55` / `213` unverändert.
+**Letzter durch Benutzer bestätigter GitHub-TEST:** Arbeitspaket 10 **GRÜN**.
+**Arbeitspaket 11:** Der vorhandene `withOwnerCheckedReservation`-Pfad reserviert nun das Token des bestehenden `MicCaptureArbiter` in derselben synchronisierten Zulassungsentscheidung, in der auch die Koordinator-Marker und der Audio-Owner-Status geprüft werden. Der produktive `withSetupReservation`-Aufruf verwendet denselben zentralen Mechanismus statt einer nachgeschalteten Token-Erwerbung. Bei bereits vergebenem Token bleibt der Nutzerblock unausgeführt. Token und Koordinator-Marker werden auch nach Ausnahme in definierter Reihenfolge freigegeben; weitere Startentscheidungen sehen den offenen Marker bis zur Tokenfreigabe.
+**Tests:** Drei neue JUnit-Regressionen für Token innerhalb des injizierbaren Reservierungspfads, konkurrierenden Besitzer und Ausnahme-Cleanup. 26 lokale statische Phase-3O-Prüfer; GitHub-JUnit/Android-Build für Paket 11 noch offen. Ältere statische Prüfskripte auf die gleichwertige zentralisierte Reservierung aktualisiert.
+**Wichtige Grenze:** Diese Verbesserung betrifft ausschließlich die synchrone In-Process-Zulassung. Kein Ende-zu-Ende-Atomaritätsbeweis für asynchrone Android-Services, keine produktive Controller-Anbindung, keine Hardware-Wiederherstellung und keine Gerätetests. `Plan.executable=false` bleibt erhalten.
+**Schutz:** Termux v4, Workflows, Gradle, Signierung, `.gitignore`, Cloud und Supabase unverändert. `supabase/storage_backup_before_v0526/` bleibt nur auf GitHub und wird nicht mitgeliefert.
+
+---
+
 # LFN-Scout CURRENT_STATE – Phase 3O, Arbeitspaket 10 (Quellkandidat)
 
 **Stand:** 14.10.2026; Entwicklungsziel `0.5.56`; Gradle `0.5.55` / `213` unverändert.

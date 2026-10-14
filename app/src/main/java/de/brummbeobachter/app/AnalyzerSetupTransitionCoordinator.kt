@@ -190,14 +190,7 @@ internal object AnalyzerSetupTransitionCoordinator {
      * guaranteed even when the block throws. Must not be used for suspend code.
      */
     fun <T> withSetupReservation(block: () -> T): T? =
-        withOwnerCheckedReservation({ AnalyzerSetupAudioOwnerGate.observe().blockers }) {
-            // Package 8: bridge the coordinator reservation to the existing hardware
-            // owner lease. Hold the token throughout the synchronous callback and
-            // release it on every exit. Failure to acquire must never run the block.
-            val lease = MicCaptureArbiter.tryAcquire("analyzer_setup_preflight")
-                ?: return@withOwnerCheckedReservation null
-            lease.use { block() }
-        }
+        withOwnerCheckedReservation({ AnalyzerSetupAudioOwnerGate.observe().blockers }, block)
 
     /** Phase 3O / package 6: shared reservation decision with a conservative owner
      * probe under the coordinator mutex. Injection permits JVM tests without Android
@@ -212,17 +205,25 @@ internal object AnalyzerSetupTransitionCoordinator {
         ownerBlockers: () -> List<String>,
         block: () -> T
     ): T? {
+        // The coordinator gate and MIC token are now acquired in the same
+        // serialized admission decision. A preflight that loses the MIC race
+        // must NOT execute its caller even when the owner probe was clear.
+        val lease: MicCaptureArbiter.Token
         synchronized(mutex) {
             if (blockingReasonsLocked().isNotEmpty()) return null
-            // Failure to read any owner state must fail closed.
             val blockers = try { ownerBlockers() } catch (_: Throwable) { return null }
             if (blockers.isNotEmpty()) return null
-            // The status is read while coordinating MON starts; the later
-            // absence of known blockers must NOT authorize an actual setup switch.
             if (AnalyzerMonitorRecording.isActive()) return null
+            lease = MicCaptureArbiter.tryAcquire("analyzer_setup_preflight") ?: return null
             setupReserved = true
         }
         try { return block() }
-        finally { synchronized(mutex) { setupReserved = false } }
+        finally {
+            // Keep the coordinator gate closed until the MIC token is released.
+            synchronized(mutex) {
+                try { lease.close() }
+                finally { setupReserved = false }
+            }
+        }
     }
 }

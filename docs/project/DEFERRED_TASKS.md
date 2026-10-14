@@ -1,3 +1,9 @@
+## Phase 3O – weiterhin offen nach Arbeitspaket 11
+
+- Gemeinsame atomare Koordination sämtlicher realer asynchroner Audio-Start-/Stop-Pfade auch über Service-Lebenszyklen nachweisen.
+- Produktiven Controller-Adapter STOP–Reconfigure–START integrieren, transaktionalen Rollback einschließlich Hardware-Fehlerinjektion absichern und Android-Gerätetests durchführen.
+- Erst danach Freischaltentscheidung für `Plan.executable` treffen.
+
 ## Phase 3O / Arbeitspaket 10 – weiterhin offen
 
 - [ ] Vollständig atomare Koordination der tatsächlichen Audio-Hardware aller Analyzer-/MON-/Scout-/Rolling-/Direct-Pfade einschließlich asynchronem Cleanup nachweisen. Die Legacy-Start-Helper sind nur ablehnende synchrone Prüfungen.

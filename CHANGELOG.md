@@ -1,3 +1,9 @@
+## 0.5.56 – Phase 3O, Arbeitspaket 11 (Quellkandidat, nicht freigegeben)
+
+- Vereinheitlichte Koordinator- und MicCaptureArbiter-Reservierung in einem synchronisierten Zulassungsschritt; kein nachgelagerter Lease-Erwerb mehr.
+- Fail-closed bei konkurrierendem Mikrofonbesitzer und token-sicheres Cleanup auch bei Ausnahmen.
+- Drei JUnit-Regressionen, statischer Prüfer und Aktualisierung der bisherigen statischen Strukturprüfungen; produktiver Executor unverändert deaktiviert.
+
 ## 2026-10-14 – Phase 3O, Arbeitspaket 10 (Quellkandidat)
 - Legacy MON-/Service-Start-Helper verweigern bei vorhandenen Koordinator-Markern, aktiver MON-Aufnahme und belegtem Mikrofon. Drei neue JUnit-Regressionen; neue asynchrone Starts müssen den getrackten Startpfad verwenden.
 - Arbeitspaket 9 GitHub-TEST vom Benutzer GRÜN. Keine produktive Setup-Freigabe oder Version-/Workflow-/Cloud-Änderungen.

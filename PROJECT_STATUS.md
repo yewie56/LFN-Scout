@@ -1,3 +1,7 @@
+## Phase 3O – Arbeitspaket 11 (Quellkandidat)
+
+Arbeitspaket 10: GitHub-TEST durch Benutzer bestätigt **GRÜN**. Arbeitspaket 11 integriert die MicCaptureArbiter-Tokenübernahme in dieselbe koordinierte Reservierungsentscheidung und ergänzt drei JUnit-Regressionen. Der produktive Audio-/FFT-Setupwechsel bleibt deaktiviert (`Plan.executable=false`); JUnit und Android-Build für Arbeitspaket 11 noch offen. Version `0.5.55` / `213` unverändert. Siehe `docs/project/CURRENT_STATE.md`.
+
 ## 2026-10-14 – Phase 3O / Arbeitspaket 10 (Quellkandidat)
 
 Arbeitspaket 9 GitHub-TEST **GRÜN**. Legacy-Eintrittspunkte erhalten dieselben fail-closed Start-Blocker wie die modernen getrackten Pfade, ohne Lifecycle-Tracking vorzutäuschen. Drei neue JUnit-Regressionen; Paket 10 GitHub-TEST offen. `Plan.executable=false`; Gradle `0.5.55 / 213` unverändert.
