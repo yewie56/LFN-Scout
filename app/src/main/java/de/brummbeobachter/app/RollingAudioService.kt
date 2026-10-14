@@ -125,8 +125,10 @@ class RollingAudioService : Service() {
                 }
                 val r = runCatching { createRecorder(source) }.getOrNull()
                 if (r != null && r.state == AudioRecord.STATE_INITIALIZED) {
-                    if (preferred != null) r.setPreferredDevice(preferred)
+                    // Own the initialized recorder before device routing can throw.
+                    // The outer finally must be able to release this instance.
                     recorder = r
+                    if (preferred != null) r.setPreferredDevice(preferred)
                     usedMode = candidate
                     break
                 } else runCatching { r?.release() }.onFailure {

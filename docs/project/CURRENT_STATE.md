@@ -1,3 +1,14 @@
+# Phase 3O – Arbeitspaket 21 (Quellkandidat)
+
+**Stand:** 15.10.2026; Entwicklungsziel `0.5.56`; Gradle `0.5.55 / 213` unverändert.
+**Letzter durch Benutzer bestätigter GitHub-TEST:** Arbeitspaket 20 **GRÜN**.
+**Änderung:** In `RollingAudioService` und `AnalyzerDirectAudioService` wird ein bereits erfolgreich initialisiertes `AudioRecord`-Objekt vor dem optionalen `setPreferredDevice()` in der lokal durch das `finally` bereinigten Recorder-Referenz registriert. Wirft die Gerätezuweisung eine Ausnahme, läuft die bestehende `finally`-Freigabe über das korrekte Objekt. Bei einer `release()`-Ausnahme wird wie seit AP19 die Mikrofon-Lease quarantänisiert. Neuer statischer Regressionstest erzwingt die Reihenfolge.
+**Grenzen:** Keine atomare Android-Hardwarefreigabebestätigung, kein produktiver Setupwechsel/Hardware-Rollback, kein Gerätetest. `Plan.executable=false` bleibt unverändert.
+**Tests:** Lokale statische Phase-3O-Prüfer; JUnit/Android-Build für AP21 erst durch GitHub-TEST zu bestätigen.
+**Schutz:** Termux v4, Workflows, Gradle/Signierung, `.gitignore`, Supabase/Cloud unverändert; historisches Backup nur in GitHub.
+
+---
+
 # Phase 3O – Arbeitspaket 20 (Quellkandidat)
 
 **Stand:** 15.10.2026; Entwicklungsziel `0.5.56`, Gradle `0.5.55 / 213` unverändert.

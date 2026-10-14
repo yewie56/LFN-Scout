@@ -100,8 +100,10 @@ class AnalyzerDirectAudioService : Service() {
                     AudioFormat.ENCODING_PCM_16BIT, maxOf(min, 8192)) }.getOrNull()
                 if (candidateRecorder?.state == AudioRecord.STATE_INITIALIZED) {
                     val preferred = AudioInputManager.findInput(applicationContext, prefs.audioInputDeviceId)
-                    if (preferred != null) candidateRecorder.setPreferredDevice(preferred)
+                    // Register ownership before optional routing can throw, so
+                    // the capture finally always releases this AudioRecord.
                     recorder = candidateRecorder
+                    if (preferred != null) candidateRecorder.setPreferredDevice(preferred)
                     break
                 }
                 runCatching { candidateRecorder?.release() }.onFailure {
