@@ -84,4 +84,58 @@ class AnalyzerSetupTransitionProtocolTest {
         assertNotEquals(AnalyzerSetupTransitionProtocol.Stage.SAFE_STOPPED, result.stage)
         assertTrue(result.recoveryErrors.isNotEmpty())
     }
+    private class Boundary : AnalyzerSetupTransitionProtocol.ExclusiveBoundary {
+        var available = true
+        var valid = true
+        var held = false
+        var entries = 0
+        override fun <T> underExclusiveOwnership(operation: () -> T): T? {
+            if (!available || held) return null
+            held = true
+            entries++
+            try { return operation() } finally { held = false }
+        }
+        override fun ownershipStillExclusive(): Boolean = held && valid
+    }
+
+    @Test fun unavailableLeaseNeverTouchesController() {
+        val p = Fake()
+        val boundary = Boundary().apply { available = false }
+        val result = AnalyzerSetupTransitionProtocol.exerciseWithBoundary(p, boundary)
+        assertFalse(result.succeeded)
+        assertFalse(result.rollbackSucceeded)
+        assertTrue(p.log.isEmpty())
+        assertEquals(0, boundary.entries)
+    }
+
+    @Test fun leaseHeldThroughSuccessAndReleased() {
+        val p = Fake()
+        val boundary = Boundary()
+        val result = AnalyzerSetupTransitionProtocol.exerciseWithBoundary(p, boundary)
+        assertTrue(result.succeeded)
+        assertFalse(boundary.held)
+        assertEquals(1, boundary.entries)
+    }
+
+    @Test fun leaseHeldThroughRollbackAndReleased() {
+        val p = Fake().apply { verifyNew = false }
+        val boundary = Boundary()
+        val result = AnalyzerSetupTransitionProtocol.exerciseWithBoundary(p, boundary)
+        assertFalse(result.succeeded)
+        assertTrue(result.rollbackSucceeded)
+        assertEquals("verify-old", p.log.last())
+        assertFalse(boundary.held)
+    }
+
+    @Test fun lostLeaseDoesNotClaimSafeStopped() {
+        val p = Fake()
+        val boundary = Boundary().apply { valid = false }
+        val result = AnalyzerSetupTransitionProtocol.exerciseWithBoundary(p, boundary)
+        assertFalse(result.succeeded)
+        assertFalse(result.rollbackSucceeded)
+        assertNotEquals(AnalyzerSetupTransitionProtocol.Stage.SAFE_STOPPED, result.stage)
+        assertTrue(p.log.isEmpty())
+        assertFalse(boundary.held)
+    }
+
 }

@@ -1,3 +1,9 @@
+## Phase 3O / Arbeitspaket 5 (Quellkandidat, 14.10.2026)
+
+- Isolierten Transaktionskern um testbare ExclusiveBoundary ergänzt; keine produktive Controller-/Recorder-Verbindung.
+- Vier JUnit-Regressionstests für abgewiesene, gehaltene und verlorene Eigentümerschaft.
+- `Plan.executable=false`, versionName 0.5.55 / versionCode 213 und historische Backup-Regel unverändert.
+
 ## 2026-10-14 – v0.5.56 Phase 3O, Arbeitspaket 4 (Quellkandidat)
 - Isoliertes STOP–Reconfigure–START-Protokoll als testbare Zustandsfolge ergänzt, ohne produktiven Adapter.
 - Rollback-Reihenfolge mit Originalfehlererhalt, Recovery-Fehlerliste und verifiziertem Safe-Stop; sechs JUnit-Fälle.

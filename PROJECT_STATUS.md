@@ -1,3 +1,7 @@
+## Phase 3O – Arbeitspaket 5 (Quellkandidat)
+
+Arbeitspaket 4: GitHub-TEST GRÜN laut Benutzer. Arbeitspaket 5: simulierte exklusiv gehaltene Audio-Besitzgrenze mit vier neuen JUnit-Regressionen. Keine produktive Freischaltung und keine Änderung an Recorder-, Cloud-, Workflow- oder Gradle-Schnittstellen. GitHub-TEST/JUnit und Gerätetest für Arbeitspaket 5 stehen aus.
+
 ## Phase 3O – Arbeitspaket 4 (14.10.2026, Quellkandidat)
 GitHub-TEST Arbeitspaket 3 durch Benutzer GRÜN. Nicht angebundenes, testbares Transaktionsprotokoll mit Rollback und sechs JUnit-Regressionen ergänzt. Keine Freigabe, `Plan.executable=false`; Build/JUnit Paket 4 ausstehend. Nächste Schritte: exklusiver MIC-/Recorder-Lease, echter Controller-Adapter, Fault-Injection und UI-/Geräteabnahme.
 

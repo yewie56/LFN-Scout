@@ -1,3 +1,17 @@
+# LFN-Scout CURRENT_STATE – Phase 3O, Arbeitspaket 5 (Quellkandidat)
+
+**Stand:** 14.10.2026; Entwicklungsziel `0.5.56`; Gradle `0.5.55` / `213` unverändert.
+**Letzter vom Benutzer bestätigter GitHub-TEST:** Phase 3O, Arbeitspaket 4 **GRÜN**.
+**Aktueller Kandidat:** Arbeitspaket 5; GitHub-JUnit/Android-Build und Gerätetest OFFEN.
+
+Der bisher isolierte `AnalyzerSetupTransitionProtocol` hat nun zusätzlich `ExclusiveBoundary` und `exerciseWithBoundary` für den **ausschließlich simulierten** Besitz einer durchgängigen Audio-Exklusivsperre. Fehlende oder vorzeitig verlorene Exklusivität wird fail-closed abgewiesen. Die Sperre bleibt in der Testumgebung auch beim Rollback erhalten und wird per `finally` freigegeben. Vier neue JUnit-Regressionstests: nicht verfügbare Sperre, Erfolgsfall, Rollback und Verlust der Exklusivität. Kotlin-Protokollkern lokal isoliert kompiliert (Warnungen); Android-Kompilierung nicht lokal ausgeführt.
+
+**Wichtig:** Diese Schnittstelle ist kein produktiver Mikrofon-Arbiter und noch nicht mit Recorder/MON/Controller gekoppelt; ohne hardwareübergreifende exklusive Grenze, vollständige Controller-Adapter und echte Gerätetests darf es keine produktive Umschaltung geben. `Plan.executable=false` unverändert. Der vorherige reine Fake-Protokollpfad bleibt zur Regression bestehen.
+
+**Nächste Schritte:** Einheitliche Sperre über MON, Scout, Rolling, Direct und Analyzer-Session; preference-freier Controller-Adapter; Fehler-Injektion auch beim Ressourcen-Stopp; UI-Anbindung; Gerätevalidierung. Historisches Supabase-Storage-Backup bleibt ausschließlich auf GitHub, nicht in Quell-ZIPs. Termux v4, Workflows, Signierung, Cloud und Gradle-Version unverändert.
+
+---
+
 # LFN-Scout CURRENT_STATE – Phase 3O, Arbeitspaket 4 (Quellkandidat)
 
 **Stand:** 14.10.2026; Entwicklungsziel `0.5.56`; Gradle `0.5.55` / `213` unverändert.

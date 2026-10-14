@@ -1,3 +1,9 @@
+## Nach Phase 3O/Arbeitspaket 5 weiterhin offen
+
+- Gemeinsame reale Exklusivsperre, die alle Audio-/Recorder-Start- und Stop-Pfade atomar einschließt.
+- Preference-freier produktiver Controller-Adapter für STOP–Reconfigure–START und Rollback.
+- Ausführliche Fehler-Injektion, Race-Tests und echte Android-Gerätevalidierung vor Freigabe.
+
 ## Offen nach Phase 3O, Arbeitspaket 4
 - Isoliertes Transaktionsprotokoll vorhanden, jedoch absichtlich nicht produktiv angeschlossen.
 - Atomaren MIC-/Recorder-Lease und speicherfreien realen Controller-Adapter bereitstellen; Rollback/STOP-Eigentum am Gerät validieren.

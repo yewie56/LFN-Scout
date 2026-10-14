@@ -21,6 +21,44 @@ internal object AnalyzerSetupTransitionProtocol {
         fun verifySafelyStopped(): Boolean
     }
 
+    /** A fake/test lease boundary. Production use requires a lease shared by ALL
+     * audio owners and Service starts; MicCaptureArbiter alone is insufficient.
+     * The lease must remain held through recovery and final verification.
+     */
+    interface ExclusiveBoundary {
+        fun <T> underExclusiveOwnership(operation: () -> T): T?
+        fun ownershipStillExclusive(): Boolean
+    }
+
+    /** Fail closed if exclusive ownership is missing or lost. Test-only until the
+     * production coordinator, MON and recorder paths share one owner boundary.
+     */
+    internal fun exerciseWithBoundary(port: ControlledPort, boundary: ExclusiveBoundary): Result {
+        var ran = false
+        return try {
+            val result = boundary.underExclusiveOwnership {
+                ran = true
+                exerciseWithControlledPort(object : ControlledPort by port {
+                    private fun check() {
+                        check(boundary.ownershipStillExclusive()) { "Exclusive audio ownership lost" }
+                    }
+                    override fun checkpoint(): Any { check(); return port.checkpoint() }
+                    override fun stopAndRelease() { check(); port.stopAndRelease() }
+                    override fun applyDraft() { check(); port.applyDraft() }
+                    override fun startSession() { check(); port.startSession() }
+                    override fun verifyNewSession(): Boolean { check(); return port.verifyNewSession() && boundary.ownershipStillExclusive() }
+                    override fun restoreCheckpoint(checkpoint: Any) { check(); port.restoreCheckpoint(checkpoint) }
+                    override fun verifyRestoredSession(): Boolean { check(); return port.verifyRestoredSession() && boundary.ownershipStillExclusive() }
+                    override fun verifySafelyStopped(): Boolean { check(); return port.verifySafelyStopped() && boundary.ownershipStillExclusive() }
+                })
+            }
+            result ?: Result(false, false, Stage.CHECKPOINT,
+                IllegalStateException(if (ran) "Exclusive operation returned null" else "Exclusive audio ownership unavailable"), emptyList())
+        } catch (t: Throwable) {
+            Result(false, false, Stage.CHECKPOINT, t, emptyList())
+        }
+    }
+
     data class Result(
         val succeeded: Boolean,
         val rollbackSucceeded: Boolean,
