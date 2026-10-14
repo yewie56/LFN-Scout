@@ -39,6 +39,25 @@ internal object AnalyzerSetupTransitionCoordinator {
         )
     }
 
+    /** Phase 3O/20: diagnostic decision ONLY, NOT permission to execute a switch.
+     * This in-process view cannot prove hardware, MIC arbiter or external recorder idleness.
+     */
+    internal data class GateAssessment(
+        val coordinatorMarkersClear: Boolean,
+        val blockingReasons: List<String>
+    )
+
+    internal fun assessGate(): GateAssessment = synchronized(mutex) {
+        val reasons = mutableListOf<String>()
+        if (setupReserved) reasons.add("setup_reserved")
+        inFlightServices.sorted().forEach { reasons.add("service_in_flight:$it") }
+        captureJobsPending.sorted().forEach { reasons.add("capture_cleanup_pending:$it") }
+        // A destroyed marker with no active lifecycle is an inconsistency worth diagnosing.
+        destroyedServices.sorted().filter { it !in inFlightServices && it !in captureJobsPending }
+            .forEach { reasons.add("orphan_destroy_marker:$it") }
+        GateAssessment(reasons.isEmpty(), reasons.toList())
+    }
+
     fun withTrackedServiceStart(service: String, start: () -> Boolean): Boolean = synchronized(mutex) {
         if (setupReserved || inFlightServices.contains(service) || captureJobsPending.contains(service)) return@synchronized false
         // Reject duplicate starts while a previous lifecycle/cleanup is unresolved.

@@ -1,8 +1,12 @@
-# LFN-Scout CURRENT_STATE – Phase 3O/19
+# LFN-Scout CURRENT_STATE – Phase 3O/20
 
 **Stand:** 14.10.2026 · Entwicklungsziel `0.5.56` · Gradle `versionName 0.5.55`, `versionCode 213` unverändert.
-**Letzter bestätigter GitHub TEST:** Phase 3O/18 **GRÜN (Nutzerbestätigung)**. Keine Commit-ID neu verifiziert.
-**Neuer Quellkandidat:** Phase 3O/19; GitHub TEST und Android-Gerätetest OFFEN.
+**Letzter bestätigter GitHub TEST:** Phase 3O/19 **GRÜN (Nutzerbestätigung)**. Keine Commit-ID neu verifiziert.
+**Neuer Quellkandidat:** Phase 3O/20; GitHub TEST und Android-Gerätetest OFFEN.
+
+## Implementiert in 3O/20
+
+`AnalyzerSetupTransitionCoordinator.assessGate()` stellt unter einem gemeinsamen Lock eine **nur diagnostische** Entscheidung mit stabilen Sperrgründen bereit (`setup_reserved`, `service_in_flight:<service>`, `capture_cleanup_pending:<service>`, optional verwaiste Destroy-Marker). `coordinatorMarkersClear=true` bedeutet **nur**, dass die internen Marker leer sind; es ist **keine Ausführungsfreigabe** und prüft weder externe Recorder noch Hardware/Mikrofon-Arbiter. Keine automatische Freigabe, kein UI-Aufruf, kein Executor; `Plan.executable=false`. Zwei JUnit-Tests und statische Regression ergänzt. **GitHub TEST 3O/20 offen.**
 
 ## Implementiert in 3O/19
 

@@ -1,3 +1,7 @@
+## Phase 3O/20 (Quellkandidat; GitHub TEST offen)
+
+Rein lesende, synchronisierte Sperrgrund-Diagnose des AnalyzerSetupTransitionCoordinator ergänzt. Keine Freigabe produktiver Audio-/FFT-Setupwechsel. Neue statische und JUnit-Regressionstests; letzter bestätigter TEST 3O/19 grün. Termux v4, Gradle 0.5.55/213, Cloud und Supabase-Backup-Policy unverändert.
+
 # Phase 3O/19
 
 - `AnalyzerSetupTransitionCoordinator.snapshotGate()` ergänzt: synchronisierte, unverändernd lesbare Kopien von Start-, Destroy- und Capture-Job-Markern; zwei JUnit-Tests und statischer Verifikator.

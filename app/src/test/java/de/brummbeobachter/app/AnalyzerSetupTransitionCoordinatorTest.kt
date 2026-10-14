@@ -213,4 +213,31 @@ class AnalyzerSetupTransitionCoordinatorTest {
         assertFalse(c.snapshotGate().inFlightServices.contains(c.DIRECT))
     }
 
+    @Test fun gateAssessmentReportsLifecycleAndCleanupReasonsWithoutChangingState() {
+        val c = AnalyzerSetupTransitionCoordinator
+        assertTrue(c.withTrackedServiceStart(c.ROLLING) { true })
+        c.captureJobPending(c.ROLLING)
+        c.serviceDestroyed(c.ROLLING)
+        try {
+            val result = c.assessGate()
+            assertFalse(result.coordinatorMarkersClear)
+            assertTrue(result.blockingReasons.contains("service_in_flight:rolling"))
+            assertTrue(result.blockingReasons.contains("capture_cleanup_pending:rolling"))
+            assertTrue(c.hasInFlightServiceStarts())
+            assertNull(c.withSetupReservation { "still blocked" })
+        } finally { c.captureJobFinished(c.ROLLING) }
+    }
+
+    @Test fun gateAssessmentClearNeverImpliesExecutableSetupSwitch() {
+        val c = AnalyzerSetupTransitionCoordinator
+        val assessment = c.assessGate()
+        assertTrue(assessment.coordinatorMarkersClear)
+        assertTrue(assessment.blockingReasons.isEmpty())
+        // This merely checks internal markers; external audio owners still require checks.
+        val inside = c.withSetupReservation { c.assessGate() }
+        assertNotNull(inside)
+        assertFalse(inside!!.coordinatorMarkersClear)
+        assertTrue(inside.blockingReasons.contains("setup_reserved"))
+    }
+
 }
