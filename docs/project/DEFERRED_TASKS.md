@@ -1,3 +1,11 @@
+# Phase 3O/14 – Rolling-/Direct-Startschutz (14.10.2026)
+
+- GitHub TEST Phase 3O/13: **GRÜN laut Nutzer**; Phase 3O/14 noch nicht durch GitHub/Android bestätigt.
+- `AnalyzerSetupTransitionCoordinator.withServiceStart` serialisiert die synchronen START-Anforderungen von `RollingAudioService.requestStart` und `AnalyzerDirectAudioService.requestStart` mit einer zukünftigen Setup-Reservierung. Bei aktiver Reservierung wird der Request ohne Android-Serviceaufruf mit `false` abgewiesen. MON-Schutz der Phase 3O/13 bleibt bestehen.
+- Zwei neue JUnit-Regressionen: Ablehnung eines konkurrierenden Service-Starts sowie Wiederverwendbarkeit nach Start-Exception.
+- **Nicht atomar über den gesamten Service-Lebenszyklus:** `startForegroundService` kehrt vor dem asynchronen AudioRecord-Start zurück. Ein zuvor angenommener Request kann später noch eine Session starten. Bereits aktive oder noch startende Services werden nicht von dieser Koordinationsstelle gestoppt oder reserviert. Eine produktive Umschaltung ist daher weiterhin verboten (`Plan.executable=false`).
+- Keine Änderung an Recorder-STOP-Routinen, Cloud, GitHub-Workflow, Gradle `0.5.55/213`, Termux v4 oder Backup-Dateien. Storage-Backup auf GitHub `main` belassen, aus Quell-ZIP ausschließen.
+
 ## Phase 3O/11 – Audio-Owner-Abweisung (2026-10-14)
 
 - Nutzer bestätigt Phase 3O/10 GitHub TEST **GRÜN**. Phase 3O/11 GitHub TEST und Gerätetest offen.

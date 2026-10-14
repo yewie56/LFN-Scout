@@ -179,13 +179,13 @@ class AnalyzerDirectAudioService : Service() {
                 (context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager)
                     .createNotificationChannel(NotificationChannel(CHANNEL_ID, "Analyzer direkt", NotificationManager.IMPORTANCE_LOW))
         }
-        fun requestStart(context: Context): Boolean = runCatching {
+        fun requestStart(context: Context): Boolean = AnalyzerSetupTransitionCoordinator.withServiceStart { runCatching {
             AnalyzerAudioTrace.write(context, "DIRECT_REQUEST_START", "owner=${MicCaptureArbiter.owner} capturing=$isCapturing")
             lastError = ""
             ensureChannel(context)
             ContextCompat.startForegroundService(context, Intent(context, AnalyzerDirectAudioService::class.java).setAction(START))
             true
-        }.getOrElse { lastError = it.message ?: it.javaClass.simpleName; AnalyzerAudioTrace.write(context, "DIRECT_REQUEST_START_FAILED", "error=$lastError"); false }
+        }.getOrElse { lastError = it.message ?: it.javaClass.simpleName; AnalyzerAudioTrace.write(context, "DIRECT_REQUEST_START_FAILED", "error=$lastError"); false } }
         fun requestStop(context: Context) {
             AnalyzerAudioTrace.write(context, "DIRECT_REQUEST_STOP", "owner=${MicCaptureArbiter.owner} capturing=$isCapturing")
             runCatching { context.startService(Intent(context, AnalyzerDirectAudioService::class.java).setAction(STOP)) }

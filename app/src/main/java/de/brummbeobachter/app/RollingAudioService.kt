@@ -389,7 +389,7 @@ class RollingAudioService : Service() {
                 .notify(RESTART_NOTIFICATION_ID, n)
         }
 
-        fun requestStart(context: Context): Boolean {
+        fun requestStart(context: Context): Boolean = AnalyzerSetupTransitionCoordinator.withServiceStart {
             AnalyzerAudioTrace.write(context, "ROLLING_REQUEST_START", "owner=${MicCaptureArbiter.owner} engine=${RollingAudioEngine.isRunning}")
             ensureChannel(context)
             return runCatching {

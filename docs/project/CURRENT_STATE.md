@@ -1,21 +1,27 @@
-# LFN-Scout CURRENT_STATE – Phase 3O/13
+# LFN-Scout CURRENT_STATE – Phase 3O/14
 
-**Stand:** 14.10.2026. Entwicklungsziel `0.5.56`; Gradle bleibt `0.5.55`, versionCode `213`.
-**Letzter bestätigter GitHub TEST:** Phase 3O/12 **GRÜN (Nutzermeldung)**. Commit-ID nicht erneut überprüft.
-**Neu erstellter Quellkandidat:** Phase 3O/13; GitHub TEST und Android-Gerätetest **offen**.
+**Stand:** 14.10.2026 · Entwicklungsziel `0.5.56` · Gradle `versionName 0.5.55`, `versionCode 213` unverändert.
+**Letzter bestätigter GitHub TEST:** Phase 3O/13 **GRÜN (Nutzerbestätigung)**. Keine zugehörige Commit-ID neu verifiziert.
+**Neuer Quellkandidat:** Phase 3O/14; GitHub TEST und Android-Gerätetest **OFFEN**.
 
-## Neuer Umfang
-`AnalyzerSetupTransitionCoordinator` serialisiert einen MON-WAV-Start mit einer optionalen, synchronen zukünftigen Setup-Reservierung. Während einer solchen Reservierung wird ein MON-Start abgewiesen; die Reservierung wird nach Ausnahmen freigegeben. `AnalyzerMonitorRecording.start` verwendet jetzt die Koordination. Drei JUnit-Konkurrenz-/Fehlertests hinzugefügt. **Der produktive Setup-Executor ist weiterhin nicht an die Reservierung angeschlossen.** Rolling- und Direct-Service-Übergänge bleiben außerhalb der gemeinsamen Koordination.
+## Implementiert
 
-## Unverändert / Sicherheitsgrenzen
-- Phase 3N `Plan.executable=false` – kein produktiver STOP/START-Setupwechsel.
-- Keine Synchronisierung mit MON-Aufnahmestarts oder sämtlichen Serviceübergängen; noch kein sicherer Gesamt-Rollback.
-- Termux v4 unverändert; Workflows, Signatur, Cloud, Recorder und `.gitignore` unverändert.
-- Historisches `supabase/storage_backup_before_v0526` bleibt auf GitHub `main`, **nicht** im Quell-ZIP. Fehlen darf **nicht** als Löschanweisung gelten.
-- Quellkandidat enthält volle Quellen und Regressionstests. Statische Tests != GitHub-/Gerätetest.
+- Phase 3O/13: MON-WAV-Startschutz über `AnalyzerSetupTransitionCoordinator`.
+- Phase 3O/14: Rolling-/Direct-START-Anforderungen verwenden `withServiceStart` und werden bei aktiver Setup-Reservierung abgelehnt. Zwei zusätzliche JUnit-Tests.
+- Alle bisherigen Quellen/Regressionen aus 3A–3O/13 enthalten.
+
+## Kritische Grenze
+
+`startForegroundService()` startet asynchron. Ein vor Beginn einer Setup-Reservierung angenommener START-Request ist damit **nicht** atomar bis zur tatsächlichen Mikrofonaufnahme abgesichert. Noch keine vollständige Koordination aller Audio-Session-/Recorder-Übergänge; kein produktiver Transaktions-Executor, kein vollständiger Audio-/Recorder-Rollback. `Plan.executable=false`. Diese Änderungen alleine erlauben **keine** Audio-/FFT-Setup-Aktivierung.
+
+## Unverändert
+
+Termux v4, Workflows/Signatur, Cloud-Schema, Gradle-Version und historische Backup-Daten bleiben unangetastet. `supabase/storage_backup_before_v0526` verbleibt in GitHub `main` und wird aus der Quell-ZIP ausgeschlossen; dessen Fehlen ist keine Löschanweisung. Für Quellkandidaten nur GitHub-TEST notwendig, REGULAR bei Bedarf.
 
 ## Nächster Schritt
-Gemeinsame atomare Aufnahme-/Audio-Service-Übergänge entwerfen und integrieren, einschließlich MON und Startup-Races; danach überprüfter speicherfreier STOP/START, Rollback und UI-Anbindung.
 
-## Verbindliche Fortsetzung
-Vor Änderungen `DIRECTIVES.md`, `BUILD_WORKFLOWS.md`, `CHANGELOG.md`, `docs/project/DEFERRED_TASKS.md` und Phase-3-Dokumente lesen; `CURRENT_STATE.md` bei jeder Lieferung aktualisieren. Nur GitHub TEST zunächst nötig; REGULAR bei Bedarf.
+Asynchrone Service-START-Zustände und Session-Start unter einer tatsächlich durchgehenden Reservierung koordinieren, inklusive Race-/Fehlertests. Erst danach speicherfreie STOP/START-Übernahme und vollständigen Rollback freigeben.
+
+## Fortsetzung
+
+Vor Änderungen `DIRECTIVES.md`, `BUILD_WORKFLOWS.md`, `CHANGELOG.md`, `docs/project/DEFERRED_TASKS.md` und Phase-3-Dokumentation beachten. Immer CURRENT_STATE aktualisieren und vollständige Quell-ZIP ohne Wurzel-Unterordner liefern.

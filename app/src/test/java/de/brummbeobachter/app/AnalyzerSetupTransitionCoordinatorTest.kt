@@ -40,4 +40,37 @@ class AnalyzerSetupTransitionCoordinatorTest {
         }
         assertNull(result)
     }
+    @Test fun serviceStartRejectedWhileSetupReserved() {
+        val entered = CountDownLatch(1)
+        val release = CountDownLatch(1)
+        val thread = Thread {
+            AnalyzerSetupTransitionCoordinator.withSetupReservation {
+                entered.countDown()
+                release.await(3, TimeUnit.SECONDS)
+            }
+        }
+        thread.start()
+        try {
+            assertTrue(entered.await(3, TimeUnit.SECONDS))
+            val invoked = AtomicBoolean(false)
+            assertFalse(AnalyzerSetupTransitionCoordinator.withServiceStart {
+                invoked.set(true)
+                true
+            })
+            assertFalse(invoked.get())
+        } finally {
+            release.countDown()
+            thread.join(3000)
+        }
+        assertTrue(AnalyzerSetupTransitionCoordinator.withServiceStart { true })
+    }
+
+    @Test fun serviceStartExceptionDoesNotPoisonCoordinator() {
+        try {
+            AnalyzerSetupTransitionCoordinator.withServiceStart { throw IllegalStateException("boom") }
+            fail("expected")
+        } catch (_: IllegalStateException) { }
+        assertTrue(AnalyzerSetupTransitionCoordinator.withServiceStart { true })
+    }
+
 }
