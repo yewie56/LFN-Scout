@@ -514,9 +514,22 @@ internal object LiveAnalyzerController {
             waterfallPhaseSamples = 0; waterfallAccumulator.clear(); waterfallRevision++; modeBoundaryRows = null
             lastAutoNs = 0L
             // The service/recorder is the only microphone owner; AnalyzerLiveSession never opens it.
-            running = true
-            LocalAnalyzerAudioBuffer.start()
-            session = newSession()
+            // Phase 3O/9: the subscriber may fail to initialize. A failed start
+            // must never advertise a running analyzer or retain a local buffer.
+            // This does NOT roll back preferences, microphone owner or recordings.
+            try {
+                LocalAnalyzerAudioBuffer.start()
+                session = newSession()
+                running = true
+            } catch (startFailure: Throwable) {
+                runCatching { session?.close() }
+                session = null
+                runCatching { LocalAnalyzerAudioBuffer.stop() }
+                running = false
+                paused = false
+                status = "Analyzer-Start fehlgeschlagen; Analyzer gestoppt"
+                throw startFailure
+            }
             status = if (direct48k) "Warte auf ${directInputRateHz}-Hz-Direktmikrofon" else "Warte auf unveränderte 8-kHz-Rohdaten. Rolling-Buffer einschalten."
             AnalyzerAudioTrace.write(context, "ANALYZER_SUBSCRIBED", "wide=$direct48k inputRate=${if (direct48k) directInputRateHz else 8000} decimation=$decimationFactor fft=$fftSize hop=$fftHopSamples subscribers=${AnalyzerSessionGateway.rawPcm.activeSubscribers}")
         }

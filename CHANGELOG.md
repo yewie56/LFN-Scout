@@ -1836,3 +1836,8 @@ Kein PASS für Android-Build, Emulator oder Xiaomi ohne tatsächlichen Lauf. 16:
 - Nur lesender Audio-/Timing-STOP-Checkpoint mit 12 Feldern und Stale-Readback im Controller ergänzt; keine Aufnahme-/Service-/Hardwareumschaltung.
 - `docs/project/CURRENT_STATE.md` als fortzuführende verbindliche Übergabe eingeführt.
 - Regression `tools/verify_lfn056_phase3o_audio_timing_checkpoint.py`, kein neuer Kotlin-/GitHub-/Gerätetest behauptet. Gradle 0.5.55 / 213 unverändert.
+
+## v0.5.56 – Phase 3O/9 Quellkandidat (14.10.2026)
+- `LiveAnalyzerController.start`: `running=true` erst nach erfolgreicher lokaler Buffer-/Subscriber-Initialisierung. Bei Initialisierungsfehlern best-effort-Session-/Buffer-Cleanup, STOP-Status und ursprünglichen Fehler weitergeben.
+- Keine Freigabe der JSON-Audio-/FFT-Umschaltung, kein Recorder-/Mikrofon-/Preferences-Rollback. `docs/project/CURRENT_STATE.md` aktualisiert; neue statische Regression.
+- Gradle unverändert 0.5.55/213. GitHub-TEST für Teilstufe 8 laut Nutzer grün; Teilstufe 9 noch nicht gebaut.

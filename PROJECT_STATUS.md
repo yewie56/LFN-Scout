@@ -582,3 +582,8 @@ Neue persistente Maximalzeit des Rolling-BETRIEBS (12 h Default, GUI 1–168 h) 
 
 ## 14.10.2026 – Phase 3O Teilstufe 7
 Nur lesender STOP-Audio-/Timing-Checkpoint im Controller und CURRENT_STATE.md ergänzt. Letzter vom Nutzer als grün bestätigter GitHub-Test: 3O Teilstufe 5; 3O/6 und 3O/7 Buildstatus offen. JSON-Audio-Executor weiterhin gesperrt; kein Recorder-Rollback. Interne Gradle-Version unverändert.
+
+## Phase 3O, Teilstufe 9 – Stand 14.10.2026
+- Phase 3O/8 GitHub-TEST vom Nutzer als GRÜN gemeldet (Commit nicht übermittelt).
+- Neue best-effort-Bereinigung bei lokalem Analyzer-Sessionstartfehler in `LiveAnalyzerController.start`; vollständiger Audio-/Recorder-Rollback und UI-Setupwechsel weiterhin gesperrt.
+- Phase 3O/9 nur statisch geprüft, GitHub TEST und Gerätetest offen. Gradle 0.5.55/213.

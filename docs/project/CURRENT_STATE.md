@@ -1,12 +1,12 @@
 # LFN-Scout – CURRENT_STATE (verbindliche laufende Übergabe)
 
-**Stand:** 2026-10-14 · **Quellkandidat:** v0.5.56, Phase 3O, Teilstufe 8 · **Noch kein Release**
+**Stand:** 2026-10-14 · **Quellkandidat:** v0.5.56, Phase 3O, Teilstufe 9 · **Noch kein Release**
 
 ## Buildstatus und Versionsschutz
 
 - Gradle `versionName = "0.5.55"`, `versionCode = 213`: bis Releasefreigabe unverändert.
-- **Letzter vom Nutzer als GRÜN bestätigter GitHub-TEST:** Phase 3O, **Teilstufe 7** (Commit-ID nicht bekanntgegeben). Teilstufe 8 ist noch nicht auf GitHub getestet.
-- **Teilstufe 8:** statische Quellprüfungen lokal ausführbar; GitHub TEST, Kotlin-/Gradle-Kompilation und Android-Gerätetest **noch offen**.
+- **Letzter vom Nutzer als GRÜN bestätigter GitHub-TEST:** Phase 3O, **Teilstufe 8** (Commit-ID nicht bekanntgegeben).
+- **Teilstufe 9:** statische Quellprüfungen lokal ausführbar; GitHub TEST, Kotlin-/Gradle-Kompilation und Android-Gerätetest **noch offen**.
 - TEST genügt vorerst; REGULAR nur bei ausdrücklichem Bedarf, besonders für Updates der bestehenden App.
 
 ## Aktuell implementiert
@@ -16,7 +16,9 @@
 - **Neu 3O/7:** `StoppedAudioTimingCheckpoint` im `LiveAnalyzerController` erfasst die zusätzlichen internen Direct-Mode- und Timing-Felder ausschließlich bei STOP. `isStoppedAudioTimingCheckpointCurrent` erkennt zwischenzeitliche Änderungen unter demselben Controller-Lock; es gibt keinerlei Zustandsänderungen oder Preference-Zugriffe.
 
 - **Neu 3O/8:** `StoppedAnalyzerConfigCheckpoint` verbindet DSP- und Audio-/Timing-Checkpoint in einem Controller-Lock; gemeinsame Stale-State-Prüfung ohne Persistenz. Kein Recorder-/Hardware-Rollback.
-- **Backup-Auslagerung:** `supabase/storage_backup_before_v0526` (85 Dateien) ist in separatem, byteweise verifiziertem Recovery-ZIP gesichert und in dieser Projekt-ZIP nicht enthalten. Das Originalrepository und dessen Git-Tracking wurden nicht geändert; bei Termux-v4-Import bleiben bereits verfolgte Dateien ggf. bestehen. Separates Backup dauerhaft aufbewahren.
+- **Backup-Auslagerung:** `supabase/storage_backup_before_v0526` (85 Dateien) ist in separatem, byteweise verifiziertem Recovery-ZIP gesichert und in dieser Projekt-ZIP nicht enthalten. Das Backup bleibt vereinbarungsgemäß in GitHub `main` versioniert und wird nicht mehr in Projekt-ZIPs mitgeliefert. Originalrepository und Git-Tracking werden nicht geändert; bei Termux-v4-Import bleiben die Dateien bestehen. Separates Backup als zusätzliche Absicherung aufbewahren.
+
+- **Neu 3O/9:** Lokale Session-Startbereinigung: `running=true` erst nach erfolgreichem Session-Aufbau; bei Initialisierungsfehler best-effort Cleanup und Fehlerweitergabe. Kein vollständiger Zustandsrollback.
 
 ## Was ausdrücklich NICHT funktioniert / gesperrt bleibt
 
@@ -35,7 +37,7 @@
 
 ## Nächster Schritt
 
-Als Nächstes ein ausführbarer, recorderübergreifender STOP-/START-/Rollback-Vertrag mit atomarer Besitzer-Sperre, dynamischen Tests; keine Aktivierung vor Nachweis und dynamische Regressionen. Keine vorzeitige Freigabe; Gerätetests ausdrücklich nachholen.
+Als Nächstes die tatsächliche Recorder-/Service-Owner-Koordination sowie Fault-Injection-Tests und ein ausführbarer STOP-/START-/Rollback-Vertrag mit atomarer Besitzer-Sperre, dynamischen Tests; keine Aktivierung vor Nachweis und dynamische Regressionen. Keine vorzeitige Freigabe; Gerätetests ausdrücklich nachholen.
 
 ## Übergabe in neuem Chat
 

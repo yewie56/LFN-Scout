@@ -170,3 +170,7 @@ Die Kennzeichnung **R01–R07, O01–O08 und A01–A05** können wir künftig al
 
 - [ ] Phase 3O: Recorder- und Hardware-Zustandstransaktion, STOP/START/Rollback, dynamische Tests. Der atomare Controller-Checkpoint aus Teilstufe 8 reicht hierfür noch nicht aus.
 - [ ] Historischen Backupordner erst nach unabhängiger Sicherungsprüfung und separater Freigabe aus Git-Tracking entfernen.
+
+### Phase 3O/9 – Fehlerrücknahme nach Sessionstart
+- Initialisierungsfehler des lokalen Analyzers räumen jetzt Session/Buffer best-effort auf (Quellkandidat 3O/9). Noch offen: JVM-/Geräte-Fault-Injection, Startfehler vor/nach der Sessionerstellung, readback-Prüfung nach Restore, Transaktion mit dem tatsächlichen Recorder-/Service-Owner und Hardware-Modewechsel. `Plan.executable` bleibt false.
+- Historisches `supabase/storage_backup_before_v0526` bleibt in GitHub `main` versioniert, wird aber in Projekt-ZIPs nicht mehr mitgeliefert. Keine Git-Löschung oder Änderung an Termux v4.
