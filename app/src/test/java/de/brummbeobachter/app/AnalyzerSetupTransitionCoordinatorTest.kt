@@ -126,4 +126,41 @@ class AnalyzerSetupTransitionCoordinatorTest {
         assertFalse(coordinator.hasInFlightServiceStarts())
     }
 
+    @Test fun duplicateAcceptedStartIsRejectedWithoutCallingSecondSubmission() {
+        val coordinator = AnalyzerSetupTransitionCoordinator
+        var secondInvoked = false
+        assertTrue(coordinator.withTrackedServiceStart(coordinator.DIRECT) { true })
+        try {
+            assertFalse(coordinator.withTrackedServiceStart(coordinator.DIRECT) {
+                secondInvoked = true
+                true
+            })
+            assertFalse(secondInvoked)
+            assertTrue(coordinator.hasInFlightServiceStarts())
+            assertNull(coordinator.withSetupReservation { "must stay blocked" })
+        } finally { coordinator.serviceDestroyed(coordinator.DIRECT) }
+        assertFalse(coordinator.hasInFlightServiceStarts())
+    }
+
+    @Test fun duplicateStartDuringCaptureCleanupIsRejected() {
+        val coordinator = AnalyzerSetupTransitionCoordinator
+        assertTrue(coordinator.withTrackedServiceStart(coordinator.ROLLING) { true })
+        coordinator.captureJobPending(coordinator.ROLLING)
+        coordinator.serviceDestroyed(coordinator.ROLLING)
+        try {
+            assertFalse(coordinator.withTrackedServiceStart(coordinator.ROLLING) { true })
+            assertTrue(coordinator.hasPendingCaptureCleanup())
+        } finally { coordinator.captureJobFinished(coordinator.ROLLING) }
+        assertFalse(coordinator.hasInFlightServiceStarts())
+    }
+
+    @Test fun successfulCleanupAllowsNewServiceStart() {
+        val coordinator = AnalyzerSetupTransitionCoordinator
+        assertTrue(coordinator.withTrackedServiceStart(coordinator.DIRECT) { true })
+        coordinator.serviceDestroyed(coordinator.DIRECT)
+        assertTrue(coordinator.withTrackedServiceStart(coordinator.DIRECT) { true })
+        coordinator.serviceDestroyed(coordinator.DIRECT)
+        assertFalse(coordinator.hasInFlightServiceStarts())
+    }
+
 }

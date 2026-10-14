@@ -1,3 +1,9 @@
+## Phase 3O/17 – Doppelstartschutz (Quellkandidat, GitHub TEST offen)
+
+- Gleichzeitige/wiederholte Rolling-/Direct-START-Anforderung desselben Services wird bei offenem Lifecycle-/Capture-Cleanup-Marker konservativ abgewiesen.
+- Drei JUnit-Regressionstests ergänzt. `Plan.executable=false`; Gradle 0.5.55/213; Termux v4 und historische Supabase-Dateien unverändert.
+- Letzter bestätigter GitHub TEST: Phase 3O/16 GRÜN (Nutzerbestätigung).
+
 ## 14.10.2026 – Entwicklungsstand v0.5.56, Phase 3O/16
 
 Rolling/Direct: Service-`onDestroy` und Coroutine-Capture-Jobende müssen beide eintreten, bevor die Startvormerkung freigegeben wird. Drei JUnit-Tests plus statischer Test. Produktive Umschaltung bleibt gesperrt. GitHub-TEST 3O/15 durch Nutzer grün; 3O/16 noch nicht bestätigt. Zwei historische Quellprüfungen 3F/3J melden alte Erwartungsabweichungen.

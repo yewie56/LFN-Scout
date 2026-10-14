@@ -18,7 +18,9 @@ internal object AnalyzerSetupTransitionCoordinator {
     const val DIRECT = "direct"
 
     fun withTrackedServiceStart(service: String, start: () -> Boolean): Boolean = synchronized(mutex) {
-        if (setupReserved) return@synchronized false
+        if (setupReserved || inFlightServices.contains(service) || captureJobsPending.contains(service)) return@synchronized false
+        // Reject duplicate starts while a previous lifecycle/cleanup is unresolved.
+        // Otherwise a repeated request could share the same Set marker and be released early.
         // Mark BEFORE invoking the asynchronous Android start request.
         inFlightServices.add(service)
         destroyedServices.remove(service)

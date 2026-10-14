@@ -1,10 +1,14 @@
-# LFN-Scout CURRENT_STATE – Phase 3O/16
+# LFN-Scout CURRENT_STATE – Phase 3O/17
 
 **Stand:** 14.10.2026 · Entwicklungsziel `0.5.56` · Gradle `versionName 0.5.55`, `versionCode 213` unverändert.
-**Letzter bestätigter GitHub TEST:** Phase 3O/15 **GRÜN (Nutzerbestätigung)**. Keine Commit-ID neu verifiziert.
-**Neuer Quellkandidat:** Phase 3O/16; GitHub TEST und Android-Gerätetest OFFEN.
+**Letzter bestätigter GitHub TEST:** Phase 3O/16 **GRÜN (Nutzerbestätigung)**. Keine Commit-ID neu verifiziert.
+**Neuer Quellkandidat:** Phase 3O/17; GitHub TEST und Android-Gerätetest OFFEN.
 
-## Implementiert in 3O/16
+## Implementiert in 3O/17
+
+`withTrackedServiceStart` verweigert jetzt einen zweiten START für denselben Service, solange dessen vorheriger `inFlightServices`-Marker oder ein Capture-Cleanup besteht. Damit kann eine doppelt angenommene asynchrone Anfrage nicht denselben Set-Eintrag teilen und anschließend verfrüht freigeben. Drei JUnit-Regressionen für doppelte Anforderung, ausstehenden Cleanup und ordnungsgemäßen Neustart nach Freigabe ergänzt. Diese konservative Sperre ändert das Verhalten bei wiederholten START-Anfragen; die Android-Integration muss im TEST und am Gerät überprüft werden. **Kein ausführbarer Setupwechsel.**
+
+## Vorheriger Stand 3O/16
 
 Die asynchronen Rolling-/Direct-Capture-Jobs werden vor dem Launch als ausstehend vorgemerkt. `onDestroy()` kennzeichnet nur das Ende des Service-Lifecycles; erst das zugehörige `Job.invokeOnCompletion` bestätigt den Abschluss des Coroutine-`finally` und damit den Capture-Cleanup. Die Startvormerkung wird nur entfernt, wenn beide Bedingungen erfüllt sind. Ein Setup-Reservierungsversuch scheitert auch bei noch ausstehendem Capture-Job. Drei JUnit-Regressionen und ein neuer Quelltest ergänzt. **Kein ausführbarer Setupwechsel.**
 
@@ -29,6 +33,6 @@ Weitere Audio-/Recorder-Ressourcen inklusive Fremd-Coroutinen und stale `inFligh
 
 ## Prüfhistorie 3O/16
 
-Phase-3O-Quelltests PASS. Ältere Phase-3F-/3J-Quelltests schlagen wegen später hinzugefügter Setup-UI-/Session-Funktionen fehl (3F 3 von 12 Checks, 3J 2 von 18); diese Tests wurden nicht als PASS ausgegeben. GitHub TEST von 3O/16 noch offen.
+Phase-3O-Quelltests PASS. Ältere Phase-3F-/3J-Quelltests schlagen wegen später hinzugefügter Setup-UI-/Session-Funktionen fehl (3F 3 von 12 Checks, 3J 2 von 18); diese Tests wurden nicht als PASS ausgegeben. GitHub TEST von 3O/16 GRÜN (Nutzerbestätigung); GitHub TEST von 3O/17 noch offen.
 
 Historie: Phase 3O/14 führte gemeinsame Rolling-/Direct-Startschranken ein; Phase 3O/14-FIX1 korrigierte den Kotlin-Return-Fehler.
