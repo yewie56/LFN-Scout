@@ -1,3 +1,6 @@
+## Phase 3O – Arbeitspaket 15 (Quellkandidat)
+Arbeitspaket 14 wurde durch den Benutzer mit GitHub-TEST GRÜN bestätigt. Implementiert ist ein **nicht produktiv aufgerufener** expliziter STOP-Konfigurationsstart in `LiveAnalyzerController`, der keine gespeicherten Analyzer-Preferences nachlädt und einen aktuellen DSP-/Timing-Checkpoint verlangt. Der bisherige Startpfad und seine Persistenzsemantik bleiben bestehen. Statische Prüfungen 29/29 PASS; GitHub-JUnit/Android-Build und Gerätetest für Paket 15 sind noch offen. Eine vollständige Audio-Owner-/Service-Release-Garantie und Hardware-Rollback bestehen nicht; `Plan.executable=false`.
+
 ## Phase 3O – Arbeitspaket 14 (Quellkandidat; 14.10.2026)
 
 Benutzerbestätigung Paket 13: GitHub-TEST **GRÜN**. Paket 14 enthält Controller-Schnittstellen-Audit, zwei JUnit-Fault-Injection-Fälle und einen statischen Sicherheitsguard. Kein produktiver Setupwechsel. Versionsstand Gradle 0.5.55/213 bleibt unverändert. GitHub-/Gerätetests für Paket 14 offen. Details: `docs/project/CURRENT_STATE.md`.

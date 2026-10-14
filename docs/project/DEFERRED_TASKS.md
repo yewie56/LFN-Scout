@@ -1,3 +1,8 @@
+## Phase 3O – nach Arbeitspaket 15 weiterhin offen
+- Echte Controller-Anbindung unter Koordinator-/Mikrofon-Lease einschließlich atomarem Service-Start/STOP und AudioRecord-Release-Nachweis.
+- Vollständiger preference-freier UI-/Statistik-/Hardware-Checkpoint (bestehender DSP-/Timing-Checkpoint ist nur teilweise vollständig).
+- Hardware-Rollback einschließlich Fehler-Injektion und Android-Gerätetests vor jeder Freischaltung von `Plan.executable`.
+
 ### Phase 3O – offene Voraussetzungen nach Arbeitspaket 14
 
 - Preference-freie, validierte STOP/START-Schnittstelle für den produktiven Analyzer mit konsistentem DSP-/FFT-Snapshot schaffen.

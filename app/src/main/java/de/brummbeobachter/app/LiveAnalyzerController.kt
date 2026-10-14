@@ -429,14 +429,34 @@ internal object LiveAnalyzerController {
         filterAutoRangeStartNs = 0L
     }
 
+    /** Phase 3O: opt-in start without reloading analyzer preferences.
+     * Not yet connected to production setup switching. Caller must hold the coordinated
+     * audio lease; this method does not establish microphone ownership or hardware rollback.
+     */
+    fun startFromStoppedConfiguration(context: Context, expected: StoppedAnalyzerConfigCheckpoint) {
+        startInternal(context, null, expected)
+    }
+
     fun start(context: Context, dspOverride: DspStartOverride? = null) {
+        startInternal(context, dspOverride, null)
+    }
+
+    private fun startInternal(context: Context, dspOverride: DspStartOverride?,
+                              expectedStoppedConfig: StoppedAnalyzerConfigCheckpoint?) {
         synchronized(lock) {
-            if (running) return
+            if (expectedStoppedConfig != null) {
+                check(!running) { "Preference-freier Start erfordert STOP" }
+                check(isStoppedAnalyzerConfigCheckpointCurrent(expectedStoppedConfig)) {
+                    "STOP-Konfiguration wurde zwischen Checkpoint und Start verändert"
+                }
+                require(dspOverride == null) { "Keine Overrides im STOP-Konfigurationsstart" }
+            } else if (running) return
             // Restore all stopped controller configuration if subscriber creation fails.
             // This snapshot does not include the microphone owner or the recorder.
             val beforeStart = captureStoppedAnalyzerConfigCheckpoint()
             appContext = context.applicationContext
             NoiseFloorReference.attach(context.applicationContext)
+            if (expectedStoppedConfig == null) {
             val prefs = context.getSharedPreferences("lfn_scout_live_analyzer", Context.MODE_PRIVATE)
             if (direct48k) {
                 directInputRateHz = prefs.getInt("direct_sample_rate", 48000)
@@ -486,6 +506,7 @@ internal object LiveAnalyzerController {
                 filterAutoRangeDurationSec=prefs.getInt("filter_autorange_duration_sec",2).coerceIn(1,30)
                 filterAutoRangeMarginDb=prefs.getInt("filter_autorange_margin_db",5).coerceIn(0,30)
             }
+            } // End of legacy preference reload; explicit STOP configuration is preserved.
             // Override only after prefs initialization, before newSession(); no writes.
             // Validate the complete override before modifying any DSP state.
             if (dspOverride != null) {
@@ -512,6 +533,8 @@ internal object LiveAnalyzerController {
                 }
             }
             filterAutoRange=null; filterAutoRangeStartNs=0L
+            if (expectedStoppedConfig == null) {
+            val prefs = context.getSharedPreferences("lfn_scout_live_analyzer", Context.MODE_PRIVATE)
             auto = prefs.getBoolean("auto_png", false)
             imageFormat = AnalyzerImageFormat.fromPreference(prefs.getString("image_format", null))
             jpgQuality = prefs.getInt("jpg_quality", 90).coerceIn(70, 100)
@@ -542,6 +565,16 @@ internal object LiveAnalyzerController {
             showAverage = prefs.getBoolean("show_average", true)
             showMaxHold = prefs.getBoolean("show_max_hold", false)
             showFloor = prefs.getBoolean("show_floor", false)
+            } else {
+                // No preference lookups or persistence: preserve the previously configured
+                // DSP, timing, display, statistics and analyzer-gain values.
+                check(fftSize in (if (direct48k) DirectAnalyzerConfig.fftSizes else AnalyzerTiming.allowedFftSizes))
+                check(decimationFactor > 0)
+                check(fftHopSamples > 0 && historySeconds > 0)
+                if (!direct48k) FastFilterBank.Config(filterMinHz, filterMaxHz, filterBandCount)
+                paused = false
+                autoRange = null; autoRangeStartNs = 0L
+            }
             latestDiag = null; validSignal = false; silentWindows = 0L; lastDiscontinuities = 0L
             lastPcmTraceNs = 0L
             history.clear(); historyEpochMillis.clear(); filterHistory.clear(); pendingFilter=null; clearStatistics(); current = null; floor = doubleArrayOf(); seq = 0L

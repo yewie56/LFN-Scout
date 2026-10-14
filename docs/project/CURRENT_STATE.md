@@ -1,3 +1,13 @@
+# LFN-Scout CURRENT_STATE – Phase 3O, Arbeitspaket 15 (Quellkandidat)
+
+**Stand:** 14.10.2026; Entwicklungsziel `0.5.56`; Gradle `0.5.55` / `213` unverändert.
+**Letzter durch Benutzer bestätigter GitHub-TEST:** Arbeitspaket 14 **GRÜN**.
+**Arbeitspaket 15:** Opt-in `LiveAnalyzerController.startFromStoppedConfiguration(context, expected)` ergänzt. Die bestehende `start(context, dspOverride)`-Signatur und ihr Legacy-Preference-Reload bleiben erhalten. Der neue Pfad prüft unter dem bestehenden Controller-Lock `!running` und die Übereinstimmung des bereits bestehenden STOP-DSP-/Audio-Timing-Checkpoints. Er verwendet ausschließlich die schon eingestellte In-Memory-Konfiguration für den Start und lädt keine Live-Analyzer-Preferences nach. Kein neuer produktiver Aufrufer.
+**Sicherheitsgrenze:** Checkpoint umfasst nicht alle UI-/Statistikwerte, keinen AudioRecord-Besitz, keine aktiven Service-Lebenszyklen und keine Recorderfreigabe. Der neue Einstieg erwirbt selbst keine Microphone-Lease; Aufrufer müssen diese gesondert absichern. Vollständiger STOP-/START-/Rollback-Vertrag und Hardwaretests fehlen. `Plan.executable=false` bleibt unverändert.
+**Prüfstatus:** Die vorhandenen 28 statischen Phase-3O-Prüfskripte und ein neuer statischer Guard bestanden; GitHub-JUnit/Android-Build sowie Gerätetest dieses Quellkandidaten offen. Workflows, Gradle, Signatur, `.gitignore`, Cloud/Supabase und Termux v4 unverändert. Historisches Storage-Backup bleibt nur auf GitHub.
+
+---
+
 # LFN-Scout CURRENT_STATE – Phase 3O, Arbeitspaket 14 (Quellkandidat)
 
 **Stand:** 14.10.2026; Entwicklungsziel `0.5.56`; Gradle `0.5.55` / `213` unverändert.

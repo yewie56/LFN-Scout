@@ -1,3 +1,8 @@
+## Phase 3O / Arbeitspaket 15 – nicht freigegebener Quellkandidat (14.10.2026)
+- `LiveAnalyzerController`: neuer opt-in Start mit vorher geprüftem STOP-Konfigurationscheckpoint ohne Preference-Reload. Bestehender Start unverändert delegiert an den Legacy-Pfad; keine produktive Anbindung.
+- Neuer statischer Regressionstest für Abgrenzung Legacy-/Checkpoint-Start; Hardware-Lease, Controller-STOP und echter Rollback bleiben ausstehend.
+- `Plan.executable=false`; Gradle `0.5.55 / 213`, Termux v4 und geschützte Konfigurationen unverändert.
+
 ## 14.10.2026 – Phase 3O, Arbeitspaket 14 (Quellkandidat)
 
 - Controller-Audit: preference-lesender `LiveAnalyzerController.start`, unzureichend verifizierter Ressourcen-STOP und Checkpoints ohne echte Audio-Owner als Freigabeblocker dokumentiert.
