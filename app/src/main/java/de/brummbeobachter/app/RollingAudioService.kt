@@ -304,7 +304,7 @@ class RollingAudioService : Service() {
                         activeRecorder.stop()
                     }
                 }
-                runCatching { activeRecorder.release() }
+                runCatching { activeRecorder.release() }.onFailure { captureLease.markHardwareReleaseUncertain() }
             }
             fftEpoch?.stop()
             rollingHalfHour?.stop()

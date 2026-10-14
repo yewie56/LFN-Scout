@@ -483,7 +483,7 @@ object AudioRecorder {
                 }
                 runCatching {
                     recorder?.release()
-                }
+                }.onFailure { captureLease.markHardwareReleaseUncertain() }
                 captureLease.close()
             }
         }

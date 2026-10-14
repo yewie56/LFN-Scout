@@ -10,9 +10,21 @@ internal object MicCaptureArbiter {
     private val lock = Any()
     private var active: Token? = null
     val owner: String? get() = synchronized(lock) { active?.name }
+    /** Non-null until process restart if the hardware release threw an exception. */
+    val uncertainReleaseOwner: String? get() = synchronized(lock) { active?.takeIf { it.releaseUncertain }?.name }
 
     class Token internal constructor(internal val name: String) : Closeable {
-        override fun close() { synchronized(lock) { if (active === this) active = null } }
+        internal var releaseUncertain: Boolean = false
+            private set
+
+        /** Fail closed: do not grant another AudioRecord after release() itself failed. */
+        fun markHardwareReleaseUncertain() = synchronized(lock) {
+            if (active === this) releaseUncertain = true
+        }
+
+        override fun close() { synchronized(lock) {
+            if (active === this && !releaseUncertain) active = null
+        } }
     }
 
     fun tryAcquire(name: String): Token? = synchronized(lock) {

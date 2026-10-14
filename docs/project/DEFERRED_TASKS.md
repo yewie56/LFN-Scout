@@ -1,3 +1,14 @@
+# Phase 3O – Arbeitspaket 19 (Quellkandidat)
+
+**Stand:** 15.10.2026; Entwicklungsziel `0.5.56`; Gradle `0.5.55 / 213` unverändert.
+**Letzter durch Benutzer bestätigter GitHub-TEST:** Arbeitspaket 18 **GRÜN**.
+**Änderung:** Wenn `AudioRecord.release()` in Direct, Rolling oder Scout-Recorder eine Ausnahme auslöst, markiert der bereits gehaltene `MicCaptureArbiter.Token` die Hardwarefreigabe als unsicher. `close()` gibt diesen Token dann nicht frei; weitere Capture-Starts bleiben innerhalb desselben Prozesses blockiert. Erfolgreiche normale Freigaben folgen unverändert dem bisherigen Ablauf. Der Status `uncertainReleaseOwner` ist diagnostisch abrufbar. Zwei zusätzliche JUnit-Fälle prüfen die Quarantäne und den Normalfall.
+**Grenzen:** Android bietet durch die Rückkehr von `release()` keinen separaten Hardware-Freigabenachweis. Fehler bei `stop()` und andere nicht erkannte Hardware-Fehler sind damit nicht vollständig erfasst; nach einem Release-Fehler kann ein App-Prozessneustart erforderlich sein. Keine automatische Entsperrung ohne Hardware-Nachweis; keine produktive Setup-Transaktion. `Plan.executable=false`.
+**Prüfstatus:** Statische Tests lokal; neue JUnit-Fälle und Android-Build erst im GitHub-TEST zu bestätigen, kein Gerätetest.
+**Schutz:** Termux v4, Workflows, Gradle/Signierung, `.gitignore`, Cloud unverändert; historisches Storage-Backup nur auf GitHub.
+
+---
+
 ## Nach Arbeitspaket 18 offen
 - Tatsächliche AudioRecord-Freigabe und Ende sämtlicher Android-Capture-Jobs atomar unter Hardware-Lease verifizieren.
 - STOP–Reconfigure–START-Adapter und Hardware-Rollback inklusive Fehler-Injektion und Gerätetest; `Plan.executable=false` beibehalten.

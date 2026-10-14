@@ -142,7 +142,7 @@ class AnalyzerDirectAudioService : Service() {
             isCapturing = false
             recorder?.let { r ->
                 runCatching { if (r.recordingState == AudioRecord.RECORDSTATE_RECORDING) r.stop() }
-                runCatching { r.release() }
+                runCatching { r.release() }.onFailure { lease?.markHardwareReleaseUncertain() }
             }
             lease?.close()
             AnalyzerAudioTrace.write(this, "DIRECT_CLEANUP_DONE", "owner=${MicCaptureArbiter.owner} subscribers=${AnalyzerSessionGateway.rawPcm.activeSubscribers}")
