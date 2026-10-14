@@ -49,10 +49,10 @@ class AnalyzerDirectAudioService : Service() {
         wakeLock = (getSystemService(Context.POWER_SERVICE) as PowerManager)
             .newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "LFN-Scout:Analyzer48")
             .apply { acquire() }
-        AnalyzerSetupTransitionCoordinator.captureJobPending(AnalyzerSetupTransitionCoordinator.DIRECT)
+        val captureToken = AnalyzerSetupTransitionCoordinator.captureJobRegistered(AnalyzerSetupTransitionCoordinator.DIRECT)
         job = scope.launch { capture() }
         job?.invokeOnCompletion {
-            AnalyzerSetupTransitionCoordinator.captureJobFinished(AnalyzerSetupTransitionCoordinator.DIRECT)
+            AnalyzerSetupTransitionCoordinator.captureJobCompleted(AnalyzerSetupTransitionCoordinator.DIRECT, captureToken)
         }
         return START_NOT_STICKY // Do not silently restart microphone after a process crash.
     }

@@ -52,7 +52,7 @@ class RollingAudioService : Service() {
         }
         if (recordJob?.isActive != true) {
             if (operationStartElapsedMs == 0L) operationStartElapsedMs = android.os.SystemClock.elapsedRealtime()
-            AnalyzerSetupTransitionCoordinator.captureJobPending(AnalyzerSetupTransitionCoordinator.ROLLING)
+            val captureToken = AnalyzerSetupTransitionCoordinator.captureJobRegistered(AnalyzerSetupTransitionCoordinator.ROLLING)
             recordJob = scope.launch {
                 while (true) {
                     runRecorder()
@@ -65,7 +65,7 @@ class RollingAudioService : Service() {
                 }
             }
             recordJob?.invokeOnCompletion {
-                AnalyzerSetupTransitionCoordinator.captureJobFinished(AnalyzerSetupTransitionCoordinator.ROLLING)
+                AnalyzerSetupTransitionCoordinator.captureJobCompleted(AnalyzerSetupTransitionCoordinator.ROLLING, captureToken)
             }
         }
         return START_STICKY

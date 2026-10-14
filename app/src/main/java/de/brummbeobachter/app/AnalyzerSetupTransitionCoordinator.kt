@@ -14,6 +14,11 @@ internal object AnalyzerSetupTransitionCoordinator {
     // onDestroy may run before cancelled coroutine has released AudioRecord.
     private val destroyedServices = mutableSetOf<String>()
     private val captureJobsPending = mutableSetOf<String>()
+    // A completion must identify its own job; otherwise an older completion can
+    // release the marker of a newer, overlapping capture. Legacy marker 0 is
+    // retained for existing synchronous callers/tests.
+    private val captureTokens = mutableMapOf<String, MutableSet<Long>>()
+    private var nextCaptureToken = 1L
     const val ROLLING = "rolling"
     const val DIRECT = "direct"
 
@@ -105,17 +110,34 @@ internal object AnalyzerSetupTransitionCoordinator {
         }
     }
 
-    /** Register before launching a capture job; completion must follow its finally cleanup. */
+    /** Register the exact capture generation BEFORE launching its coroutine. */
+    fun captureJobRegistered(service: String): Long = synchronized(mutex) {
+        require(service == ROLLING || service == DIRECT) { "Unknown capture service" }
+        val token = nextCaptureToken++
+        captureTokens.getOrPut(service) { mutableSetOf() }.add(token)
+        captureJobsPending.add(service)
+        token
+    }
+
+    /** Only this generation's completion may release its marker. */
+    fun captureJobCompleted(service: String, token: Long) = synchronized(mutex) {
+        val tokens = captureTokens[service] ?: return@synchronized
+        if (!tokens.remove(token)) return@synchronized
+        if (tokens.isEmpty()) {
+            captureTokens.remove(service)
+            captureJobsPending.remove(service)
+            if (destroyedServices.contains(service)) clearCompletedService(service)
+        }
+    }
+
+    /** Compatibility path for pre-existing un-tokenized callers. */
     fun captureJobPending(service: String) = synchronized(mutex) {
+        captureTokens.getOrPut(service) { mutableSetOf() }.add(0L)
         captureJobsPending.add(service)
     }
 
-    /** Invoked by Job.invokeOnCompletion, AFTER the coroutine completes its finally. */
-    fun captureJobFinished(service: String) = synchronized(mutex) {
-        // A duplicate completion must not finalize an unrelated lifecycle.
-        if (!captureJobsPending.remove(service)) return@synchronized
-        if (destroyedServices.contains(service)) clearCompletedService(service)
-    }
+    /** Compatibility completion cannot release a tokenized capture. */
+    fun captureJobFinished(service: String) = captureJobCompleted(service, 0L)
 
     /** Android's lifecycle alone is insufficient: wait for any pending capture cleanup. */
     fun serviceDestroyed(service: String) = synchronized(mutex) {

@@ -1,3 +1,29 @@
+# LFN-Scout CURRENT_STATE – Phase 3O, Arbeitspaket 3 (Quellkandidat)
+
+**Stand:** 14.10.2026; Entwicklungsziel `0.5.56`; Gradle `0.5.55` / `213` unverändert.
+**Letzter vom Benutzer bestätigter GitHub-TEST:** Phase 3O, Arbeitspaket 2 **GRÜN**.
+**Aktueller Kandidat:** Arbeitspaket 3; GitHub-TEST, JUnit und Android-Gerätetest **OFFEN**.
+
+## Umsetzung
+
+- Der bestehende `AnalyzerSetupTransitionCoordinator` verwaltet Capture-Generationen nun über eindeutige Tokens pro Capture-Job. `captureJobsPending` bleibt ein abgeleiteter Sperrmarker und wird erst nach Abschluss sämtlicher Tokens eines Services freigegeben.
+- `RollingAudioService` und `AnalyzerDirectAudioService` tragen den beim Job-Start vergebenen Token bis zum `invokeOnCompletion` weiter. Verspätete und doppelte Completion-Callbacks können andere Jobgenerationen nicht mehr freigeben.
+- Die bisherigen tokenlosen Coordinator-Methoden bleiben für bestehende Tests/Kompatibilität vorhanden, können jedoch tokenisierte Jobs nicht beenden.
+- Zwei JUnit-Regressionen prüfen überlappende Generationen sowie verspätete und doppelte Completions.
+- **Keine** Freischaltung: `Plan.executable=false`. STOP–Reconfigure–START, Rollback und abschließende MIC-Arbiter-Grenze sind weiter offen.
+
+## Nächste Arbeitspakete
+
+1. Exklusive Audio-Besitzgrenze und STOP–Reconfigure–START-Transaktionskern unter sicherer Sperre.
+2. Fehler-Injektion, Rollback und sicherer Endzustand.
+3. UI-Anbindung, Integration, Regressionen und ausdrückliche Freigabe nach Android-Geräteabnahme.
+
+## Prüfstatus
+
+22/22 Phase-3O-Quellprüfungen lokal PASS (statische Quellprüfungen, einschließlich angepasster Legacy-Prüfer). GitHub-TEST und echte Android-Gerätetests stehen für diesen Quellkandidaten aus. Die Benutzerbestätigung `GRÜN` für Arbeitspaket 2 wird als vorausgehender Stand übernommen.
+
+---
+
 # LFN-Scout CURRENT_STATE – Phase 3O, Arbeitspaket 2 (Quellkandidat)
 
 **Stand:** 14.10.2026; Entwicklungsziel `0.5.56`; Gradle `0.5.55` / `213` unverändert.

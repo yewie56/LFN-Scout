@@ -305,4 +305,36 @@ class AnalyzerSetupTransitionCoordinatorTest {
         assertTrue(c.assessGate().coordinatorMarkersClear)
     }
 
+    @Test fun overlappingCaptureGenerationsRemainBlockedUntilBothComplete() {
+        val c = AnalyzerSetupTransitionCoordinator
+        assertTrue(c.withTrackedServiceStart(c.ROLLING) { true })
+        val first = c.captureJobRegistered(c.ROLLING)
+        val second = c.captureJobRegistered(c.ROLLING)
+        c.serviceDestroyed(c.ROLLING)
+        c.captureJobCompleted(c.ROLLING, first)
+        try {
+            assertTrue(c.hasPendingCaptureCleanup())
+            assertNull(c.withSetupReservation { "unsafe" })
+            assertTrue(c.assessGate().blockingReasons.contains("capture_cleanup_pending:rolling"))
+        } finally { c.captureJobCompleted(c.ROLLING, second) }
+        assertFalse(c.hasPendingCaptureCleanup())
+        assertFalse(c.hasInFlightServiceStarts())
+    }
+
+    @Test fun staleAndDuplicateCompletionCannotReleaseNewGeneration() {
+        val c = AnalyzerSetupTransitionCoordinator
+        assertTrue(c.withTrackedServiceStart(c.DIRECT) { true })
+        val old = c.captureJobRegistered(c.DIRECT)
+        c.captureJobCompleted(c.DIRECT, old)
+        val current = c.captureJobRegistered(c.DIRECT)
+        c.serviceDestroyed(c.DIRECT)
+        c.captureJobCompleted(c.DIRECT, old)
+        c.captureJobFinished(c.DIRECT) // legacy completion cannot release a token
+        try {
+            assertTrue(c.hasPendingCaptureCleanup())
+            assertNull(c.withSetupReservation { "unsafe" })
+        } finally { c.captureJobCompleted(c.DIRECT, current) }
+        assertFalse(c.hasPendingCaptureCleanup())
+    }
+
 }

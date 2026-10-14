@@ -1,3 +1,10 @@
+
+## Offen nach Phase 3O, Arbeitspaket 3
+
+- MIC-Arbiter-Exklusivität der gesamten Transaktion nachweisen und integrieren.
+- STOP–Reconfigure–START, vollständiger Rollback und Fehler-Injektion umsetzen.
+- Geräte- und End-to-End-Tests vor jeder Produktivfreigabe durchführen.
+
 # Phase 3O – Arbeitspaket 2: offene Folgepakete (14.10.2026)
 
 Interne Gate-Markerprüfung ist jetzt in Diagnose und Reservierung vereinheitlicht. Offen: vollständige Audio-Owner-/Capture-Generationen-Absicherung einschließlich externem Mic-Arbiter; STOP–Reconfigure–START; vollständiger Recovery-Pfad mit Fault-Injection; UI und Gerätetests. `Plan.executable=false`; ein leeres Gate ist keine Hardware-Freigabe. GitHub-TEST Arbeitspaket 1 GRÜN (Benutzer), Arbeitspaket 2 OFFEN. Bereits früher zurückgestellte R-/O-/A-Aufgaben bleiben bestehen.

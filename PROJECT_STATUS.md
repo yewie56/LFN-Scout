@@ -1,3 +1,8 @@
+
+## Phase 3O Arbeitspaket 3 – Kandidat
+
+Arbeitspaket 2: GitHub-TEST GRÜN (Benutzer). Paket 3: eindeutige Capture-Generationskennung und sichere Abschlussverarbeitung; GitHub-/Gerätetest noch offen. Keine produktive Setup-Umschaltung.
+
 ## Phase 3O – Arbeitspaket 2 (14.10.2026)
 
 **Letzter bestätigter GitHub-TEST:** Arbeitspaket 1 GRÜN (Nutzerbestätigung). **Neuer Quellkandidat:** Arbeitspaket 2, GitHub-TEST OFFEN. Interne Gate-Markerprüfung für Reservierung und Diagnose vereinheitlicht und unbekannte Services abgewiesen; drei JUnit-Regressionen ergänzt. Produktive Umschaltung weiterhin deaktiviert; kein Hardware-Rollback und kein Laufzeit-Gerätetest. Siehe `docs/project/CURRENT_STATE.md`.

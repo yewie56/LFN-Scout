@@ -1,3 +1,9 @@
+
+## Phase 3O – Arbeitspaket 3 (Quellkandidat, 14.10.2026)
+
+- Generationstoken für Rolling-/Direct-Capture-Job-Abschlüsse; verhindert Freigabe durch veraltete Callback-Generationen.
+- Zwei JUnit-Regressionsfälle; Setup-Executor deaktiviert, Gradle-Version unverändert.
+
 ## v0.5.56 – Phase 3O, Arbeitspaket 2 (14.10.2026, Quellkandidat)
 
 - Interne Sicherheitsentscheidung für Gate-Diagnose und Setup-Reservierung vereinheitlicht; verwaiste Lifecycle-Marker sperren nun beide Pfade.
