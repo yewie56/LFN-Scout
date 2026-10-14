@@ -38,7 +38,13 @@ internal object AnalyzerSetupTransitionProtocol {
         return try {
             val result = boundary.underExclusiveOwnership {
                 ran = true
-                exerciseWithControlledPort(object : ControlledPort by port {
+                // Fail before touching the controller when the boundary was acquired
+                // but exclusivity cannot be verified. This is NOT a successful rollback:
+                // a lost lease cannot prove a safe stopped or restored audio state.
+                if (!boundary.ownershipStillExclusive()) {
+                    Result(false, false, Stage.CHECKPOINT,
+                        IllegalStateException("Exclusive audio ownership lost before checkpoint"), emptyList())
+                } else exerciseWithControlledPort(object : ControlledPort by port {
                     private fun check() {
                         check(boundary.ownershipStillExclusive()) { "Exclusive audio ownership lost" }
                     }

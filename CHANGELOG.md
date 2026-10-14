@@ -1,3 +1,9 @@
+## 14.10.2026 – Phase 3O, Arbeitspaket 5 FIX (nach GitHub-TEST ROT)
+- JUnit 225 Tests, 1 Fehler (`AnalyzerSetupTransitionProtocolTest.lostLeaseDoesNotClaimSafeStopped`).
+- Ungültige ExclusiveBoundary wird vor dem ersten Controllerzugriff ohne positive Rollback-Bestätigung abgewiesen.
+- Eigenen Regressionstest für ungültigen Lease vor Checkpoint ergänzt; vorhandenen Fehlerfall beibehalten.
+- `Plan.executable=false`, Gradle 0.5.55/213, Recorder/Cloud/Workflows unverändert. GitHub-TEST des FIX offen.
+
 ## Phase 3O / Arbeitspaket 5 (Quellkandidat, 14.10.2026)
 
 - Isolierten Transaktionskern um testbare ExclusiveBoundary ergänzt; keine produktive Controller-/Recorder-Verbindung.

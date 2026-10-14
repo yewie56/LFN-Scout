@@ -127,6 +127,19 @@ class AnalyzerSetupTransitionProtocolTest {
         assertFalse(boundary.held)
     }
 
+    @Test fun unavailableValidityNeverClaimsRollbackSucceeded() {
+        val p = Fake()
+        val boundary = Boundary().apply { valid = false }
+        val result = AnalyzerSetupTransitionProtocol.exerciseWithBoundary(p, boundary)
+        assertFalse(result.succeeded)
+        assertFalse(result.rollbackSucceeded)
+        assertEquals(AnalyzerSetupTransitionProtocol.Stage.CHECKPOINT, result.stage)
+        assertNotNull(result.originalError)
+        assertTrue(result.originalError!!.message!!.contains("ownership lost"))
+        assertTrue(p.log.isEmpty())
+        assertFalse(boundary.held)
+    }
+
     @Test fun lostLeaseDoesNotClaimSafeStopped() {
         val p = Fake()
         val boundary = Boundary().apply { valid = false }

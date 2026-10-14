@@ -1,3 +1,18 @@
+# LFN-Scout CURRENT_STATE – Phase 3O, Arbeitspaket 5 FIX (Quellkandidat)
+
+**Stand:** 14.10.2026; Entwicklungsziel `0.5.56`; Gradle `0.5.55` / `213` unverändert.
+**Letzter bestätigter GitHub-TEST:** Arbeitspaket 4 GRÜN.
+**Arbeitspaket 5:** GitHub-TEST ROT (225 Unit-Tests, 1 Fehler: `lostLeaseDoesNotClaimSafeStopped`, Build #72).
+**Aktueller Quellkandidat:** Arbeitspaket 5 FIX, GitHub-TEST ausstehend.
+
+**Fehlerursache:** Bei einer erfolgreich betretenen, aber bereits ungültigen `ExclusiveBoundary` löste die erste Checkpoint-Prüfung eine Ausnahme aus. Der allgemeine Protokollpfad wertete diese als Fehler *vor STOP* und meldete fälschlich `rollbackSucceeded=true`. Eine verlorene Besitzgarantie erlaubt jedoch keine positive Rollback-Aussage.
+
+**Fix:** Vor jedem Zugriff auf `ControlledPort` wird innerhalb der Besitzgrenze die Exklusivität verifiziert. Bei ungültigem Besitz: `Result(succeeded=false, rollbackSucceeded=false, stage=CHECKPOINT)` und keine Controller-Aufrufe. Weiterer JUnit-Regressionstest ergänzt. Der bisherige Fehlerfall bleibt als Regression enthalten. Kein produktiver Controller angeschlossen, `Plan.executable=false` unverändert.
+
+**Prüfstatus:** Isolierte Kotlin-Kompilierung und statische Projektprüfungen lokal; GitHub-JUnit/Android-Build und Android-Gerätetest erst nach Import. Termux v4, Workflows, Signatur, Supabase, Cloud, Gradle und historisches Storage-Backup unverändert. Storage-Backup bleibt in GitHub und ist aus der ZIP ausgeschlossen.
+
+---
+
 # LFN-Scout CURRENT_STATE – Phase 3O, Arbeitspaket 5 (Quellkandidat)
 
 **Stand:** 14.10.2026; Entwicklungsziel `0.5.56`; Gradle `0.5.55` / `213` unverändert.

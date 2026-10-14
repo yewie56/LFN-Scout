@@ -1,3 +1,7 @@
+## Phase 3O – Arbeitspaket 5 FIX (14.10.2026)
+
+Paket 4 GitHub-TEST GRÜN. Paket 5 GitHub-TEST ROT: 225 JUnit-Tests, ein Fehler `lostLeaseDoesNotClaimSafeStopped`. Vorabprüfung der Exklusivität im isolierten Protokollkern ergänzt; bei Verlust keine Controllerberührung und keine positive Rollback-Aussage. Fix-GitHub-TEST offen. Produktive Aktivierung bleibt gesperrt; 0.5.55/213 unverändert.
+
 ## Phase 3O – Arbeitspaket 5 (Quellkandidat)
 
 Arbeitspaket 4: GitHub-TEST GRÜN laut Benutzer. Arbeitspaket 5: simulierte exklusiv gehaltene Audio-Besitzgrenze mit vier neuen JUnit-Regressionen. Keine produktive Freischaltung und keine Änderung an Recorder-, Cloud-, Workflow- oder Gradle-Schnittstellen. GitHub-TEST/JUnit und Gerätetest für Arbeitspaket 5 stehen aus.

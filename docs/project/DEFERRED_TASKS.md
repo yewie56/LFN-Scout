@@ -1,3 +1,9 @@
+## Phase 3O – nach Arbeitspaket 5 FIX
+
+- [ ] GitHub-TEST für Paket 5 FIX; Gerätevalidierung steht weiterhin aus.
+- [ ] Echte gemeinsame Audio-Exklusivreservierung und Controller-Adapter inklusive Rollback und Fault-Injection.
+- [ ] Setup-Executor erst nach vollständiger Absicherung freigeben (derzeit `Plan.executable=false`).
+
 ## Nach Phase 3O/Arbeitspaket 5 weiterhin offen
 
 - Gemeinsame reale Exklusivsperre, die alle Audio-/Recorder-Start- und Stop-Pfade atomar einschließt.
