@@ -58,6 +58,28 @@ internal object AnalyzerSetupTransitionCoordinator {
         GateAssessment(reasons.isEmpty(), reasons.toList())
     }
 
+    /** Fail-closed combined diagnosis; NOT a permission token or transactional lock.
+     * An external owner snapshot is necessarily acquired separately from our mutex.
+     */
+    internal data class SafetyDiagnosis(
+        val blockers: List<String>,
+        val executionAuthorized: Boolean = false
+    )
+
+    internal fun diagnoseSafety(
+        ownerProbe: () -> AnalyzerSetupAudioOwnerGate.Observation
+    ): SafetyDiagnosis {
+        val local = assessGate()
+        val reasons = local.blockingReasons.toMutableList()
+        try {
+            reasons.addAll(ownerProbe().blockers)
+        } catch (error: Exception) {
+            reasons.add("audio_owner_probe_failed")
+        }
+        // Even with no blockers the audio state may change after observation.
+        return SafetyDiagnosis(reasons.toList())
+    }
+
     fun withTrackedServiceStart(service: String, start: () -> Boolean): Boolean = synchronized(mutex) {
         if (setupReserved || inFlightServices.contains(service) || captureJobsPending.contains(service)) return@synchronized false
         // Reject duplicate starts while a previous lifecycle/cleanup is unresolved.

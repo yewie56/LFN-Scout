@@ -240,4 +240,37 @@ class AnalyzerSetupTransitionCoordinatorTest {
         assertTrue(inside.blockingReasons.contains("setup_reserved"))
     }
 
+    @Test fun combinedDiagnosisNeverGrantsPermissionEvenIfOwnerAndMarkersClear() {
+        val c = AnalyzerSetupTransitionCoordinator
+        val result = c.diagnoseSafety {
+            AnalyzerSetupAudioOwnerGate.Observation(null, false, false, false)
+        }
+        assertTrue(result.blockers.isEmpty())
+        assertFalse(result.executionAuthorized)
+    }
+
+    @Test fun combinedDiagnosisPreservesBothOwnerAndCleanupBlockers() {
+        val c = AnalyzerSetupTransitionCoordinator
+        assertTrue(c.withTrackedServiceStart(c.DIRECT) { true })
+        c.captureJobPending(c.DIRECT)
+        c.serviceDestroyed(c.DIRECT)
+        try {
+            val result = c.diagnoseSafety {
+                AnalyzerSetupAudioOwnerGate.Observation("scout", false, true, false)
+            }
+            assertTrue(result.blockers.contains("capture_cleanup_pending:direct"))
+            assertTrue(result.blockers.any { it.contains("Mikrofon belegt") })
+            assertTrue(result.blockers.any { it.contains("Direct-Audio-Service") })
+            assertFalse(result.executionAuthorized)
+        } finally { c.captureJobFinished(c.DIRECT) }
+    }
+
+    @Test fun combinedDiagnosisFailsClosedWhenOwnerProbeThrows() {
+        val result = AnalyzerSetupTransitionCoordinator.diagnoseSafety {
+            throw IllegalStateException("probe unavailable")
+        }
+        assertTrue(result.blockers.contains("audio_owner_probe_failed"))
+        assertFalse(result.executionAuthorized)
+    }
+
 }

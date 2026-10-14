@@ -1,3 +1,7 @@
+# Phase 3O – Arbeitspaket 1: Restarbeiten (14.10.2026)
+
+Die Diagnosen sind jetzt in einer ablehnenden Prüfung kombiniert, aber nicht atomar. Offen bleiben die vier Restpakete aus `CURRENT_STATE.md`: Audio-Eigentümer-Lebenszyklen absichern, exklusiven STOP–Reconfigure–START-Transaktionskern implementieren, vollständigen Rollback mit Fehler-Injektion testen sowie UI-/Geräteabnahme. **Keine Freigabe aufgrund leerer Sperrgründe.** Historische aufgeschobene Aufgaben folgen unverändert.
+
 # Phase 3O/19 – weiterhin offen
 
 - `AnalyzerSetupTransitionCoordinator.snapshotGate()` ergänzt: synchronisierte, unverändernd lesbare Kopien von Start-, Destroy- und Capture-Job-Markern; zwei JUnit-Tests und statischer Verifikator.

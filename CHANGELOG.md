@@ -1,3 +1,10 @@
+## v0.5.56 – Phase 3O, Arbeitspaket 1 (14.10.2026, Quellkandidat)
+
+- Ausschließlich ablehnende Sicherheitsdiagnose führt interne Setup-/Service-/Cleanup-Marker mit Audio-Owner-Status zusammen; Ausfall der Owner-Abfrage führt zur Sperre.
+- Bisherige `AnalyzerSetupSwitchTransaction` berücksichtigt diese Sperren und behandelt Statuslesefehler konservativ.
+- Drei zusätzliche JUnit-Regressionen, neuer statischer Prüfer und Anpassung des bestehenden Owner-Guards an die integrierte Diagnose.
+- Kein produktiver Setupwechsel; `Plan.executable=false`; Gradle `0.5.55` / `213` und Termux v4 unverändert. GitHub-TEST ausstehend; 3O/20 laut Benutzer GRÜN.
+
 ## Phase 3O/20 (Quellkandidat; GitHub TEST offen)
 
 Rein lesende, synchronisierte Sperrgrund-Diagnose des AnalyzerSetupTransitionCoordinator ergänzt. Keine Freigabe produktiver Audio-/FFT-Setupwechsel. Neue statische und JUnit-Regressionstests; letzter bestätigter TEST 3O/19 grün. Termux v4, Gradle 0.5.55/213, Cloud und Supabase-Backup-Policy unverändert.

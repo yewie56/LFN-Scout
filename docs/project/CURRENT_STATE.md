@@ -1,3 +1,42 @@
+# LFN-Scout CURRENT_STATE – Phase 3O, Arbeitspaket 1 (nach Teilstufe 20)
+
+**Stand:** 14.10.2026 · Entwicklungsziel `0.5.56` · Gradle `0.5.55` / `213` unverändert.
+**Letzter durch Benutzer bestätigter GitHub-TEST:** Phase 3O/20 **GRÜN**.
+**Neuer Quellkandidat:** Phase 3O, Arbeitspaket 1. GitHub-TEST / Android-Gerätetest **OFFEN**.
+
+## Inhalt dieses Arbeitspakets
+
+- `AnalyzerSetupTransitionCoordinator.diagnoseSafety()` führt die bisherigen
+  internen Sperrgründe mit der bestehenden Audio-Eigentümerabfrage zusammen.
+  Probe-Ausfälle ergeben `audio_owner_probe_failed` statt einer scheinbaren Freigabe.
+- `AnalyzerSetupSwitchTransaction.execute()` verweigert den bisherigen
+  *nicht ausführbaren* Pfad zusätzlich bei internen Service-/Cleanup-Sperren;
+  Fehler der Port-Statusabfrage werden nun ebenfalls kontrolliert abgewiesen.
+- Drei dynamische JUnit-Testfälle hinzugefügt und zwei statische Verifikatoren
+  angepasst bzw. ergänzt. Kein neuer Recorder-Lifecycle und keine zusätzlichen
+  JSON-/Preference-Schreibzugriffe.
+- `SafetyDiagnosis.executionAuthorized=false` und `Plan.executable=false` bleiben
+  bindend. Eine leere Sperrliste ist KEIN Freigabe-Nachweis; zwischen den
+  Beobachtungen kann ein Android-Service seinen Zustand ändern (TOCTOU).
+
+## Restplan – vier größere Pakete nach diesem Paket
+
+1. **Gemeinsames Start-/Stop-Protokoll:** alle Aufnahmebesitzer und
+   asynchronen Capture-Finalisierungen auf echte Reservierungsgrenzen prüfen;
+   keine unbekannten Zustände als frei behandeln.
+2. **Transaktionskern:** atomare STOP–Reconfigure–START-State-Machine über den
+   bestehenden Controller, ausschließlich bei nachweislich exklusivem Besitz.
+3. **Rollback und Fehler-Injektion:** Checkpoints, vollständiges Recovery,
+   sichere Endzustände, fault-injection- und Race-Regressionen.
+4. **UI-Anbindung und Stabilisierung:** Setup-Auswahl/Vorschau/Save-Dialoge
+   integrieren, Android-Gerätetests durchführen, Freischaltung erst nach Abnahme.
+
+## Prüfstatus
+
+Quellbasierte Phase-3O-Regressionen: 17/20 Skripte innerhalb der lokalen 5-s-Grenze erfolgreich; drei Skripte (`verify_lfn056_phase3o.py`, `verify_lfn056_phase3o_14_fix_return.py`, `verify_lfn056_phase3o_async_start_tracking.py`) überschritten die Grenze und bleiben **nicht abschließend geprüft**. Die beiden unmittelbar betroffenen Sicherheits-Verifikatoren (`owner_gate`, `safety_diagnosis`) sind erfolgreich. Java/Kotlin-JUnit, Android-Build und Hardware-Gerätetest wurden lokal **nicht** ausgeführt; GitHub-TEST ausstehend.
+
+## Historischer Stand
+
 # LFN-Scout CURRENT_STATE – Phase 3O/20
 
 **Stand:** 14.10.2026 · Entwicklungsziel `0.5.56` · Gradle `versionName 0.5.55`, `versionCode 213` unverändert.

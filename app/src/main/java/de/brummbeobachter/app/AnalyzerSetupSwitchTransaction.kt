@@ -38,14 +38,15 @@ internal object AnalyzerSetupSwitchTransaction {
      * Adapter installation is prohibited until a verified preference-free controller API exists.
      */
     fun execute(plan: AnalyzerSetupSwitchPlan.Plan, port: Port): Outcome = synchronized(port.transitionLock) {
-        // 3O/11: owner probe is an additional deny-only guard. It does not
-        // replace a lock shared by service/recorder start and stop transitions.
-        val owners = try { AnalyzerSetupAudioOwnerGate.observe() } catch (t: Exception) {
-            return@synchronized Outcome.Rejected("Audio-Eigentümerstatus nicht lesbar: ${t.message}")
+        // Deny-only combined gate; no authorization even when blockers are absent.
+        val safety = AnalyzerSetupTransitionCoordinator.diagnoseSafety {
+            AnalyzerSetupAudioOwnerGate.observe()
         }
-        if (!owners.apparentlyIdle)
-            return@synchronized Outcome.Rejected(owners.blockers.joinToString("; "))
-        val state = port.status()
+        if (safety.blockers.isNotEmpty())
+            return@synchronized Outcome.Rejected(safety.blockers.joinToString("; "))
+        val state = try { port.status() } catch (t: Exception) {
+            return@synchronized Outcome.Rejected("Analyzer-Status nicht lesbar: ${t.message}")
+        }
         if (state.scoutRecording || state.monRecording) return@synchronized Outcome.Rejected("Aufnahme aktiv")
         if (state.running) return@synchronized Outcome.Rejected("Analyzer muss gestoppt sein")
         if (state.monEnabled || state.displayPreviewActive) return@synchronized Outcome.Rejected("MON/Vorschau aktiv")
