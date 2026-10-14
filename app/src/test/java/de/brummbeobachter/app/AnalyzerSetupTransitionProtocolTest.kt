@@ -151,4 +151,41 @@ class AnalyzerSetupTransitionProtocolTest {
         assertFalse(boundary.held)
     }
 
+    @Test fun leaseLostAfterStopDoesNotRestartOrClaimRollback() {
+        val p = Fake()
+        val boundary = object : AnalyzerSetupTransitionProtocol.ExclusiveBoundary {
+            var held = false
+            var checks = 0
+            override fun <T> underExclusiveOwnership(operation: () -> T): T? {
+                held = true
+                try { return operation() } finally { held = false }
+            }
+            override fun ownershipStillExclusive(): Boolean {
+                checks++
+                // Preflight and checkpoint are allowed, but fail before RECONFIGURE.
+                return held && checks <= 3
+            }
+        }
+        val result = AnalyzerSetupTransitionProtocol.exerciseWithBoundary(p, boundary)
+        assertFalse(result.succeeded)
+        assertFalse(result.rollbackSucceeded)
+        assertNotEquals(AnalyzerSetupTransitionProtocol.Stage.SAFE_STOPPED, result.stage)
+        assertTrue(p.log.contains("stop"))
+        assertFalse(p.log.contains("apply"))
+        assertFalse(p.log.contains("start"))
+        assertNotNull(result.originalError)
+        assertFalse(boundary.held)
+    }
+
+    @Test fun rollbackStartFailureRetainsPrimaryErrorAndVerifiesSafeStop() {
+        val p = Fake().apply { verifyNew = false; failedOperation = "start"; failOnlyOnce = false }
+        val result = AnalyzerSetupTransitionProtocol.exerciseWithControlledPort(p)
+        assertFalse(result.succeeded)
+        assertFalse(result.rollbackSucceeded)
+        assertEquals(AnalyzerSetupTransitionProtocol.Stage.SAFE_STOPPED, result.stage)
+        assertTrue(result.originalError?.message?.contains("fault: start") == true)
+        assertTrue(result.recoveryErrors.isNotEmpty())
+        assertEquals("verify-safe", p.log.last())
+    }
+
 }

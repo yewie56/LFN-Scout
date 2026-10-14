@@ -1,3 +1,15 @@
+# LFN-Scout CURRENT_STATE – Phase 3O, Arbeitspaket 14 (Quellkandidat)
+
+**Stand:** 14.10.2026; Entwicklungsziel `0.5.56`; Gradle `0.5.55` / `213` unverändert.
+**Letzter vom Benutzer bestätigter GitHub-TEST:** Arbeitspaket 13 **GRÜN**.
+**Arbeitspaket 14:** Controller-Integrationsaudit und zwei JUnit-Fault-Injection-Regressionen für Lease-Verlust nach STOP sowie wiederholten START-Fehler im Rollback. Ein neuer statischer Guard hält die dokumentierten Controller-Integrationshindernisse sichtbar. Produktive Audio-/Recorder-Routinen und Setup-Executor sind unverändert.
+
+**Freigabeblocker, im echten Quellstand bestätigt:** `LiveAnalyzerController.start()` liest Konfiguration aus `SharedPreferences` und stellt noch keinen vollständig preference-freien transaktionalen Start bereit. `stop()` besitzt noch keinen nachgewiesenen Hardware-/Service-Release-Vertrag. Die bestehenden Controller-Checkpoints enthalten keine Audio-Eigentümer oder aktive Recorder-Ressourcen. Damit ist ein produktiver STOP–Reconfigure–START-Adapter weiter **NICHT** sicher anschließbar. `Plan.executable=false` bleibt erhalten.
+
+**Prüfstatus:** Statische Tests lokal; neue JUnit-Fälle noch nicht durch GitHub ausgeführt. GitHub-TEST für Arbeitspaket 14 und Android-Gerätetest offen. Kein Hardware-Rollback nachgewiesen. Historisches Supabase-Backup nur auf GitHub; Workflows, Signierung, Gradle, `.gitignore`, Cloud, Termux v4 unverändert.
+
+---
+
 # LFN-Scout CURRENT_STATE – Phase 3O, Arbeitspaket 13 (Quellkandidat)
 
 **Stand:** 14.10.2026; Entwicklungsziel `0.5.56`; Gradle `0.5.55` / `213` unverändert.

@@ -1,3 +1,9 @@
+## 14.10.2026 – Phase 3O, Arbeitspaket 14 (Quellkandidat)
+
+- Controller-Audit: preference-lesender `LiveAnalyzerController.start`, unzureichend verifizierter Ressourcen-STOP und Checkpoints ohne echte Audio-Owner als Freigabeblocker dokumentiert.
+- Zwei neue JUnit-Fehlerpfade: Lease-Verlust nach STOP und wiederholter START-Fehler einschließlich fehlgeschlagenem Rollback.
+- Neuer statischer Architektur-Guard; keine produktive Controller-Verkabelung oder Änderung des Executors (`Plan.executable=false`). Letzter GitHub-TEST Paket 13 GRÜN.
+
 ## 14.10.2026 – Phase 3O, Arbeitspaket 13 (Quellkandidat)
 
 - Drei JUnit-Konkurrenztests mit echten Threads/Latches statt ausschließlich verschachtelter Aufrufe: laufende Setup-Lease gegen Rolling/Direct, zweite Setup-Anforderung und Freigabe nach fehlerhaftem Setup-Callback.

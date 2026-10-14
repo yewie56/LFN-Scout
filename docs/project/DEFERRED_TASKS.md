@@ -1,3 +1,10 @@
+### Phase 3O – offene Voraussetzungen nach Arbeitspaket 14
+
+- Preference-freie, validierte STOP/START-Schnittstelle für den produktiven Analyzer mit konsistentem DSP-/FFT-Snapshot schaffen.
+- Tatsächliche Freigabe von Session, `AudioRecord`, MON/Scout/Rolling/Direct und aller asynchronen Capture-Cleanups vor jeder Neukonfiguration nachweisen.
+- Gemeinsamen atomaren Hardware-Lease über alle Start-/Stop-Lebenszyklen inklusive Android-Service prüfen.
+- Vollständigen Rollback auch bei fehlgeschlagenem STOP, START, Restore und Lease-Verlust am Gerät validieren; erst danach `Plan.executable` freigeben.
+
 ### Phase 3O – nach Arbeitspaket 13
 
 - Hardware-End-to-End-Tests, asynchrone Service-Start/Stop-Races, tatsächlicher Controller-Adapter und Fehler-Rollback bleiben offen. Keine Freischaltung von `Plan.executable` ohne diese Nachweise.
