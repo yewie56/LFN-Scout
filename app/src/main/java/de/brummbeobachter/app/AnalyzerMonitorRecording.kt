@@ -41,7 +41,7 @@ internal object AnalyzerMonitorRecording {
 
     fun isActive() = active
 
-    fun start(context: Context): Boolean = synchronized(mutex) {
+    fun start(context: Context): Boolean = AnalyzerSetupTransitionCoordinator.withMonStart { synchronized(mutex) {
         if (active || outputFile != null) return@synchronized false
         try {
             val f = File(context.cacheDir, "MON_${System.currentTimeMillis()}_${UUID.randomUUID()}.wav")
@@ -69,7 +69,7 @@ internal object AnalyzerMonitorRecording {
         } catch (_: Exception) {
             active=false; try {writer?.close()} catch (_: Exception) { };false
         }
-    }
+    } }
 
     fun accept(buffer: ShortArray) {
         if (!active) return

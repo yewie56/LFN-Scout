@@ -1867,3 +1867,6 @@ Kein PASS für Android-Build, Emulator oder Xiaomi ohne tatsächlichen Lauf. 16:
 - `LiveAnalyzerController.start`: `running=true` erst nach erfolgreicher lokaler Buffer-/Subscriber-Initialisierung. Bei Initialisierungsfehlern best-effort-Session-/Buffer-Cleanup, STOP-Status und ursprünglichen Fehler weitergeben.
 - Keine Freigabe der JSON-Audio-/FFT-Umschaltung, kein Recorder-/Mikrofon-/Preferences-Rollback. `docs/project/CURRENT_STATE.md` aktualisiert; neue statische Regression.
 - Gradle unverändert 0.5.55/213. GitHub-TEST für Teilstufe 8 laut Nutzer grün; Teilstufe 9 noch nicht gebaut.
+
+## v0.5.56 Entwicklung – Phase 3O/13 (Quellkandidat)
+- MON-WAV-Start und zukünftige synchrone Setup-Reservierung über `AnalyzerSetupTransitionCoordinator` gegeneinander koordiniert. Drei JUnit-Tests; weitere Recorder-Übergänge und Executor-Anbindung offen. Gradle 0.5.55/213 unverändert.

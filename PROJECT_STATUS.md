@@ -613,3 +613,6 @@ Nur lesender STOP-Audio-/Timing-Checkpoint im Controller und CURRENT_STATE.md er
 - Phase 3O/8 GitHub-TEST vom Nutzer als GRÜN gemeldet (Commit nicht übermittelt).
 - Neue best-effort-Bereinigung bei lokalem Analyzer-Sessionstartfehler in `LiveAnalyzerController.start`; vollständiger Audio-/Recorder-Rollback und UI-Setupwechsel weiterhin gesperrt.
 - Phase 3O/9 nur statisch geprüft, GitHub TEST und Gerätetest offen. Gradle 0.5.55/213.
+
+## Phase 3O/13
+MON-WAV-Start gegen zukünftige Setup-Reservierung koordiniert (noch nicht produktiv aktiviert). GitHub TEST und Gerätetest für 3O/13 offen; Phase 3O/12 vom Nutzer als grün gemeldet.

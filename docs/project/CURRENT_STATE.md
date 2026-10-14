@@ -1,11 +1,11 @@
-# LFN-Scout CURRENT_STATE – Phase 3O/12
+# LFN-Scout CURRENT_STATE – Phase 3O/13
 
 **Stand:** 14.10.2026. Entwicklungsziel `0.5.56`; Gradle bleibt `0.5.55`, versionCode `213`.
-**Letzter bestätigter GitHub TEST:** Phase 3O/11 **GRÜN (Nutzermeldung)**. Commit-ID nicht erneut überprüft.
-**Neu erstellter Quellkandidat:** Phase 3O/12; GitHub TEST und Android-Gerätetest **offen**.
+**Letzter bestätigter GitHub TEST:** Phase 3O/12 **GRÜN (Nutzermeldung)**. Commit-ID nicht erneut überprüft.
+**Neu erstellter Quellkandidat:** Phase 3O/13; GitHub TEST und Android-Gerätetest **offen**.
 
 ## Neuer Umfang
-`AnalyzerSetupMicrophoneReservation.withReservation` kann den bestehenden MicCaptureArbiter für die Dauer eines synchronen Blocks exklusiv reservieren. Der Token wird auch bei Ausnahmen freigegeben; bei bestehendem Owner wird der Block gar nicht ausgeführt. Drei neue JVM-JUnit-Tests decken Konkurrenz, Belegtheit und Ausnahme ab. **Die Reservierung ist noch nicht an den Setup-Executor angeschlossen.**
+`AnalyzerSetupTransitionCoordinator` serialisiert einen MON-WAV-Start mit einer optionalen, synchronen zukünftigen Setup-Reservierung. Während einer solchen Reservierung wird ein MON-Start abgewiesen; die Reservierung wird nach Ausnahmen freigegeben. `AnalyzerMonitorRecording.start` verwendet jetzt die Koordination. Drei JUnit-Konkurrenz-/Fehlertests hinzugefügt. **Der produktive Setup-Executor ist weiterhin nicht an die Reservierung angeschlossen.** Rolling- und Direct-Service-Übergänge bleiben außerhalb der gemeinsamen Koordination.
 
 ## Unverändert / Sicherheitsgrenzen
 - Phase 3N `Plan.executable=false` – kein produktiver STOP/START-Setupwechsel.

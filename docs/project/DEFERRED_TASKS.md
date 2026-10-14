@@ -196,3 +196,6 @@ Die Kennzeichnung **R01–R07, O01–O08 und A01–A05** können wir künftig al
 ### Phase 3O/12 – verbleibende Aufgaben
 - [ ] Gemeinsamer Übergangs-/Sperrvertrag für **alle** Recorder inklusive MON, Service-Start/Stop, Analyzer-STOP/START und Fehlerrollback; MicCaptureArbiter-Reservierung alleine genügt nicht.
 - [ ] Dynamische Tests der vollständigen Übergänge und Geräteprüfung sowie UI-Freigabe erst nach nachgewiesener Sicherheit.
+
+### Phase 3O/13 Nachtrag
+- Weiter offen: MON-Setup-Gate mit vollständig atomaren Rolling-/Direct-/Audio-Service-Transitions und produktivem Executor zusammenführen; dynamische Android-Tests und echter Rollback.
