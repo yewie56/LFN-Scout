@@ -298,3 +298,5 @@ Die Kennzeichnung **R01–R07, O01–O08 und A01–A05** können wir künftig al
 
 ### Phase 3O/13 Nachtrag
 - Weiter offen: MON-Setup-Gate mit vollständig atomaren Rolling-/Direct-/Audio-Service-Transitions und produktivem Executor zusammenführen; dynamische Android-Tests und echter Rollback.
+
+- Phase 3O AP16: Lokale STOP-Diagnose durch vollständigen Hardware-/Service-Freigabenachweis ergänzen, bevor ein Setupwechsel freigegeben wird.

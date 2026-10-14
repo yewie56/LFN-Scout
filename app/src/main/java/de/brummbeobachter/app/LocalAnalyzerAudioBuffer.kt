@@ -38,6 +38,8 @@ internal object LocalAnalyzerAudioBuffer {
         subscription = AnalyzerSessionGateway.rawPcm.subscribe(queueCapacity = 64) { frame -> accept(frame) }
     }
     fun stop() = synchronized(lock) { stopInternal() }
+    /** Local subscriber state only; never a microphone/recorder ownership assertion. */
+    fun hasActiveSubscription(): Boolean = synchronized(lock) { isActive || subscription != null }
     private fun stopInternal() {
         isActive = false
         subscription?.close(); subscription = null

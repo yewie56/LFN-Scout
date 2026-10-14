@@ -607,6 +607,22 @@ internal object LiveAnalyzerController {
         }
     }
 
+    /** Diagnostic for the analyzer-owned resources only, not AudioRecord or service ownership.
+     * Does not stop or mutate anything. The controller lock also guards local session changes.
+     */
+    internal data class LocalStopVerification(
+        val controllerRunning: Boolean,
+        val analyzerSessionPresent: Boolean,
+        val localBufferSubscribed: Boolean
+    ) {
+        val locallyStopped: Boolean
+            get() = !controllerRunning && !analyzerSessionPresent && !localBufferSubscribed
+    }
+
+    internal fun verifyLocalStopForSetupTransition(): LocalStopVerification = synchronized(lock) {
+        LocalStopVerification(running, session != null, LocalAnalyzerAudioBuffer.hasActiveSubscription())
+    }
+
     fun stop() {
         synchronized(lock) {
             appContext?.let { AnalyzerAudioTrace.write(it, "ANALYZER_STOP", "wasRunning=$running subscribers=${AnalyzerSessionGateway.rawPcm.activeSubscribers} spectra=$seq") }

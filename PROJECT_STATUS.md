@@ -1,3 +1,8 @@
+## Phase 3O – Arbeitspaket 16 (14.10.2026)
+
+- Lokale STOP-Verifikationsdiagnose für Analyzer-Session und PCM-Puffersubscription, ohne Hardware-Freigabebehauptung.
+- Kein produktiver Umschaltpfad aktiviert; Android- und JUnit-Test ausstehend.
+
 ## Phase 3O – Arbeitspaket 15 (Quellkandidat)
 Arbeitspaket 14 wurde durch den Benutzer mit GitHub-TEST GRÜN bestätigt. Implementiert ist ein **nicht produktiv aufgerufener** expliziter STOP-Konfigurationsstart in `LiveAnalyzerController`, der keine gespeicherten Analyzer-Preferences nachlädt und einen aktuellen DSP-/Timing-Checkpoint verlangt. Der bisherige Startpfad und seine Persistenzsemantik bleiben bestehen. Statische Prüfungen 29/29 PASS; GitHub-JUnit/Android-Build und Gerätetest für Paket 15 sind noch offen. Eine vollständige Audio-Owner-/Service-Release-Garantie und Hardware-Rollback bestehen nicht; `Plan.executable=false`.
 

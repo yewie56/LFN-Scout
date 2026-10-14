@@ -1,3 +1,14 @@
+# LFN-Scout CURRENT_STATE – Phase 3O, Arbeitspaket 16 (Quellkandidat)
+
+**Stand:** 14.10.2026; Entwicklungsziel `0.5.56`; Gradle `0.5.55` / `213` unverändert.
+**Letzter durch Benutzer bestätigter GitHub-TEST:** Arbeitspaket 15 **GRÜN**.
+**Arbeitspaket 16:** Rein diagnostische lokale STOP-Prüfung `LiveAnalyzerController.verifyLocalStopForSetupTransition()` eingeführt. Das Ergebnis erfasst unter dem Controller-Lock `running`, die bestehende Session und die lokale PCM-Puffer-Subscription. `LocalAnalyzerAudioBuffer.hasActiveSubscription()` liest ausschließlich den bestehenden Pufferzustand unter seinem Lock. Keine Änderung an produktivem STOP/START-Verhalten.
+**Sicherheitsgrenze:** `locallyStopped` ist **kein** Nachweis für freigegebenes AudioRecord, Recorder-, MON-, Rolling-/Direct-Service- oder asynchrone Capture-Lifecycle-Ressourcen. Es erfolgt keine Freischaltung und keine Hardware-Aktion. `Plan.executable=false` bleibt verbindlich.
+**Prüfstatus:** Statische Skripte und neuer Guard lokal zu prüfen; JUnit/Android-Build und Gerätetest für Paket 16 ausstehend.
+**Schutz:** Termux v4, GitHub-Workflows, Gradle/Signierung, `.gitignore`, Supabase/Cloud unverändert. Historisches Storage-Backup bleibt nur auf GitHub.
+
+---
+
 # LFN-Scout CURRENT_STATE – Phase 3O, Arbeitspaket 15 (Quellkandidat)
 
 **Stand:** 14.10.2026; Entwicklungsziel `0.5.56`; Gradle `0.5.55` / `213` unverändert.

@@ -1,3 +1,8 @@
+## Phase 3O – Arbeitspaket 16 (14.10.2026)
+
+- Lokale STOP-Verifikationsdiagnose für Analyzer-Session und PCM-Puffersubscription, ohne Hardware-Freigabebehauptung.
+- Kein produktiver Umschaltpfad aktiviert; Android- und JUnit-Test ausstehend.
+
 ## Phase 3O / Arbeitspaket 15 – nicht freigegebener Quellkandidat (14.10.2026)
 - `LiveAnalyzerController`: neuer opt-in Start mit vorher geprüftem STOP-Konfigurationscheckpoint ohne Preference-Reload. Bestehender Start unverändert delegiert an den Legacy-Pfad; keine produktive Anbindung.
 - Neuer statischer Regressionstest für Abgrenzung Legacy-/Checkpoint-Start; Hardware-Lease, Controller-STOP und echter Rollback bleiben ausstehend.
