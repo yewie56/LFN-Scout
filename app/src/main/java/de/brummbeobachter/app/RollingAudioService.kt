@@ -335,6 +335,7 @@ class RollingAudioService : Service() {
     }
 
     override fun onDestroy() {
+        AnalyzerSetupTransitionCoordinator.serviceDestroyed(AnalyzerSetupTransitionCoordinator.ROLLING)
         AnalyzerAudioTrace.write(this, "ROLLING_ON_DESTROY", "job=${recordJob?.isActive} owner=${MicCaptureArbiter.owner}")
         RollingAudioEngine.stop()
         runCatching { if (wakeLock?.isHeld == true) wakeLock?.release() }
@@ -389,7 +390,7 @@ class RollingAudioService : Service() {
                 .notify(RESTART_NOTIFICATION_ID, n)
         }
 
-        fun requestStart(context: Context): Boolean = AnalyzerSetupTransitionCoordinator.withServiceStart {
+        fun requestStart(context: Context): Boolean = AnalyzerSetupTransitionCoordinator.withTrackedServiceStart(AnalyzerSetupTransitionCoordinator.ROLLING) {
             AnalyzerAudioTrace.write(context, "ROLLING_REQUEST_START", "owner=${MicCaptureArbiter.owner} engine=${RollingAudioEngine.isRunning}")
             ensureChannel(context)
             runCatching {

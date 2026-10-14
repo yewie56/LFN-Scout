@@ -630,3 +630,6 @@ Nur lesender STOP-Audio-/Timing-Checkpoint im Controller und CURRENT_STATE.md er
 
 ## Phase 3O/13
 MON-WAV-Start gegen zukünftige Setup-Reservierung koordiniert (noch nicht produktiv aktiviert). GitHub TEST und Gerätetest für 3O/13 offen; Phase 3O/12 vom Nutzer als grün gemeldet.
+
+### Phase 3O/15 (Quellkandidat)
+Rolling/Direct: erfolgreiche asynchrone Startanforderungen werden bis `onDestroy()` konservativ verfolgt. Keine Audio-Setup-Aktivierung, JUnit/Android TEST noch offen.

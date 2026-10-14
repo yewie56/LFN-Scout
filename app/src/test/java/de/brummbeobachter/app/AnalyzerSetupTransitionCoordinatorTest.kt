@@ -73,4 +73,26 @@ class AnalyzerSetupTransitionCoordinatorTest {
         assertTrue(AnalyzerSetupTransitionCoordinator.withServiceStart { true })
     }
 
+    @Test fun acceptedAsyncStartBlocksSetupUntilDestroy() {
+        assertTrue(AnalyzerSetupTransitionCoordinator.withTrackedServiceStart(AnalyzerSetupTransitionCoordinator.DIRECT) { true })
+        try {
+            assertTrue(AnalyzerSetupTransitionCoordinator.hasInFlightServiceStarts())
+            assertNull(AnalyzerSetupTransitionCoordinator.withSetupReservation { "unsafe" })
+        } finally { AnalyzerSetupTransitionCoordinator.serviceDestroyed(AnalyzerSetupTransitionCoordinator.DIRECT) }
+        assertFalse(AnalyzerSetupTransitionCoordinator.hasInFlightServiceStarts())
+    }
+
+    @Test fun failedAsyncStartDoesNotPoisonSetupGate() {
+        assertFalse(AnalyzerSetupTransitionCoordinator.withTrackedServiceStart(AnalyzerSetupTransitionCoordinator.ROLLING) { false })
+        assertFalse(AnalyzerSetupTransitionCoordinator.hasInFlightServiceStarts())
+    }
+
+    @Test fun exceptionReleasesAsyncStartMarker() {
+        try {
+            AnalyzerSetupTransitionCoordinator.withTrackedServiceStart(AnalyzerSetupTransitionCoordinator.DIRECT) { throw IllegalStateException("failed") }
+            fail("expected")
+        } catch (_: IllegalStateException) { }
+        assertFalse(AnalyzerSetupTransitionCoordinator.hasInFlightServiceStarts())
+    }
+
 }

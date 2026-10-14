@@ -1884,3 +1884,9 @@ Kein PASS für Android-Build, Emulator oder Xiaomi ohne tatsächlichen Lauf. 16:
 
 ## v0.5.56 Entwicklung – Phase 3O/13 (Quellkandidat)
 - MON-WAV-Start und zukünftige synchrone Setup-Reservierung über `AnalyzerSetupTransitionCoordinator` gegeneinander koordiniert. Drei JUnit-Tests; weitere Recorder-Übergänge und Executor-Anbindung offen. Gradle 0.5.55/213 unverändert.
+
+### Phase 3O/15 – Asynchrone Service-Starts konservativ erfassen (Quellkandidat)
+- Nach erfolgreicher Rolling-/Direct-`startForegroundService`-Anforderung hält der Coordinator einen `inFlight`-Marker bis `Service.onDestroy`. Setup-Reservierung wird bei Marker verweigert.
+- Fehlgeschlagene/ausnahmewerfende Startanforderungen geben den Marker frei; doppelte Startanforderungen desselben Service bleiben mengenbasiert erfasst.
+- Drei ergänzende JUnit-Tests und statischer Lifecycle-Test. Keine Freigabe des Setup-Executors.
+- Sicherheitsgrenze: Lebenszyklus-Freigabe ist noch kein atomarer Nachweis, dass alle Capture-Coroutinen vollständig beendet sind. Falls Android den Start nie zustellt, bleibt die Marker-Sperre konservativ bestehen.

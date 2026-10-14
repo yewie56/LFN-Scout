@@ -148,6 +148,7 @@ class AnalyzerDirectAudioService : Service() {
     }
 
     override fun onDestroy() {
+        AnalyzerSetupTransitionCoordinator.serviceDestroyed(AnalyzerSetupTransitionCoordinator.DIRECT)
         AnalyzerAudioTrace.write(this, "DIRECT_ON_DESTROY", "activeJob=${job?.isActive} owner=${MicCaptureArbiter.owner}")
         job?.cancel()
         scope.cancel()
@@ -179,7 +180,7 @@ class AnalyzerDirectAudioService : Service() {
                 (context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager)
                     .createNotificationChannel(NotificationChannel(CHANNEL_ID, "Analyzer direkt", NotificationManager.IMPORTANCE_LOW))
         }
-        fun requestStart(context: Context): Boolean = AnalyzerSetupTransitionCoordinator.withServiceStart { runCatching {
+        fun requestStart(context: Context): Boolean = AnalyzerSetupTransitionCoordinator.withTrackedServiceStart(AnalyzerSetupTransitionCoordinator.DIRECT) { runCatching {
             AnalyzerAudioTrace.write(context, "DIRECT_REQUEST_START", "owner=${MicCaptureArbiter.owner} capturing=$isCapturing")
             lastError = ""
             ensureChannel(context)

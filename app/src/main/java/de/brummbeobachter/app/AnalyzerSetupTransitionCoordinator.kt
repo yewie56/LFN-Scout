@@ -7,6 +7,33 @@ package de.brummbeobachter.app
 internal object AnalyzerSetupTransitionCoordinator {
     private val mutex = Any()
     private var setupReserved = false
+    // A successful startForegroundService() submission is asynchronous.
+    // Keep the setup gate closed until the corresponding Service.onDestroy().
+    // Fail closed if Android never delivers a successful request.
+    private val inFlightServices = mutableSetOf<String>()
+    const val ROLLING = "rolling"
+    const val DIRECT = "direct"
+
+    fun withTrackedServiceStart(service: String, start: () -> Boolean): Boolean = synchronized(mutex) {
+        if (setupReserved) return@synchronized false
+        // Mark BEFORE invoking the asynchronous Android start request.
+        inFlightServices.add(service)
+        try {
+            val accepted = start()
+            if (!accepted) inFlightServices.remove(service)
+            accepted
+        } catch (error: Throwable) {
+            inFlightServices.remove(service)
+            throw error
+        }
+    }
+
+    /** Called only when the matching service finishes its lifecycle. */
+    fun serviceDestroyed(service: String) = synchronized(mutex) {
+        inFlightServices.remove(service)
+    }
+
+    internal fun hasInFlightServiceStarts(): Boolean = synchronized(mutex) { inFlightServices.isNotEmpty() }
 
     /** Serializes MON start against acquisition of a setup reservation. */
     fun withMonStart(start: () -> Boolean): Boolean = synchronized(mutex) {
@@ -27,7 +54,7 @@ internal object AnalyzerSetupTransitionCoordinator {
      */
     fun <T> withSetupReservation(block: () -> T): T? {
         synchronized(mutex) {
-            if (setupReserved || AnalyzerMonitorRecording.isActive()) return null
+            if (setupReserved || inFlightServices.isNotEmpty() || AnalyzerMonitorRecording.isActive()) return null
             setupReserved = true
         }
         try { return block() }

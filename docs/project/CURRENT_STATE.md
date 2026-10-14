@@ -1,31 +1,24 @@
-# LFN-Scout CURRENT_STATE – Phase 3O/14
+# LFN-Scout CURRENT_STATE – Phase 3O/15
 
 **Stand:** 14.10.2026 · Entwicklungsziel `0.5.56` · Gradle `versionName 0.5.55`, `versionCode 213` unverändert.
-**Letzter bestätigter GitHub TEST:** Phase 3O/13 **GRÜN (Nutzerbestätigung)**. Phase 3O/14 **ROT** (Kotlin compileDebugKotlin, RollingAudioService.kt:395:13, unzulässiges `return`). Keine zugehörige Commit-ID neu verifiziert.
-**Neuer Quellkandidat:** Phase 3O/14-FIX1; GitHub TEST und Android-Gerätetest **OFFEN**.
+**Letzter bestätigter GitHub TEST:** Phase 3O/14-FIX1 **GRÜN (Nutzerbestätigung)**. Keine Commit-ID neu verifiziert.
+**Neuer Quellkandidat:** Phase 3O/15; GitHub TEST und Android-Gerätetest OFFEN.
 
-## Fehlerkorrektur 3O/14-FIX1
+## Implementiert in 3O/15
 
-`RollingAudioService.requestStart()` liefert nun den `runCatching`-Ausdruck als Lambda-Ergebnis von `withServiceStart`, statt innerhalb der nicht-inline-Lambda ein verbotenes unqualifiziertes `return` zu verwenden. Ursprung: GitHub TEST 14.10.2026 10:47 UTC. Statische gezielte Regression ergänzt; Gradle-TEST dieses Fixes noch offen.
+`AnalyzerSetupTransitionCoordinator` protokolliert erfolgreiche Rolling- und Direct-Startanforderungen vor dem asynchronen Android-Service-Start unter einem `inFlightServices`-Marker. Die Setup-Reservierung wird verweigert, solange mindestens ein Marker besteht. `Service.onDestroy()` räumt den jeweiligen Marker ab. Fehlgeschlagene Startanforderungen und Exceptions entfernen ihn ebenfalls. Entsprechende statische Checks und drei JUnit-Tests ergänzt. Ältere statische Guards akzeptieren jetzt die erweiterte `withTrackedServiceStart`-Schnittstelle.
 
-## Implementiert
+## Grenzen
 
-- Phase 3O/13: MON-WAV-Startschutz über `AnalyzerSetupTransitionCoordinator`.
-- Phase 3O/14: Rolling-/Direct-START-Anforderungen verwenden `withServiceStart` und werden bei aktiver Setup-Reservierung abgelehnt. Zwei zusätzliche JUnit-Tests.
-- Alle bisherigen Quellen/Regressionen aus 3A–3O/13 enthalten.
-
-## Kritische Grenze
-
-`startForegroundService()` startet asynchron. Ein vor Beginn einer Setup-Reservierung angenommener START-Request ist damit **nicht** atomar bis zur tatsächlichen Mikrofonaufnahme abgesichert. Noch keine vollständige Koordination aller Audio-Session-/Recorder-Übergänge; kein produktiver Transaktions-Executor, kein vollständiger Audio-/Recorder-Rollback. `Plan.executable=false`. Diese Änderungen alleine erlauben **keine** Audio-/FFT-Setup-Aktivierung.
+- Noch **kein** vollumfänglicher atomarer Recorder-/Service-/AudioRecord-Übergang. Ein Destroy-Callback garantiert nicht allein die Beendigung sämtlicher Coroutine-/AudioRecord-Cleanups; der Mikrofon-Arbiter und die übrigen Audio-Owner-Prüfungen bleiben notwendig.
+- Bei erfolgreich akzeptiertem START ohne späteres Service-`onDestroy()` bleibt die Setup-Sperre vorsichtshalber gesetzt. Keine Zeitüberschreitung mit unsicherer Freigabe.
+- `Plan.executable=false`, keine produktive Audio-/FFT-Umschaltung und kein vollständiger Hardware-Rollback.
+- Neue JUnit-Tests enthalten, noch nicht via GitHub ausgeführt. Statische Regressionen sind keine Android-Kompilierung.
 
 ## Unverändert
 
-Termux v4, Workflows/Signatur, Cloud-Schema, Gradle-Version und historische Backup-Daten bleiben unangetastet. `supabase/storage_backup_before_v0526` verbleibt in GitHub `main` und wird aus der Quell-ZIP ausgeschlossen; dessen Fehlen ist keine Löschanweisung. Für Quellkandidaten nur GitHub-TEST notwendig, REGULAR bei Bedarf.
+Termux v4, Workflows/Signatur, Cloud, Gradle-Version. `supabase/storage_backup_before_v0526/` bleibt historisch auf GitHub `main` und ist bewusst nicht in den Quell-ZIPs; fehlende Dateien sind keine Löschanweisung. `docs/project/CURRENT_STATE.md` bei jedem Quell-ZIP aktualisieren.
 
 ## Nächster Schritt
 
-Asynchrone Service-START-Zustände und Session-Start unter einer tatsächlich durchgehenden Reservierung koordinieren, inklusive Race-/Fehlertests. Erst danach speicherfreie STOP/START-Übernahme und vollständigen Rollback freigeben.
-
-## Fortsetzung
-
-Vor Änderungen `DIRECTIVES.md`, `BUILD_WORKFLOWS.md`, `CHANGELOG.md`, `docs/project/DEFERRED_TASKS.md` und Phase-3-Dokumentation beachten. Immer CURRENT_STATE aktualisieren und vollständige Quell-ZIP ohne Wurzel-Unterordner liefern.
+Service-/Capture-Cleanup atomar quittieren, mögliche stale `inFlight`-Marker kontrolliert behandeln und danach erst einen vollständigen STOP-Reconfigure-START-Executor mit Rollback vorbereiten. Ausschließlich GitHub-TEST nötig, REGULAR nicht obligatorisch.
