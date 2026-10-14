@@ -1,3 +1,14 @@
+# Phase 3O – Arbeitspaket 17 (Quellkandidat)
+
+**Stand:** 14.10.2026; Entwicklungsziel `0.5.56`, Gradle `0.5.55 / 213`.
+**Letzter vom Benutzer bestätigter GitHub-TEST:** Arbeitspaket 16 **GRÜN**.
+**Änderung:** `AnalyzerSetupTransitionCoordinator.diagnoseStoppedBoundary()` vereinigt die bisherigen Owner-/Lifecycle-Blocker mit der lokalen STOP-Diagnose des `LiveAnalyzerController`. Separate Gründe für laufenden Analyzer, vorhandene Session und PCM-Subscription. Probe-Ausfälle werden fail-closed gekennzeichnet. `diagnoseCurrentStoppedBoundary()` ist ein rein lesender Produktionsdiagnose-Einstieg ohne Aufrufer im produktiven Umschaltpfad. Drei neue JUnit-Regressionen.
+**Grenze:** Die Beobachtungen sind zeitlich nicht atomar, weder Hardware-Release noch Android-Service-Stopp sind dadurch bestätigt; `executionAuthorized=false` und `Plan.executable=false` bleiben bestehen. Kein realer Controller-Adapter, kein Gerätetest.
+**Tests:** Statische Quellprüfungen lokal; JUnit-Ausführung/Android-GitHub-Build für Paket 17 durch Nutzer noch ausstehend.
+**Schutz:** Termux v4, Workflows, Gradle/Signierung, `.gitignore`, Supabase/Cloud unverändert. Historisches Storage-Backup nur auf GitHub.
+
+---
+
 # LFN-Scout CURRENT_STATE – Phase 3O, Arbeitspaket 16 (Quellkandidat)
 
 **Stand:** 14.10.2026; Entwicklungsziel `0.5.56`; Gradle `0.5.55` / `213` unverändert.

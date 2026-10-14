@@ -92,6 +92,32 @@ internal object AnalyzerSetupTransitionCoordinator {
         return SafetyDiagnosis(reasons.toList())
     }
 
+    /** Phase 3O/AP17: combined, deny-only local STOP / lifecycle / owner evidence.
+     * Independent observations are not atomic and NEVER authorize hardware transition.
+     */
+    internal fun diagnoseStoppedBoundary(
+        localStopProbe: () -> LiveAnalyzerController.LocalStopVerification,
+        ownerProbe: () -> AnalyzerSetupAudioOwnerGate.Observation
+    ): SafetyDiagnosis {
+        val reasons = diagnoseSafety(ownerProbe).blockers.toMutableList()
+        try {
+            val local = localStopProbe()
+            if (local.controllerRunning) reasons.add("analyzer_running")
+            if (local.analyzerSessionPresent) reasons.add("analyzer_session_present")
+            if (local.localBufferSubscribed) reasons.add("analyzer_pcm_subscribed")
+        } catch (_: Throwable) {
+            reasons.add("analyzer_local_stop_probe_failed")
+        }
+        // Local STOP does not attest AudioRecord release or Android service completion.
+        return SafetyDiagnosis(reasons.distinct())
+    }
+
+    /** Read-only production diagnosis; no STOP, START, preferences or file writes. */
+    internal fun diagnoseCurrentStoppedBoundary(): SafetyDiagnosis = diagnoseStoppedBoundary(
+        { LiveAnalyzerController.verifyLocalStopForSetupTransition() },
+        { AnalyzerSetupAudioOwnerGate.observe() }
+    )
+
     fun withTrackedServiceStart(service: String, start: () -> Boolean): Boolean = synchronized(mutex) {
         if (service != ROLLING && service != DIRECT) return@synchronized false
         // Deny concurrent Rolling/Direct lifecycles and MON recording at submission time.

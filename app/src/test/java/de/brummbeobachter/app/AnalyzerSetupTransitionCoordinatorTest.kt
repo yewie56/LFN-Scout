@@ -585,6 +585,36 @@ class AnalyzerSetupTransitionCoordinatorTest {
         assertFalse(result.executionAuthorized)
     }
 
+    @Test fun stoppedBoundaryDoesNotAuthorizeEvenWhenAllProbesClear() {
+        val diagnosis = AnalyzerSetupTransitionCoordinator.diagnoseStoppedBoundary(
+            { LiveAnalyzerController.LocalStopVerification(false, false, false) },
+            { AnalyzerSetupAudioOwnerGate.Observation(null, false, false, false) }
+        )
+        assertTrue(diagnosis.blockers.isEmpty())
+        assertFalse(diagnosis.executionAuthorized)
+    }
+
+    @Test fun stoppedBoundaryNamesEachUnreleasedLocalResource() {
+        val diagnosis = AnalyzerSetupTransitionCoordinator.diagnoseStoppedBoundary(
+            { LiveAnalyzerController.LocalStopVerification(true, true, true) },
+            { AnalyzerSetupAudioOwnerGate.Observation(null, false, false, false) }
+        )
+        assertTrue(diagnosis.blockers.contains("analyzer_running"))
+        assertTrue(diagnosis.blockers.contains("analyzer_session_present"))
+        assertTrue(diagnosis.blockers.contains("analyzer_pcm_subscribed"))
+        assertFalse(diagnosis.executionAuthorized)
+    }
+
+    @Test fun stoppedBoundaryPreservesOwnerBlockerWhenLocalProbeFails() {
+        val diagnosis = AnalyzerSetupTransitionCoordinator.diagnoseStoppedBoundary(
+            { throw IllegalStateException("local read failed") },
+            { AnalyzerSetupAudioOwnerGate.Observation("other", false, false, false) }
+        )
+        assertTrue(diagnosis.blockers.contains("analyzer_local_stop_probe_failed"))
+        assertTrue(diagnosis.blockers.any { it.contains("Mikrofon belegt") })
+        assertFalse(diagnosis.executionAuthorized)
+    }
+
     @Test fun unknownTrackedServiceNeverRunsSubmission() {
         val c = AnalyzerSetupTransitionCoordinator
         var called = false
