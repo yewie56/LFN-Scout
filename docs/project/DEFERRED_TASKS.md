@@ -1,3 +1,8 @@
+## Offen nach Phase 3O, Arbeitspaket 4
+- Isoliertes Transaktionsprotokoll vorhanden, jedoch absichtlich nicht produktiv angeschlossen.
+- Atomaren MIC-/Recorder-Lease und speicherfreien realen Controller-Adapter bereitstellen; Rollback/STOP-Eigentum am Gerät validieren.
+- UI erst nach erfolgreicher Fehler-Injektion und Gerätetests anbinden/freigeben; `Plan.executable=false`.
+
 
 ## Offen nach Phase 3O, Arbeitspaket 3
 

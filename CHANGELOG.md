@@ -1,3 +1,8 @@
+## 2026-10-14 – v0.5.56 Phase 3O, Arbeitspaket 4 (Quellkandidat)
+- Isoliertes STOP–Reconfigure–START-Protokoll als testbare Zustandsfolge ergänzt, ohne produktiven Adapter.
+- Rollback-Reihenfolge mit Originalfehlererhalt, Recovery-Fehlerliste und verifiziertem Safe-Stop; sechs JUnit-Fälle.
+- Produktive Umschaltung bleibt gesperrt (`Plan.executable=false`), Gradle 0.5.55/213 unverändert. GitHub-TEST Paket 3 vom Benutzer GRÜN, Paket 4 offen.
+
 
 ## Phase 3O – Arbeitspaket 3 (Quellkandidat, 14.10.2026)
 

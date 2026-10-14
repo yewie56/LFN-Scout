@@ -1,3 +1,17 @@
+# LFN-Scout CURRENT_STATE – Phase 3O, Arbeitspaket 4 (Quellkandidat)
+
+**Stand:** 14.10.2026; Entwicklungsziel `0.5.56`; Gradle `0.5.55` / `213` unverändert.
+**Letzter vom Benutzer bestätigter GitHub-TEST:** Phase 3O, Arbeitspaket 3 **GRÜN**.
+**Aktueller Kandidat:** Arbeitspaket 4; GitHub-JUnit/Android-Build und Gerätetest OFFEN.
+
+Isoliertes, nicht produktiv angeschlossenes `AnalyzerSetupTransitionProtocol` ergänzt. Die synchrone STOP–Reconfigure–START-Protokollfolge führt einen vollständigen Checkpoint, verifizierten Start, Rollback-Stopp, Restore, Restart und Rückprüfungen durch. Fehler der Rücknahme werden separat erfasst, ohne den Ursprungsfehler zu überschreiben. Falls eine Wiederherstellung scheitert, meldet die Simulation einen sicheren STOP-Zustand nur nach positiver Überprüfung. Sechs neue JUnit-Fälle: Erfolg, Checkpoint-Ausfall, Fehler in vier Phasen, negatives Verify, Restore-Fehler und nicht nachweisbarer Safe-Stop.
+
+**Sicherheitsgrenze:** Der Protokollkern wird ausschließlich über `exerciseWithControlledPort` von Fakes getestet. Es gibt weder einen produktiven Controller-Adapter noch einen atomaren MIC-Lease; deshalb weiterhin `Plan.executable=false` und KEINE Audio-/FFT-Setup-Aktivierung. Reale Freigabe erst nach gemeinsamem Hardware-Arbiter, Integration, vollständiger Fault-Injection und Gerätetests.
+
+**Noch offen:** Exklusive Eigentümerschaft, vollständiger Controller-Adapter mit Pref-freiem START/STOP und Ressourcenverifikation, Rollback bei unvollständigem STOP, UI-Integration, Android-Gerätetest. Cloud, Recorder, Signierung, Termux v4 und historische GitHub-Sicherung unverändert.
+
+---
+
 # LFN-Scout CURRENT_STATE – Phase 3O, Arbeitspaket 3 (Quellkandidat)
 
 **Stand:** 14.10.2026; Entwicklungsziel `0.5.56`; Gradle `0.5.55` / `213` unverändert.
