@@ -50,7 +50,8 @@ class RollingAudioService : Service() {
                 .newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "LFN-Scout:RollingAudio")
                 .apply { acquire() }
         }
-        if (recordJob?.isActive != true) {
+        // Do not relaunch while a cancelled capture is still releasing AudioRecord.
+        if (recordJob?.isCompleted != false) {
             if (operationStartElapsedMs == 0L) operationStartElapsedMs = android.os.SystemClock.elapsedRealtime()
             val captureToken = AnalyzerSetupTransitionCoordinator.captureJobRegistered(AnalyzerSetupTransitionCoordinator.ROLLING)
             recordJob = scope.launch {
@@ -329,7 +330,8 @@ class RollingAudioService : Service() {
     private fun stopRolling(reason: String) {
         AnalyzerAudioTrace.write(this, "ROLLING_STOP_REQUEST", "reason=$reason job=${recordJob?.isActive} owner=${MicCaptureArbiter.owner}")
         DebugLogger.log(applicationContext, "ROLLING_STOPPED", "reason=$reason")
-        recordJob?.cancel(); recordJob = null
+        // Preserve the cancelled job reference until completion, not merely cancellation.
+        recordJob?.cancel()
         operationStartElapsedMs = 0L
         RollingAudioEngine.stop()
         runCatching { if (wakeLock?.isHeld == true) wakeLock?.release() }

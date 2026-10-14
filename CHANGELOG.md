@@ -1,3 +1,6 @@
+### Phase 3O – Arbeitspaket 22
+- Rolling-/Direct-Service verweigern erneuten Capture-Launch bis der alte, auch bereits abgebrochene Job vollständig abgeschlossen ist. STOP lässt die Job-Referenz bis zum Coroutine-Ende stehen. Neuer statischer Regressionstest. Keine produktive Setupfreigabe.
+
 # Phase 3O – Arbeitspaket 21 (Quellkandidat)
 
 **Stand:** 15.10.2026; Entwicklungsziel `0.5.56`; Gradle `0.5.55 / 213` unverändert.

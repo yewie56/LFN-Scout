@@ -38,12 +38,13 @@ class AnalyzerDirectAudioService : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         AnalyzerAudioTrace.write(this, "DIRECT_SERVICE_COMMAND", "action=${intent?.action} startId=$startId activeJob=${job?.isActive} owner=${MicCaptureArbiter.owner}")
         if (intent?.action == STOP) {
+            // Keep the cancelled job visible until its finally cleanup completes.
             job?.cancel()
-            job = null
             stopSelf()
             return START_NOT_STICKY
         }
-        if (job?.isActive == true) return START_NOT_STICKY
+        // A cancelled job is not active, but may still own AudioRecord in finally.
+        if (job?.isCompleted == false) return START_NOT_STICKY
         ensureChannel(this)
         startForeground(NOTIFICATION_ID, notification())
         wakeLock = (getSystemService(Context.POWER_SERVICE) as PowerManager)

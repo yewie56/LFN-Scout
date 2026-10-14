@@ -1,3 +1,5 @@
+**AP22:** Nach abgesichertem In-Process-Job-Cleanup bleiben realer AudioRecord-Hardware-Release-Nachweis, Android-Service-Lifecycle-Validierung, Controller-Adapter, Hardware-Rollback und Gerätetests zurückgestellt.
+
 # Phase 3O – Arbeitspaket 21 (Quellkandidat)
 
 **Stand:** 15.10.2026; Entwicklungsziel `0.5.56`; Gradle `0.5.55 / 213` unverändert.

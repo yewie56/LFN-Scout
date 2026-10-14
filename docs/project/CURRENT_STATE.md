@@ -1,3 +1,14 @@
+# Phase 3O – Arbeitspaket 22 (Quellkandidat)
+
+**Stand:** 15.10.2026; Entwicklungsziel `0.5.56`; Gradle `0.5.55 / 213` unverändert.
+**Letzter durch Benutzer bestätigter GitHub-TEST:** Arbeitspaket 21 **GRÜN**.
+**Änderung:** `RollingAudioService` und `AnalyzerDirectAudioService` prüfen vor einem erneuten Capture-Start die **Job-Fertigstellung** (`isCompleted`) statt nur `isActive`. Ein durch STOP bereits abgebrochener, aber im `finally` noch freigebender AudioRecord-Job ist nicht mehr als frei anzusehen. Die STOP-Pfade behalten die Job-Referenz bis zur Coroutine-Fertigstellung; eine neue Registrierung darf erst nach tatsächlichem Job-Abschluss erfolgen. Neuer statischer Regressionstest.
+**Grenze:** Android-Service-Neustart und Fehlerfälle außerhalb dieses In-Process-Jobs sind keine bewiesene Hardware-Freigabe. Kein produktiver Setupwechsel, kein Hardware-Rollback und kein Gerätetest; `Plan.executable=false`.
+**Prüfstatus:** Statische Prüfungen lokal; GitHub-JUnit/Android-Build für AP22 noch offen.
+**Schutz:** Termux v4, Workflows, Gradle/Signierung, `.gitignore`, Supabase/Cloud unverändert. Historisches Backup nur in GitHub.
+
+---
+
 # Phase 3O – Arbeitspaket 21 (Quellkandidat)
 
 **Stand:** 15.10.2026; Entwicklungsziel `0.5.56`; Gradle `0.5.55 / 213` unverändert.
