@@ -129,7 +129,10 @@ class RollingAudioService : Service() {
                     recorder = r
                     usedMode = candidate
                     break
-                } else runCatching { r?.release() }
+                } else runCatching { r?.release() }.onFailure {
+                    captureLease.markHardwareReleaseUncertain()
+                    throw IllegalStateException("Rolling AudioRecord candidate release failed; microphone quarantined", it)
+                }
             }
             val active = recorder ?: error("AudioRecord konnte nicht initialisiert werden")
             val mode = usedMode ?: error("Keine Audioquelle")

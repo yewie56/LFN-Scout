@@ -214,6 +214,9 @@ object AudioRecorder {
                     } else {
                         runCatching {
                             candidateRecorder?.release()
+                        }.onFailure {
+                            captureLease.markHardwareReleaseUncertain()
+                            throw IllegalStateException("AudioRecord candidate release failed; microphone quarantined", it)
                         }
                     }
                 }

@@ -104,7 +104,10 @@ class AnalyzerDirectAudioService : Service() {
                     recorder = candidateRecorder
                     break
                 }
-                candidateRecorder?.release()
+                runCatching { candidateRecorder?.release() }.onFailure {
+                    lease?.markHardwareReleaseUncertain()
+                    throw IllegalStateException("Direct AudioRecord candidate release failed; microphone quarantined", it)
+                }
             }
             val active = recorder ?: error("Kein $rate-Hz-AudioRecord mit Quelle $requestedSource initialisierbar")
             if (active.sampleRate != rate) error("AudioRecord meldet ${active.sampleRate} statt $rate Hz")

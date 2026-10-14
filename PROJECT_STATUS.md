@@ -1,3 +1,14 @@
+# Phase 3O – Arbeitspaket 20 (Quellkandidat)
+
+**Stand:** 15.10.2026; Entwicklungsziel `0.5.56`, Gradle `0.5.55 / 213` unverändert.
+**Letzter vom Benutzer bestätigter GitHub-TEST:** Arbeitspaket 19 **GRÜN**.
+**Änderung:** Bei der AudioRecord-Quellenauswahl wird ein `release()`-Fehler eines verworfenen Kandidaten in `AudioRecorder`, `RollingAudioService` und `AnalyzerDirectAudioService` nun konservativ behandelt: bereits gehaltenes Mikrofon-Token als unsicher markieren und den Auswahlversuch abbrechen. Dadurch kein Start einer weiteren AudioRecord-Instanz nach ungewisser Freigabe im selben Prozess. Erfolgreiche Kandidatenfreigaben bleiben unverändert. Regressionstest auf Quellcodeebene hinzugefügt.
+**Grenzen:** Keine verifizierte physische Freigabe durch Android, keine automatische Entsperrung, kein Hardware-Rollback und kein produktiver Setupwechsel. `Plan.executable=false`.
+**Tests:** Statische Prüfungen lokal; JUnit/Android-GitHub-Build für Arbeitspaket 20 ausstehend, kein Gerätetest.
+**Schutz:** Termux v4, Workflows, Gradle/Signierung, `.gitignore`, Cloud unverändert. Historisches Storage-Backup ausschließlich auf GitHub.
+
+---
+
 # Phase 3O – Arbeitspaket 19 (Quellkandidat)
 
 **Stand:** 15.10.2026; Entwicklungsziel `0.5.56`; Gradle `0.5.55 / 213` unverändert.
