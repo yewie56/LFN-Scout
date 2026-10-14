@@ -374,6 +374,30 @@ internal object LiveAnalyzerController {
         !running && captureStoppedAudioTimingCheckpoint() == checkpoint
     }
 
+    /** Phase 3O/8: consistent STOP snapshot across DSP + audio/timing under ONE lock.
+     * In-memory diagnostics only. Does not capture microphone owner, recorder, or sessions.
+     * Not sufficient to authorize an executable JSON setup switch.
+     */
+    data class StoppedAnalyzerConfigCheckpoint(
+        val dsp: StoppedDspCheckpoint,
+        val audioTiming: StoppedAudioTimingCheckpoint
+    )
+
+    fun captureStoppedAnalyzerConfigCheckpoint(): StoppedAnalyzerConfigCheckpoint = synchronized(lock) {
+        check(!running) { "Gesamt-Checkpoint nur bei STOP" }
+        StoppedAnalyzerConfigCheckpoint(
+            captureStoppedDspCheckpoint(), captureStoppedAudioTimingCheckpoint()
+        )
+    }
+
+    /** Staleness test is atomic with respect to controller setters taking [lock].
+     * No calls to preferences, no hardware changes and no persistence.
+     */
+    fun isStoppedAnalyzerConfigCheckpointCurrent(checkpoint: StoppedAnalyzerConfigCheckpoint): Boolean = synchronized(lock) {
+        !running && captureStoppedDspCheckpoint() == checkpoint.dsp &&
+            captureStoppedAudioTimingCheckpoint() == checkpoint.audioTiming
+    }
+
     fun start(context: Context, dspOverride: DspStartOverride? = null) {
         synchronized(lock) {
             if (running) return

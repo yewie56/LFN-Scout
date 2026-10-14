@@ -1,12 +1,12 @@
 # LFN-Scout – CURRENT_STATE (verbindliche laufende Übergabe)
 
-**Stand:** 2026-10-14 · **Quellkandidat:** v0.5.56, Phase 3O, Teilstufe 7 · **Noch kein Release**
+**Stand:** 2026-10-14 · **Quellkandidat:** v0.5.56, Phase 3O, Teilstufe 8 · **Noch kein Release**
 
 ## Buildstatus und Versionsschutz
 
 - Gradle `versionName = "0.5.55"`, `versionCode = 213`: bis Releasefreigabe unverändert.
-- **Letzter vom Nutzer als GRÜN bestätigter GitHub-TEST:** Phase 3O, **Teilstufe 5** (Commit-ID nicht bekanntgegeben). Für Teilstufe 6 liegt hier keine Buildbestätigung vor.
-- **Teilstufe 7:** statische Quellprüfungen lokal ausführbar; GitHub TEST, Kotlin-/Gradle-Kompilation und Android-Gerätetest **noch offen**.
+- **Letzter vom Nutzer als GRÜN bestätigter GitHub-TEST:** Phase 3O, **Teilstufe 7** (Commit-ID nicht bekanntgegeben). Teilstufe 8 ist noch nicht auf GitHub getestet.
+- **Teilstufe 8:** statische Quellprüfungen lokal ausführbar; GitHub TEST, Kotlin-/Gradle-Kompilation und Android-Gerätetest **noch offen**.
 - TEST genügt vorerst; REGULAR nur bei ausdrücklichem Bedarf, besonders für Updates der bestehenden App.
 
 ## Aktuell implementiert
@@ -14,6 +14,9 @@
 - Phasen 3A–3N siehe `docs/project/PHASE3*.md`; Phase 3N ist ausdrücklich lesender Umschaltplan mit `Plan.executable == false`.
 - Phase 3O/1–6: Preflight-/Präzisionsschutz, speicherfreie STOP-gebundene DSP-Setter, DSP-Start-Override und gestoppter DSP-Checkpoint (siehe `PHASE3O_TRANSAKTIONSSCHUTZ_v0.5.56.md`).
 - **Neu 3O/7:** `StoppedAudioTimingCheckpoint` im `LiveAnalyzerController` erfasst die zusätzlichen internen Direct-Mode- und Timing-Felder ausschließlich bei STOP. `isStoppedAudioTimingCheckpointCurrent` erkennt zwischenzeitliche Änderungen unter demselben Controller-Lock; es gibt keinerlei Zustandsänderungen oder Preference-Zugriffe.
+
+- **Neu 3O/8:** `StoppedAnalyzerConfigCheckpoint` verbindet DSP- und Audio-/Timing-Checkpoint in einem Controller-Lock; gemeinsame Stale-State-Prüfung ohne Persistenz. Kein Recorder-/Hardware-Rollback.
+- **Backup-Auslagerung:** `supabase/storage_backup_before_v0526` (85 Dateien) ist in separatem, byteweise verifiziertem Recovery-ZIP gesichert und in dieser Projekt-ZIP nicht enthalten. Das Originalrepository und dessen Git-Tracking wurden nicht geändert; bei Termux-v4-Import bleiben bereits verfolgte Dateien ggf. bestehen. Separates Backup dauerhaft aufbewahren.
 
 ## Was ausdrücklich NICHT funktioniert / gesperrt bleibt
 
@@ -32,7 +35,7 @@
 
 ## Nächster Schritt
 
-Erst vollständige Validierung von Audio-/Timing-Checkpoint + mode-/recorderübergreifender atomarer STOP-/START-/Rollback-Vertrag und dynamische Regressionen. Keine vorzeitige Freigabe; Gerätetests ausdrücklich nachholen.
+Als Nächstes ein ausführbarer, recorderübergreifender STOP-/START-/Rollback-Vertrag mit atomarer Besitzer-Sperre, dynamischen Tests; keine Aktivierung vor Nachweis und dynamische Regressionen. Keine vorzeitige Freigabe; Gerätetests ausdrücklich nachholen.
 
 ## Übergabe in neuem Chat
 

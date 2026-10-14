@@ -1,3 +1,7 @@
+## v0.5.56 Entwicklung – Phase 3O, Teilstufe 8 (2026-10-14; GitHub TEST offen)
+- Gemeinsamer atomarer STOP-Checkpoint für DSP und Audio/Timing und Stale-Prüfung.
+- `CURRENT_STATE.md` aktualisiert. Historisches Recovery-Storage im separaten Archiv gesichert und aus Quell-ZIP ausgeklammert (nicht aus Git gelöscht).
+
 ## Phase 3O – Teilstufe 6 (Quellkandidat, 14.10.2026)
 - STOP-gebundener `StoppedDspCheckpoint` mit capture/restore für FFT und (8-kHz) Filterbank; zunächst vollständige Validierung, dann Laufzeitzuweisung, ohne Preferences-Schreibzugriff.
 - Keine Audio-/Recorder-Rücknahme, keine automatische Aktivierung, keine UI-Anbindung; Phase-3N-Plan bleibt gesperrt.

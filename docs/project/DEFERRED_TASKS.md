@@ -167,3 +167,6 @@ Die Kennzeichnung **R01–R07, O01–O08 und A01–A05** können wir künftig al
 
 ## 14.10.2026 – Offener Phase-3O-Folgeumfang
 3O/7 dokumentiert einen **lesenden** STOP-Audio-/Timing-Checkpoint mit Stale-Kontrolle; vollständiger Restore/STOP/START-Executor, gemeinsames Aufnahme-Lock, Android-Geräte- und Fehler/Rollback-Regressionstests bleiben offen. Pflichtübergabe `docs/project/CURRENT_STATE.md` bei jeder Projekt-ZIP aktualisieren. R01–R07, O01–O08 und A01–A05 unverändert.
+
+- [ ] Phase 3O: Recorder- und Hardware-Zustandstransaktion, STOP/START/Rollback, dynamische Tests. Der atomare Controller-Checkpoint aus Teilstufe 8 reicht hierfür noch nicht aus.
+- [ ] Historischen Backupordner erst nach unabhängiger Sicherungsprüfung und separater Freigabe aus Git-Tracking entfernen.

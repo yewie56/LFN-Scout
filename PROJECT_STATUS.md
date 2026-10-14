@@ -1,3 +1,6 @@
+## Phase 3O, Teilstufe 8 – 2026-10-14
+Gemeinsamer STOP-Zustandscheckpoint; noch kein echter Audio-Setupwechsel, GitHub TEST offen. Recovery-Storage separat gesichert, nicht aus Git gelöscht. Details: `docs/project/CURRENT_STATE.md`.
+
 ## 14.10.2026 – Phase 3O/6 (Quellkandidat)
 FFT-/Filterbank-Checkpoint bei STOP einschließlich validierter speicherfreier Wiederherstellung implementiert. Nicht als kompletter Audio-Rollback oder Setup-Switch interpretieren. GitHub-TEST Teilstufe 5: GRÜN (Nutzermeldung). Teilstufe 6: CI und Gerätetest OFFEN. Gradle 0.5.55/213.
 
