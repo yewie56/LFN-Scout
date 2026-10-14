@@ -1,3 +1,7 @@
+## Phase 3O – Arbeitspaket 23 (15.10.2026)
+
+AP22 GitHub-TEST GRÜN. AP23 unterbindet Rolling-Auto-Restarts bei `uncertainReleaseOwner`, um die bisherige Fail-Closed-Quarantäne auch im Wiederanlauf zu respektieren. GitHub-TEST AP23 ausstehend; `Plan.executable=false`; Version `0.5.55 / 213` unverändert.
+
 **Phase 3O / Arbeitspaket 22:** GitHub-TEST für AP21 vom Benutzer GRÜN. STOP/START-Race in Rolling-/Direct-Audio beseitigt: START prüft `isCompleted` statt `isActive`, STOP verwirft die Job-Referenz nicht vor Cleanup-Abschluss. Zielversion 0.5.56, Gradle 0.5.55/213 und `Plan.executable=false` unverändert. GitHub-TEST AP22 offen.
 
 # Phase 3O – Arbeitspaket 21 (Quellkandidat)

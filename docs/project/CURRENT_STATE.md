@@ -1,3 +1,13 @@
+# Phase 3O – Arbeitspaket 23 (Quellkandidat)
+
+**Stand:** 15.10.2026; Entwicklungsziel `0.5.56`, Gradle `0.5.55 / 213` unverändert.
+**Letzter durch Benutzer bestätigter GitHub-TEST:** Arbeitspaket 22 **GRÜN**.
+**Änderung:** `RollingAudioService` beendet die automatische Capture-Neustartschleife nach `runRecorder()`, sobald `MicCaptureArbiter.uncertainReleaseOwner` eine fehlgeschlagene `AudioRecord.release()`-Freigabe meldet. Neuer Quell-Regressionsprüfer verifiziert die Reihenfolge vor `settingsFlow` und `delay(5_000)`. Der Quarantäne-Token bleibt bis Prozessende gesperrt.
+**Grenzen:** Keine nachgewiesene Android-Hardwarefreigabe, kein produktiver Setupwechsel, kein Hardware-Rollback und kein Gerätetest. `Plan.executable=false`.
+**Schutz:** Termux v4, Workflows, Gradle/Signierung, `.gitignore`, Supabase/Cloud unverändert. Historisches Backup nur in GitHub.
+
+---
+
 # Phase 3O – Arbeitspaket 22 (Quellkandidat)
 
 **Stand:** 15.10.2026; Entwicklungsziel `0.5.56`; Gradle `0.5.55 / 213` unverändert.

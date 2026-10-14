@@ -57,6 +57,13 @@ class RollingAudioService : Service() {
             recordJob = scope.launch {
                 while (true) {
                     runRecorder()
+                    // A failed AudioRecord.release() quarantines the microphone for this process.
+                    // Do not schedule futile automatic restarts against an unrecoverable lease.
+                    if (MicCaptureArbiter.uncertainReleaseOwner != null) {
+                        AnalyzerAudioTrace.write(this@RollingAudioService, "ROLLING_RESTART_BLOCKED_UNCERTAIN_RELEASE", "owner=${MicCaptureArbiter.uncertainReleaseOwner}")
+                        DebugLogger.log(applicationContext, "ROLLING_RESTART_BLOCKED", "uncertainReleaseOwner=${MicCaptureArbiter.uncertainReleaseOwner}")
+                        break
+                    }
                     val enabled = runCatching {
                         ReminderSettingsStore(applicationContext).settingsFlow.first().rollingBufferEnabled
                     }.getOrDefault(false)

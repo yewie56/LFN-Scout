@@ -1,3 +1,8 @@
+## Phase 3O – Arbeitspaket 23 (15.10.2026)
+
+- Rolling-Autorestart endet nach fehlgeschlagener AudioRecord-Freigabe mit gesperrtem Mikrofon-Token; Diagnose-Trace und Logging statt weiterer Restart-Versuche.
+- Statischer Regressionstest für Gate-Position und Schleifenabbruch. Produktive Setup-Umschaltung weiterhin deaktiviert.
+
 ### Phase 3O – Arbeitspaket 22
 - Rolling-/Direct-Service verweigern erneuten Capture-Launch bis der alte, auch bereits abgebrochene Job vollständig abgeschlossen ist. STOP lässt die Job-Referenz bis zum Coroutine-Ende stehen. Neuer statischer Regressionstest. Keine produktive Setupfreigabe.
 

@@ -1,3 +1,7 @@
+## Phase 3O – Arbeitspaket 23
+
+Weiter offen: Echte Audio-Hardwarefreigabe / verifizierter STOP, asynchrone Service-Lebenszyklen, Controller-Adapter, Hardware-Rollback und Android-Gerätevalidierung. Rolling-Autorestart ist bei unsicherer `release()`-Freigabe nun gesperrt.
+
 **AP22:** Nach abgesichertem In-Process-Job-Cleanup bleiben realer AudioRecord-Hardware-Release-Nachweis, Android-Service-Lifecycle-Validierung, Controller-Adapter, Hardware-Rollback und Gerätetests zurückgestellt.
 
 # Phase 3O – Arbeitspaket 21 (Quellkandidat)
