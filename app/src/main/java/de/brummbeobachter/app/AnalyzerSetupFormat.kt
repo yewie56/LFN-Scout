@@ -54,8 +54,12 @@ internal object AnalyzerSetupFormat {
             if (value == JSONObject.NULL) continue
             when (key) {
                 in integerFields -> {
-                    val n = numeric(value)
-                    require(n >= Int.MIN_VALUE && n <= Int.MAX_VALUE && n == n.toInt().toDouble()) { "Invalid integer: $key" }
+                    require(value is Number) { "Invalid integer: $key" }
+                    val exact = try { java.math.BigDecimal(value.toString()).toBigIntegerExact() }
+                        catch (_: NumberFormatException) { null }
+                        catch (_: ArithmeticException) { null }
+                    require(exact != null && exact >= java.math.BigInteger.valueOf(Int.MIN_VALUE.toLong()) &&
+                        exact <= java.math.BigInteger.valueOf(Int.MAX_VALUE.toLong())) { "Invalid integer: $key" }
                 }
                 in floatFields -> require(numeric(value) in -1e6..1e6) { "Invalid float: $key" }
                 in booleanFields -> require(value is Boolean) { "Invalid boolean: $key" }

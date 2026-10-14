@@ -1795,3 +1795,17 @@ Kein PASS für Android-Build, Emulator oder Xiaomi ohne tatsächlichen Lauf. 16:
 - Service prüft Zeitablauf und stoppt Rolling sowie gekoppelten `ROLLING_8K`-Analyzer; 30-min-Ringkapazität bleibt unverändert.
 - `ANLEITUNG_BUILD_TEST_v0.5.27.md` und `docs/project/ROLLING_AND_STATISTICS_REQUIREMENTS_v0.5.27.md` ergänzt.
 - **Kein Android-Build-PASS:** Gradle-8.13-Distribution nicht verfügbar (`UnknownHostException: services.gradle.org`). Offene Statistik-/CSV-/SD-Funktionen sind nur spezifiziert, nicht implementiert.
+
+## Entwicklungskandidat v0.5.56 – Phase 3O Teilstufe (14.10.2026)
+- Fail-closed Transaktionsschutz als isolierter, nicht angeschlossener Adaptervertrag ergänzt. Stop-required Audio-/FFT-Felder werden noch **nicht** aktiviert; reine Phase-3N-Anzeige bleibt lesend.
+- Statische Regression `tools/verify_lfn056_phase3o.py` und Dokumentation ergänzt. Keine Änderung an Audio-Hardware, Prefs, Cloud, Termux-v4-Skript oder Workflows. Gradle bleibt `0.5.55` / `213`.
+
+### v0.5.56 – Phase 3O, zweite Teilstufe (Quellkandidat, nicht Release)
+- Neue `AnalyzerSetupExactComparison.kt` für numerisch präzise und vollständige JSON-Statusvergleiche; Preflight und Runtime-Vergleich verwenden sie.
+- Transaktions-No-op nur bei vollständiger Werte- und Schlüsselgleichheit; zusätzliche Live-Schlüssel werden als unvergleichbar ausgewiesen.
+- Vier JUnit-Tests ergänzt (nicht lokal ausgeführt). Kein Audio-/FFT-Apply freigegeben; Gradle weiterhin `0.5.55` / `213`.
+
+
+## Phase 3O – dritte Teilstufe: Legacy-Grenzwertschutz (14.10.2026)
+
+`AnalyzerRuntimeSetupSnapshot.capture` darf Filtergrenzen nicht mehr stillschweigend von `Double` nach `Int` abschneiden. `exactLegacyFilterHz` akzeptiert nur endliche, exakt ganzzahlige Werte im Int-Bereich; bei echten Bruchteilen bricht die *lesende* Erfassung mit einer klaren Fehlermeldung ab. Grund: Das aktuelle Legacy-JSON-Schema deklariert `filter_min_hz` und `filter_max_hz` als Integer. Dieser Guard dient der Integrität, **ist keine Unterstützung für Bruch-Hz**. Für eine vollwertige Übernahme muss die Schema-/Controller-Frage explizit geklärt werden. `AnalyzerSetupFormat` prüft Integerwerte jetzt über `BigDecimal.toBigIntegerExact()` statt verlustbehaftetem `Double`. Vier JUnit-Regressionsfälle hinzugefügt, deren Ausführung durch Gradle aussteht. Keine Änderung an Recordern, Audiopipeline, SharedPreferences, JSON-Dateien, Workflows oder Gradle-Version. `Plan.executable=false`, kein Adapter aktiv.

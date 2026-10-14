@@ -559,3 +559,8 @@ Kein PASS für Android-Build, Emulator oder Xiaomi ohne tatsächlichen Lauf. 16:
 ## v0.5.27 Zusatzstand 10.10.2026 – nicht final
 
 Neue persistente Maximalzeit des Rolling-BETRIEBS (12 h Default, GUI 1–168 h) im Quellcode. Android-Gradle-Build und Gerätetest weiterhin NICHT nachgewiesen. Statistiksammlung aus Rolling-PCM, lokale CSV, SD-Karte/SAF und automatischer Hintergrund-Retry weiterhin offen. Verbindliche Anforderungen unter `docs/project/ROLLING_AND_STATISTICS_REQUIREMENTS_v0.5.27.md`.
+
+
+## Phase 3O – dritte Teilstufe: Legacy-Grenzwertschutz (14.10.2026)
+
+`AnalyzerRuntimeSetupSnapshot.capture` darf Filtergrenzen nicht mehr stillschweigend von `Double` nach `Int` abschneiden. `exactLegacyFilterHz` akzeptiert nur endliche, exakt ganzzahlige Werte im Int-Bereich; bei echten Bruchteilen bricht die *lesende* Erfassung mit einer klaren Fehlermeldung ab. Grund: Das aktuelle Legacy-JSON-Schema deklariert `filter_min_hz` und `filter_max_hz` als Integer. Dieser Guard dient der Integrität, **ist keine Unterstützung für Bruch-Hz**. Für eine vollwertige Übernahme muss die Schema-/Controller-Frage explizit geklärt werden. `AnalyzerSetupFormat` prüft Integerwerte jetzt über `BigDecimal.toBigIntegerExact()` statt verlustbehaftetem `Double`. Vier JUnit-Regressionsfälle hinzugefügt, deren Ausführung durch Gradle aussteht. Keine Änderung an Recordern, Audiopipeline, SharedPreferences, JSON-Dateien, Workflows oder Gradle-Version. `Plan.executable=false`, kein Adapter aktiv.

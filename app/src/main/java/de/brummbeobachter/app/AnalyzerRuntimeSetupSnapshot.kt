@@ -9,6 +9,18 @@ import org.json.JSONObject
  * Fields without a controller source are OMITTED rather than guessed from defaults.
  */
 internal object AnalyzerRuntimeSetupSnapshot {
+    /** Legacy JSON encodes filter boundaries as Int. Fractional runtime values must
+     * never be silently rounded into an apparently matching setup fingerprint.
+     * Fail closed until the schema and legacy conversion support exact decimals.
+     */
+    internal fun exactLegacyFilterHz(value: Double): Int {
+        require(value.isFinite() && value >= Int.MIN_VALUE.toDouble() && value <= Int.MAX_VALUE.toDouble()
+                && value == value.toInt().toDouble()) {
+            "Non-integral or out-of-range filter boundary cannot be represented in legacy JSON: $value"
+        }
+        return value.toInt()
+    }
+
     fun capture(state: LiveAnalyzerController.Snapshot): JSONObject = JSONObject().apply {
         put("min_frequency", state.minFrequencyHz)
         put("range", state.rangeHz)
@@ -32,8 +44,8 @@ internal object AnalyzerRuntimeSetupSnapshot {
         put("stat_max", state.statisticsMaxHz)
         put("stat_window", state.statisticsWindowSec)
         put("stat_average", state.statisticsAverageSec)
-        put("filter_min_hz", state.filterMinHz.toInt())
-        put("filter_max_hz", state.filterMaxHz.toInt())
+        put("filter_min_hz", exactLegacyFilterHz(state.filterMinHz))
+        put("filter_max_hz", exactLegacyFilterHz(state.filterMaxHz))
         put("filter_bands", state.filterBandCount)
         put("filter_display_min", state.filterDisplayMinDb)
         put("filter_display_max", state.filterDisplayMaxDb)
@@ -71,7 +83,7 @@ internal object AnalyzerRuntimeSetupSnapshot {
             } else {
                 val a = saved.get(key)
                 val b = current.get(key)
-                val same = if (a is Number && b is Number) a.toDouble() == b.toDouble() else a == b
+                val same = AnalyzerSetupExactComparison.same(a, b)
                 if (same) unchanged.add(key) else changed.add(key)
             }
         }

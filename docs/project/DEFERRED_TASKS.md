@@ -143,3 +143,14 @@ Die Kennzeichnung **R01–R07, O01–O08 und A01–A05** können wir künftig al
 ### v0.5.56 Phase 3F – Entwicklungsnotiz (keine Freigabe)
 - Der reine JSON-Setup-Browser ist in der Analyzer-Setup-Seite sichtbar; aktiv bleibt die bisherige Slot-Speicherung.
 - Noch offen: JSON-Setup-Aktivierung, tatsächliche MRU-Schnellzugriffe, Änderungen nur auf explizites Speichern persistieren, MON-/Analyzer-Synchronisation, acht Analyzer-Panels und sieben Scout-Panels, SAF-Import-/Export sowie automatisierte und Gerätetests.
+
+## Phase 3O – 14.10.2026 (Teilfortschritt, nicht freigegeben)
+- **O11:** Sichere Audio-/FFT-JSON-Übernahme: `AnalyzerSetupSwitchTransaction.kt` als fail-closed STOPPED-Guard/Adaptervertrag ergänzt. **Kein Controller-Adapter, keine aktive Setter-/STOP-/START-/Rollback-Funktion**; Phase 3N weiterhin lesend und `Plan.executable=false`. Erforderlich: gemeinsame Recorder-Synchronisation, speicherfreie Konfigurationsinjektion, wirklicher Checkpoint/Restore und JVM-/Android-/Gerätetests. Details: `PHASE3O_TRANSAKTIONSSCHUTZ_v0.5.56.md`.
+
+## Phase 3O – zweite Teilstufe (14.10.2026)
+- **O11:** Präziser Zahl- und vollständiger Keyset-Vergleich als Vorbedingung ergänzt. Tatsächlicher Controller-Apply, gemeinsame Recorder-Zustandssperre, sichere Reinitialisierung und Rollback weiterhin **offen**. Vier neue JUnit-Fälle vorhanden, noch nicht mit Android-Gradle ausgeführt. Filtergrenzen-Double→Int im Runtime-Snapshot bleibt offen.
+
+
+## Phase 3O – dritte Teilstufe: Legacy-Grenzwertschutz (14.10.2026)
+
+`AnalyzerRuntimeSetupSnapshot.capture` darf Filtergrenzen nicht mehr stillschweigend von `Double` nach `Int` abschneiden. `exactLegacyFilterHz` akzeptiert nur endliche, exakt ganzzahlige Werte im Int-Bereich; bei echten Bruchteilen bricht die *lesende* Erfassung mit einer klaren Fehlermeldung ab. Grund: Das aktuelle Legacy-JSON-Schema deklariert `filter_min_hz` und `filter_max_hz` als Integer. Dieser Guard dient der Integrität, **ist keine Unterstützung für Bruch-Hz**. Für eine vollwertige Übernahme muss die Schema-/Controller-Frage explizit geklärt werden. `AnalyzerSetupFormat` prüft Integerwerte jetzt über `BigDecimal.toBigIntegerExact()` statt verlustbehaftetem `Double`. Vier JUnit-Regressionsfälle hinzugefügt, deren Ausführung durch Gradle aussteht. Keine Änderung an Recordern, Audiopipeline, SharedPreferences, JSON-Dateien, Workflows oder Gradle-Version. `Plan.executable=false`, kein Adapter aktiv.

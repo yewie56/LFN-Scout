@@ -49,7 +49,7 @@ internal object AnalyzerSetupSwitchPreflight {
             }
             val a = saved.get(key)
             val b = live.get(key)
-            val equal = if (a is Number && b is Number) a.toDouble() == b.toDouble() else a == b
+            val equal = AnalyzerSetupExactComparison.same(a, b)
             if (equal) continue
             changed += key
             when (key) {
@@ -57,6 +57,11 @@ internal object AnalyzerSetupSwitchPreflight {
                 in requiresStop -> stopped += key
                 else -> unsupported += key
             }
+        }
+        // An extra live key is not silently discarded. It makes a full-state
+        // no-op or a complete transactional switch unverifiable.
+        for (key in AnalyzerSetupExactComparison.keys(live) - AnalyzerSetupExactComparison.keys(saved)) {
+            missing += key
         }
         return Report(display.sorted(), stopped.sorted(), unsupported.sorted(), missing.sorted(),
             changed.sorted(), running, recording)
