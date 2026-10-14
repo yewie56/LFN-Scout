@@ -1,3 +1,7 @@
+## Phase 3O/AP6 – weiter offen
+- Gemeinsame atomare Reservierung sämtlicher Analyzer-/MON-/Scout-/Rolling-/Direct-Audio-Starts und Stopps, inklusive Hardware-Owner. Owner-Probe ist nur ein ablehnender Vorcheck.
+- Produktiven preference-freien Controlleradapter erst mit Fehlersimulation, Rollback-Verifikation und Gerätetest integrieren; `Plan.executable=false` bis dahin beibehalten.
+
 ## Phase 3O – nach Arbeitspaket 5 FIX
 
 - [ ] GitHub-TEST für Paket 5 FIX; Gerätevalidierung steht weiterhin aus.

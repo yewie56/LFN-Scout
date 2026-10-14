@@ -174,11 +174,30 @@ internal object AnalyzerSetupTransitionCoordinator {
      * indicates that another setup transaction holds the reservation. Release is
      * guaranteed even when the block throws. Must not be used for suspend code.
      */
-    fun <T> withSetupReservation(block: () -> T): T? {
+    fun <T> withSetupReservation(block: () -> T): T? =
+        withOwnerCheckedReservation({ AnalyzerSetupAudioOwnerGate.observe().blockers }, block)
+
+    /** Phase 3O / package 6: shared reservation decision with a conservative owner
+     * probe under the coordinator mutex. Injection permits JVM tests without Android
+     * services. A clean probe is only a deny-only precondition, never proof that the
+     * real microphone or other start/stop paths are atomically locked.
+     *
+     * No exceptions from the probe can grant a reservation. The callback executes
+     * without holding the coordinator mutex, but setupReserved stays true until it
+     * completes, including on exceptional exits.
+     */
+    internal fun <T> withOwnerCheckedReservation(
+        ownerBlockers: () -> List<String>,
+        block: () -> T
+    ): T? {
         synchronized(mutex) {
-            // Reserve only if EXACTLY the same internal marker policy as diagnosis passes.
-            // In particular, orphan destroy markers must not be silently ignored.
-            if (blockingReasonsLocked().isNotEmpty() || AnalyzerMonitorRecording.isActive()) return null
+            if (blockingReasonsLocked().isNotEmpty()) return null
+            // Failure to read any owner state must fail closed.
+            val blockers = try { ownerBlockers() } catch (_: Throwable) { return null }
+            if (blockers.isNotEmpty()) return null
+            // The status is read while coordinating MON starts; the later
+            // absence of known blockers must NOT authorize an actual setup switch.
+            if (AnalyzerMonitorRecording.isActive()) return null
             setupReserved = true
         }
         try { return block() }

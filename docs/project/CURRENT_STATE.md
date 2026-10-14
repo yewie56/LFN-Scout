@@ -1,3 +1,17 @@
+# LFN-Scout CURRENT_STATE – Phase 3O, Arbeitspaket 6 (Quellkandidat)
+
+**Stand:** 14.10.2026; Entwicklungsziel `0.5.56`; Gradle `0.5.55` / `213` unverändert.
+**Letzter bestätigter GitHub-TEST:** Arbeitspaket 5 FIX **GRÜN** (Benutzermeldung).
+**Aktueller Stand:** Arbeitspaket 6, GitHub-JUnit/Android-Build OFFEN.
+
+**Arbeitspaket 6:** Die vorhandene `AnalyzerSetupTransitionCoordinator.withSetupReservation` prüft nun vor der Reservierung neben sämtlichen Lifecycle-/Capture-Markern auch den aktuellen `AnalyzerSetupAudioOwnerGate`-Status. Fehler beim Lesen der Besitzer werden konservativ abgewiesen. Der bestehende MON-Schutz und die garantierte Reservierungsfreigabe bleiben erhalten. Kein neuer produktiver Setup-Executor oder paralleler Recorder-Koordinator eingeführt. Eine testbare interne Probe-Variante ermöglicht vier JUnit-Regressionstests für Besitzerkonflikte, Fehlerabfragen, Mehrfachreservierung und exception-sichere Freigabe.
+
+**Sicherheitsgrenze:** Die Statusabfrage ist kein übergreifender atomarer Lock für Audio-Hardware und alle Service-Starts. Sie verleiht keine Aktivierungserlaubnis. `Plan.executable=false` bleibt unverändert. Noch offen: Einbindung aller tatsächlichen Recorder-Start/Stop-Pfade in eine gemeinsame Exklusivgrenze, reale Controller-Schnittstelle, Rollback mit Hardwarevalidierung und Gerätetests.
+
+**Prüfstatus:** Lokale statische Prüfungen sind separat dokumentiert; JUnit und vollständiger Android-Build sind erst mit GitHub-Test bestätigt. Workflows, Gradle, Signing, Termux v4, Cloud/Supabase unverändert. `supabase/storage_backup_before_v0526/` verbleibt auf GitHub und fehlt absichtlich in der ZIP.
+
+---
+
 # LFN-Scout CURRENT_STATE – Phase 3O, Arbeitspaket 5 FIX (Quellkandidat)
 
 **Stand:** 14.10.2026; Entwicklungsziel `0.5.56`; Gradle `0.5.55` / `213` unverändert.

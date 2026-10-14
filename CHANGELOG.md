@@ -1,3 +1,7 @@
+## 2026-10-14 – Phase 3O, Arbeitspaket 6 (Quellkandidat)
+- Bestehende Setup-Reservierung weist jetzt zusätzlich erkannte Audio-Besitzer und fehlerhafte Besitzerabfragen fail-closed ab.
+- Vier JUnit-Regressionsfälle für Probe, Reservierung und Freigabe. Keine Produktivfreigabe (`Plan.executable=false`); Version 0.5.55/213 unverändert.
+
 ## 14.10.2026 – Phase 3O, Arbeitspaket 5 FIX (nach GitHub-TEST ROT)
 - JUnit 225 Tests, 1 Fehler (`AnalyzerSetupTransitionProtocolTest.lostLeaseDoesNotClaimSafeStopped`).
 - Ungültige ExclusiveBoundary wird vor dem ersten Controllerzugriff ohne positive Rollback-Bestätigung abgewiesen.

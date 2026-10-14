@@ -1,3 +1,8 @@
+## Phase 3O – Arbeitspaket 6 (Quellkandidat, 14.10.2026)
+- Arbeitspaket 5 FIX: GitHub-TEST laut Benutzer **GRÜN**.
+- Owner-geprüfte Setup-Reservierung im vorhandenen Koordinator; vier zusätzliche JUnit-Tests. GitHub-TEST Paket 6 offen.
+- Keine produktive Umschaltung; Plan.executable=false; Version 0.5.55/213.
+
 ## Phase 3O – Arbeitspaket 5 FIX (14.10.2026)
 
 Paket 4 GitHub-TEST GRÜN. Paket 5 GitHub-TEST ROT: 225 JUnit-Tests, ein Fehler `lostLeaseDoesNotClaimSafeStopped`. Vorabprüfung der Exklusivität im isolierten Protokollkern ergänzt; bei Verlust keine Controllerberührung und keine positive Rollback-Aussage. Fix-GitHub-TEST offen. Produktive Aktivierung bleibt gesperrt; 0.5.55/213 unverändert.

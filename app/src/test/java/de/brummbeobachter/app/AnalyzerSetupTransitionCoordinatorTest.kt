@@ -7,6 +7,48 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 
 class AnalyzerSetupTransitionCoordinatorTest {
+    @Test fun ownerBlockersRejectReservationWithoutRunningCallback() {
+        val c = AnalyzerSetupTransitionCoordinator
+        var invoked = false
+        assertNull(c.withOwnerCheckedReservation({ listOf("microphone_busy") }) {
+            invoked = true
+            "must not run"
+        })
+        assertFalse(invoked)
+        assertFalse(c.snapshotGate().setupReserved)
+    }
+
+    @Test fun ownerProbeExceptionFailsClosedWithoutPoisoningGate() {
+        val c = AnalyzerSetupTransitionCoordinator
+        var invoked = false
+        assertNull(c.withOwnerCheckedReservation<String>({ throw IllegalStateException("probe failure") }) {
+            invoked = true
+            "must not run"
+        })
+        assertFalse(invoked)
+        assertFalse(c.snapshotGate().setupReserved)
+        assertEquals("ok", c.withOwnerCheckedReservation({ emptyList() }) { "ok" })
+    }
+
+    @Test fun ownerCheckedReservationRemainsHeldUntilOperationEnds() {
+        val c = AnalyzerSetupTransitionCoordinator
+        assertNull(c.withOwnerCheckedReservation({ emptyList() }) {
+            c.withOwnerCheckedReservation({ emptyList() }) { "duplicate" }
+        })
+        assertFalse(c.snapshotGate().setupReserved)
+    }
+
+    @Test fun ownerCheckedReservationReleasesAfterCallbackFailure() {
+        val c = AnalyzerSetupTransitionCoordinator
+        try {
+            c.withOwnerCheckedReservation<Unit>({ emptyList() }) {
+                throw IllegalArgumentException("operation failure")
+            }
+            fail("exception expected")
+        } catch (_: IllegalArgumentException) { }
+        assertFalse(c.snapshotGate().setupReserved)
+    }
+
     @Test fun setupReservationBlocksConcurrentMonStart() {
         val entered = CountDownLatch(1)
         val release = CountDownLatch(1)
