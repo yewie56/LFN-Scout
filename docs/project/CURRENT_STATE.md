@@ -1,3 +1,14 @@
+# LFN-Scout CURRENT_STATE – Phase 3O, Arbeitspaket 9 (Quellkandidat)
+
+**Stand:** 14.10.2026; Entwicklungsziel `0.5.56`; Gradle `0.5.55` / `213` unverändert.
+**Letzter durch Benutzer bestätigter GitHub-TEST:** Arbeitspaket 8 **GRÜN**.
+**Arbeitspaket 9:** `withTrackedServiceStart` weist Rolling-/Direct-Startanforderungen nun bereits vor Registrierung des asynchronen Lifecycle-Markers ab, wenn der bestehende `MicCaptureArbiter` einen aktiven Besitzer meldet. Die bestehende synchronisierte Koordinatorentscheidung und deren Marker bleiben maßgeblich. Zusätzliche JUnit-Regressionen für belegten Recorder, Setup-Token und Start nach Token-Freigabe sowie statischer Prüfer.
+**Sicherheitsgrenze:** MIC-Owner-Lesen ist nur eine ablehnende Momentaufnahme; es reserviert keine künftige Hardware-Nutzung des asynchronen Services. Produktive Transaktion und Controller-Anbindung sind nicht freigeschaltet (`Plan.executable=false`). Hardware-Rollback, vollständiger allseitiger Atomaritätsnachweis und Android-Gerätetests bleiben offen.
+**Schutz:** Version `0.5.55` / `213`, Termux v4, Workflows, Signierung, `.gitignore`, Cloud und Supabase unverändert. `supabase/storage_backup_before_v0526/` bleibt ausschließlich auf GitHub und fehlt absichtlich in der ZIP.
+**Teststatus:** Statische Phase-3O-Prüfer lokal auszuführen; GitHub-JUnit/Android-Build und Geräteprüfung für Arbeitspaket 9 noch offen.
+
+---
+
 # LFN-Scout CURRENT_STATE – Phase 3O, Arbeitspaket 8 (Quellkandidat)
 
 **Stand:** 14.10.2026; Entwicklungsziel `0.5.56`; Gradle `0.5.55` / `213` unverändert.

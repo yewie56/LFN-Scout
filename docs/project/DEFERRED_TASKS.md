@@ -1,3 +1,9 @@
+## Phase 3O / Arbeitspaket 9 – offen
+
+- [ ] Gesamte Audio-Hardware-/Lifecycle-Sperrung auch bei asynchroner Aufnahmefreigabe und allen Analyzer-/MON-/Scout-/Rolling-/Direct-Pfaden nachweisen. Das neue Owner-Snapshot vor dem getrackten Service-Start ist keine atomare Reservierung.
+- [ ] Produktiven Controller-Adapter STOP–Reconfigure–START, harte Rollback-Validierung und Fehler-Injektion implementieren; `Plan.executable=false` beibehalten.
+- [ ] Paket 9 im GitHub-TEST (JUnit + Android-Build) und später auf Android-Hardware validieren.
+
 ## Phase 3O / Arbeitspaket 8 – weiterhin offen
 
 - [ ] Gemeinsame atomare Absicherung aller realen Analyzer-/MON-/Scout-/Rolling-/Direct-Start- und Stop-Lebenszyklen; das bestehende MIC-Token allein schützt nicht alle laufenden Ressourcen und ist kein vollständiger Hardware-Lease über die Setuptransaktion.

@@ -7,6 +7,47 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 
 class AnalyzerSetupTransitionCoordinatorTest {
+    @Test fun trackedRollingStartRejectsExistingMicOwnerWithoutSubmitting() {
+        val lease = MicCaptureArbiter.tryAcquire("direct_recording")
+        assertNotNull(lease)
+        try {
+            var submitted = false
+            assertFalse(AnalyzerSetupTransitionCoordinator.withTrackedServiceStart(
+                AnalyzerSetupTransitionCoordinator.ROLLING
+            ) { submitted = true; true })
+            assertFalse(submitted)
+            assertFalse(AnalyzerSetupTransitionCoordinator.hasInFlightServiceStarts())
+            assertEquals("direct_recording", MicCaptureArbiter.owner)
+        } finally { lease!!.close() }
+    }
+
+    @Test fun trackedDirectStartRejectsSetupMicOwnerWithoutSubmitting() {
+        assertEquals("held", AnalyzerSetupTransitionCoordinator.withSetupReservation {
+            var submitted = false
+            assertFalse(AnalyzerSetupTransitionCoordinator.withTrackedServiceStart(
+                AnalyzerSetupTransitionCoordinator.DIRECT
+            ) { submitted = true; true })
+            assertFalse(submitted)
+            assertEquals("analyzer_setup_preflight", MicCaptureArbiter.owner)
+            "held"
+        })
+        assertNull(MicCaptureArbiter.owner)
+    }
+
+    @Test fun trackedServiceStartCanSubmitAfterExternalMicLeaseReleased() {
+        val lease = MicCaptureArbiter.tryAcquire("legacy_capture")
+        assertNotNull(lease)
+        assertFalse(AnalyzerSetupTransitionCoordinator.withTrackedServiceStart(
+            AnalyzerSetupTransitionCoordinator.ROLLING
+        ) { true })
+        lease!!.close()
+        assertTrue(AnalyzerSetupTransitionCoordinator.withTrackedServiceStart(
+            AnalyzerSetupTransitionCoordinator.ROLLING
+        ) { true })
+        AnalyzerSetupTransitionCoordinator.serviceDestroyed(AnalyzerSetupTransitionCoordinator.ROLLING)
+        assertFalse(AnalyzerSetupTransitionCoordinator.hasInFlightServiceStarts())
+    }
+
     @Test fun setupReservationHoldsRealMicLeaseUntilCallbackFinishes() {
         val c = AnalyzerSetupTransitionCoordinator
         assertEquals("held", c.withSetupReservation {

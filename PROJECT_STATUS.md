@@ -1,3 +1,7 @@
+## 2026-10-14 – Phase 3O, Arbeitspaket 9 (Quellkandidat)
+
+Arbeitspaket 8: GitHub-TEST vom Benutzer **GRÜN** bestätigt. Paket 9 verhindert getrackte Rolling-/Direct-Startabgaben schon beim Belegen eines existierenden Arbiter-Tokens. Drei JUnit-Regressionen; tatsächliche Android-/GitHub-Ausführung ausstehend. Vorprüfung ist kein atomarer künftiger Hardware-Lease. Reale Setup-Umschaltung bleibt gesperrt (`Plan.executable=false`), Gradle `0.5.55 / 213` unverändert.
+
 ## 2026-10-14 – Phase 3O / Arbeitspaket 8 (Quellkandidat)
 
 Letzter bestätigter GitHub-TEST: **Arbeitspaket 7 GRÜN**. Paket 8 verbindet die bestehende Setup-Reservierung während synchroner Blöcke mit dem exklusiven Mikrofon-Token des vorhandenen `MicCaptureArbiter`. Drei neue JUnit-Tests; Quellprüfungen und ZIP-Prüfung separat. GitHub-Test und Gerätetest Paket 8 **ausstehend**. Produktive Audio-/FFT-Umschaltung weiter gesperrt (`Plan.executable=false`); Gradle `0.5.55/213`, Termux v4, Cloud und Workflows unverändert. Es fehlen atomare Lifecycle-Sperren sämtlicher Komponenten sowie echter Controller/Recovery und Gerätetest.

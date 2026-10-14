@@ -98,6 +98,11 @@ internal object AnalyzerSetupTransitionCoordinator {
         // This is intentionally conservative, not a hardware-wide arbiter.
         if (setupReserved || inFlightServices.isNotEmpty() || captureJobsPending.isNotEmpty() || destroyedServices.isNotEmpty()) return@synchronized false
         if (AnalyzerMonitorRecording.isActive()) return@synchronized false
+        // Package 9: reject a start submission while another AudioRecord owner
+        // holds the shared in-process MIC token. The later asynchronous capture
+        // must still acquire its own token; this observation is deny-only and
+        // cannot grant an atomic future hardware reservation.
+        if (MicCaptureArbiter.owner != null) return@synchronized false
         // Reject duplicate starts while a previous lifecycle/cleanup is unresolved.
         // Otherwise a repeated request could share the same Set marker and be released early.
         // Mark BEFORE invoking the asynchronous Android start request.

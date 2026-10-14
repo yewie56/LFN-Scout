@@ -1,3 +1,8 @@
+## 2026-10-14 – Phase 3O, Arbeitspaket 9 (Quellkandidat)
+- Rolling-/Direct-Startabgabe unter bestehendem Koordinator jetzt zusätzlich bei belegtem `MicCaptureArbiter` abgewiesen; keine Markeranlage oder Android-Service-Einreichung bei Vorabkonflikt.
+- Drei JUnit-Regressionstests plus statische Quellenprüfung ergänzt. Keine Aktivierung des Setup-Executors (`Plan.executable=false`), keine Gradle-/Cloud-/Workflow-/Recorder-Änderung.
+- GitHub-TEST für Arbeitspaket 8 durch Benutzer **GRÜN** bestätigt; Arbeitspaket 9 offen.
+
 ## 2026-10-14 – Phase 3O, Arbeitspaket 8 (Quellkandidat)
 - Bestehende synchrone Setup-Reservierung mit tatsächlichem exklusivem `MicCaptureArbiter`-Token gekoppelt; fail-closed bei belegtem Token und exception-sichere Freigabe.
 - Drei JUnit-Regressionstests und statischen Lease-Verifikator ergänzt. Keine produktive Setup-Umschaltung; `Plan.executable=false`, Gradle `0.5.55`/`213` unverändert.
