@@ -52,6 +52,7 @@ class RollingAudioService : Service() {
         }
         if (recordJob?.isActive != true) {
             if (operationStartElapsedMs == 0L) operationStartElapsedMs = android.os.SystemClock.elapsedRealtime()
+            AnalyzerSetupTransitionCoordinator.captureJobPending(AnalyzerSetupTransitionCoordinator.ROLLING)
             recordJob = scope.launch {
                 while (true) {
                     runRecorder()
@@ -62,6 +63,9 @@ class RollingAudioService : Service() {
                     DebugLogger.log(applicationContext, "ROLLING_AUTO_RESTART_WAIT", "seconds=5")
                     delay(5_000)
                 }
+            }
+            recordJob?.invokeOnCompletion {
+                AnalyzerSetupTransitionCoordinator.captureJobFinished(AnalyzerSetupTransitionCoordinator.ROLLING)
             }
         }
         return START_STICKY

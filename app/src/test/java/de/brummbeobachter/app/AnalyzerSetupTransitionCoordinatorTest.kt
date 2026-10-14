@@ -95,4 +95,35 @@ class AnalyzerSetupTransitionCoordinatorTest {
         assertFalse(AnalyzerSetupTransitionCoordinator.hasInFlightServiceStarts())
     }
 
+    @Test fun destroyCannotReleaseWhileCaptureCleanupPending() {
+        val coordinator = AnalyzerSetupTransitionCoordinator
+        assertTrue(coordinator.withTrackedServiceStart(coordinator.ROLLING) { true })
+        coordinator.captureJobPending(coordinator.ROLLING)
+        coordinator.serviceDestroyed(coordinator.ROLLING)
+        try {
+            assertTrue(coordinator.hasInFlightServiceStarts())
+            assertTrue(coordinator.hasPendingCaptureCleanup())
+            assertNull(coordinator.withSetupReservation { "must stay blocked" })
+        } finally { coordinator.captureJobFinished(coordinator.ROLLING) }
+        assertFalse(coordinator.hasInFlightServiceStarts())
+        assertFalse(coordinator.hasPendingCaptureCleanup())
+    }
+
+    @Test fun cleanupBeforeDestroyAlsoWaitsForLifecycle() {
+        val coordinator = AnalyzerSetupTransitionCoordinator
+        assertTrue(coordinator.withTrackedServiceStart(coordinator.DIRECT) { true })
+        coordinator.captureJobPending(coordinator.DIRECT)
+        coordinator.captureJobFinished(coordinator.DIRECT)
+        assertTrue(coordinator.hasInFlightServiceStarts())
+        coordinator.serviceDestroyed(coordinator.DIRECT)
+        assertFalse(coordinator.hasInFlightServiceStarts())
+    }
+
+    @Test fun noCaptureJobDestroyReleasesMarker() {
+        val coordinator = AnalyzerSetupTransitionCoordinator
+        assertTrue(coordinator.withTrackedServiceStart(coordinator.DIRECT) { true })
+        coordinator.serviceDestroyed(coordinator.DIRECT)
+        assertFalse(coordinator.hasInFlightServiceStarts())
+    }
+
 }

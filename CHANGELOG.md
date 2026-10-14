@@ -1,3 +1,7 @@
+## 14.10.2026 – Entwicklungsstand v0.5.56, Phase 3O/16
+
+Rolling/Direct: Service-`onDestroy` und Coroutine-Capture-Jobende müssen beide eintreten, bevor die Startvormerkung freigegeben wird. Drei JUnit-Tests plus statischer Test. Produktive Umschaltung bleibt gesperrt. GitHub-TEST 3O/15 durch Nutzer grün; 3O/16 noch nicht bestätigt. Zwei historische Quellprüfungen 3F/3J melden alte Erwartungsabweichungen.
+
 ## Phase 3O/14-FIX1 · 2026-10-14
 
 - GitHub TEST Phase 3O/14 ROT: `RollingAudioService.kt:395:13 'return' is prohibited here`.

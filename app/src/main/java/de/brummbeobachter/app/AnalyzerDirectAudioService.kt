@@ -49,7 +49,11 @@ class AnalyzerDirectAudioService : Service() {
         wakeLock = (getSystemService(Context.POWER_SERVICE) as PowerManager)
             .newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "LFN-Scout:Analyzer48")
             .apply { acquire() }
+        AnalyzerSetupTransitionCoordinator.captureJobPending(AnalyzerSetupTransitionCoordinator.DIRECT)
         job = scope.launch { capture() }
+        job?.invokeOnCompletion {
+            AnalyzerSetupTransitionCoordinator.captureJobFinished(AnalyzerSetupTransitionCoordinator.DIRECT)
+        }
         return START_NOT_STICKY // Do not silently restart microphone after a process crash.
     }
 

@@ -11,6 +11,9 @@ internal object AnalyzerSetupTransitionCoordinator {
     // Keep the setup gate closed until the corresponding Service.onDestroy().
     // Fail closed if Android never delivers a successful request.
     private val inFlightServices = mutableSetOf<String>()
+    // onDestroy may run before cancelled coroutine has released AudioRecord.
+    private val destroyedServices = mutableSetOf<String>()
+    private val captureJobsPending = mutableSetOf<String>()
     const val ROLLING = "rolling"
     const val DIRECT = "direct"
 
@@ -18,6 +21,7 @@ internal object AnalyzerSetupTransitionCoordinator {
         if (setupReserved) return@synchronized false
         // Mark BEFORE invoking the asynchronous Android start request.
         inFlightServices.add(service)
+        destroyedServices.remove(service)
         try {
             val accepted = start()
             if (!accepted) inFlightServices.remove(service)
@@ -28,10 +32,29 @@ internal object AnalyzerSetupTransitionCoordinator {
         }
     }
 
-    /** Called only when the matching service finishes its lifecycle. */
-    fun serviceDestroyed(service: String) = synchronized(mutex) {
-        inFlightServices.remove(service)
+    /** Register before launching a capture job; completion must follow its finally cleanup. */
+    fun captureJobPending(service: String) = synchronized(mutex) {
+        captureJobsPending.add(service)
     }
+
+    /** Invoked by Job.invokeOnCompletion, AFTER the coroutine completes its finally. */
+    fun captureJobFinished(service: String) = synchronized(mutex) {
+        captureJobsPending.remove(service)
+        if (destroyedServices.contains(service)) clearCompletedService(service)
+    }
+
+    /** Android's lifecycle alone is insufficient: wait for any pending capture cleanup. */
+    fun serviceDestroyed(service: String) = synchronized(mutex) {
+        destroyedServices.add(service)
+        if (!captureJobsPending.contains(service)) clearCompletedService(service)
+    }
+
+    private fun clearCompletedService(service: String) {
+        inFlightServices.remove(service)
+        destroyedServices.remove(service)
+    }
+
+    internal fun hasPendingCaptureCleanup(): Boolean = synchronized(mutex) { captureJobsPending.isNotEmpty() }
 
     internal fun hasInFlightServiceStarts(): Boolean = synchronized(mutex) { inFlightServices.isNotEmpty() }
 
@@ -54,7 +77,7 @@ internal object AnalyzerSetupTransitionCoordinator {
      */
     fun <T> withSetupReservation(block: () -> T): T? {
         synchronized(mutex) {
-            if (setupReserved || inFlightServices.isNotEmpty() || AnalyzerMonitorRecording.isActive()) return null
+            if (setupReserved || inFlightServices.isNotEmpty() || captureJobsPending.isNotEmpty() || AnalyzerMonitorRecording.isActive()) return null
             setupReserved = true
         }
         try { return block() }
