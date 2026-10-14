@@ -1,3 +1,8 @@
+## Phase 3O / Arbeitspaket 7 – verbleibende Aufgaben
+
+- Die konservative Rolling-/Direct-/MON-Startbarriere ersetzt keinen hardwareweiten atomaren Mikrofon-Lease; auch Analyzer-/Scout-/sonstige Start-/Stop-Pfade und tatsächliche Ressourcenübergänge noch integrieren.
+- Produktiven Controller-Adapter, STOP–Reconfigure–START, Rollback bei STOP-/Release-/START-Fehlern, UI-Integration und Android-Gerätetests nachziehen. `Plan.executable=false` bis zur ausdrücklichen Freigabe.
+
 ## Phase 3O/AP6 – weiter offen
 - Gemeinsame atomare Reservierung sämtlicher Analyzer-/MON-/Scout-/Rolling-/Direct-Audio-Starts und Stopps, inklusive Hardware-Owner. Owner-Probe ist nur ein ablehnender Vorcheck.
 - Produktiven preference-freien Controlleradapter erst mit Fehlersimulation, Rollback-Verifikation und Gerätetest integrieren; `Plan.executable=false` bis dahin beibehalten.

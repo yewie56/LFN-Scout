@@ -379,4 +379,37 @@ class AnalyzerSetupTransitionCoordinatorTest {
         assertFalse(c.hasPendingCaptureCleanup())
     }
 
+    @Test fun directStartRejectedWhileRollingLifecyclePending() {
+        val c = AnalyzerSetupTransitionCoordinator
+        assertTrue(c.withTrackedServiceStart(c.ROLLING) { true })
+        try {
+            var called = false
+            assertFalse(c.withTrackedServiceStart(c.DIRECT) { called = true; true })
+            assertFalse(called)
+        } finally { c.serviceDestroyed(c.ROLLING) }
+    }
+
+    @Test fun rollingStartRejectedDuringDirectCleanup() {
+        val c = AnalyzerSetupTransitionCoordinator
+        assertTrue(c.withTrackedServiceStart(c.DIRECT) { true })
+        val token = c.captureJobRegistered(c.DIRECT)
+        c.serviceDestroyed(c.DIRECT)
+        try {
+            var called = false
+            assertFalse(c.withTrackedServiceStart(c.ROLLING) { called = true; true })
+            assertFalse(called)
+        } finally { c.captureJobCompleted(c.DIRECT, token) }
+    }
+
+    @Test fun monStartRejectedDuringPendingDirectLifecycle() {
+        val c = AnalyzerSetupTransitionCoordinator
+        assertTrue(c.withTrackedServiceStart(c.DIRECT) { true })
+        try {
+            var called = false
+            assertFalse(c.withMonStart { called = true; true })
+            assertFalse(called)
+        } finally { c.serviceDestroyed(c.DIRECT) }
+        assertTrue(c.withMonStart { true })
+    }
+
 }

@@ -1,3 +1,10 @@
+## Phase 3O – Arbeitspaket 7 (Quellkandidat, 14.10.2026)
+
+- Letzter durch Benutzer bestätigter GitHub-TEST: Arbeitspaket 6 **GRÜN**.
+- Paket 7: Cross-Service-Start-Ausschluss unter vorhandenem Koordinator-Mutex, MON-Start-Schutz und drei neue JUnit-Regressionsfälle.
+- Lokale Phase-3O-Quellprüfungen bestanden; GitHub-JUnit/Android-Build und Android-Gerätetest für Paket 7 ausstehend.
+- Reale atomare Hardware-Exklusivität, Controller-Adapter und vollständiger Rollback weiterhin offen. `Plan.executable=false`. Gradle `0.5.55` / `213` unverändert.
+
 ## Phase 3O – Arbeitspaket 6 (Quellkandidat, 14.10.2026)
 - Arbeitspaket 5 FIX: GitHub-TEST laut Benutzer **GRÜN**.
 - Owner-geprüfte Setup-Reservierung im vorhandenen Koordinator; vier zusätzliche JUnit-Tests. GitHub-TEST Paket 6 offen.

@@ -94,7 +94,10 @@ internal object AnalyzerSetupTransitionCoordinator {
 
     fun withTrackedServiceStart(service: String, start: () -> Boolean): Boolean = synchronized(mutex) {
         if (service != ROLLING && service != DIRECT) return@synchronized false
-        if (setupReserved || inFlightServices.contains(service) || captureJobsPending.contains(service) || destroyedServices.contains(service)) return@synchronized false
+        // Deny concurrent Rolling/Direct lifecycles and MON recording at submission time.
+        // This is intentionally conservative, not a hardware-wide arbiter.
+        if (setupReserved || inFlightServices.isNotEmpty() || captureJobsPending.isNotEmpty() || destroyedServices.isNotEmpty()) return@synchronized false
+        if (AnalyzerMonitorRecording.isActive()) return@synchronized false
         // Reject duplicate starts while a previous lifecycle/cleanup is unresolved.
         // Otherwise a repeated request could share the same Set marker and be released early.
         // Mark BEFORE invoking the asynchronous Android start request.
@@ -159,7 +162,7 @@ internal object AnalyzerSetupTransitionCoordinator {
 
     /** Serializes MON start against acquisition of a setup reservation. */
     fun withMonStart(start: () -> Boolean): Boolean = synchronized(mutex) {
-        if (setupReserved) false else start()
+        if (setupReserved || inFlightServices.isNotEmpty() || captureJobsPending.isNotEmpty() || destroyedServices.isNotEmpty()) false else start()
     }
 
     /** Serialize service start submission against a future setup reservation.

@@ -1,3 +1,9 @@
+## 2026-10-14 – Phase 3O, Arbeitspaket 7 (Quellkandidat)
+- Rolling-/Direct-Startanforderungen über die vorhandene Koordinator-Sperre auch gegen andere ausstehende Service-Lifecycles und Capture-Cleanup abgesichert.
+- MON-Start bei ausstehenden Service-Lifecycles abgelehnt; aktives MON verhindert neuen getrackten Rolling-/Direct-Start.
+- Drei neue JUnit-Regressionstests. Kein produktiver Setupwechsel; `Plan.executable=false`, Gradle `0.5.55`/`213` unverändert.
+- GitHub-TEST Arbeitspaket 6 vom Benutzer GRÜN, Arbeitspaket 7 offen.
+
 ## 2026-10-14 – Phase 3O, Arbeitspaket 6 (Quellkandidat)
 - Bestehende Setup-Reservierung weist jetzt zusätzlich erkannte Audio-Besitzer und fehlerhafte Besitzerabfragen fail-closed ab.
 - Vier JUnit-Regressionsfälle für Probe, Reservierung und Freigabe. Keine Produktivfreigabe (`Plan.executable=false`); Version 0.5.55/213 unverändert.

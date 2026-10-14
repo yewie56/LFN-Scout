@@ -1,3 +1,13 @@
+# LFN-Scout CURRENT_STATE – Phase 3O, Arbeitspaket 7 (Quellkandidat)
+
+**Stand:** 14.10.2026; Ziel `0.5.56`; Gradle `0.5.55` / `213` unverändert.
+**Letzter durch Benutzer bestätigter GitHub-TEST:** Arbeitspaket 6 **GRÜN**.
+**Arbeitspaket 7:** Rolling-/Direct-Startanforderungen werden nun beim Vorliegen irgendeines aktiven Rolling-/Direct-Lifecycle- oder Capture-Cleanup-Markers abgelehnt (nicht nur bei gleichem Service). Ein aktiver MON-Recorder verhindert ebenfalls den getrackten Start; MON-Start wird während aktiver/pending Service-Lifecycles verweigert. Die bestehende Koordinator-Synchronisierung wird verwendet, kein paralleler Arbiter.
+**Regressionen:** Drei zusätzliche JUnit-Fälle für beide Cross-Service-Konflikte und MON-Start; vorhandene Phase-3O-Quellprüfungen lokal erfolgreich. GitHub-JUnit/Android-Build und Gerätetest für diesen Quellkandidaten offen.
+**Sicherheitsgrenze:** Das ist eine konservative In-Process-Startbarriere, noch KEIN durchgängiger atomarer Hardware-Lease und keine produktive Controller-Anbindung. `Plan.executable=false` bleibt verbindlich. Reale Rollback-/Gerätevalidierung offen. Termux v4, GitHub-Workflows, Gradle, Cloud und Supabase unverändert; historisches Storage-Backup bleibt ausschließlich auf GitHub.
+
+---
+
 # LFN-Scout CURRENT_STATE – Phase 3O, Arbeitspaket 6 (Quellkandidat)
 
 **Stand:** 14.10.2026; Entwicklungsziel `0.5.56`; Gradle `0.5.55` / `213` unverändert.
