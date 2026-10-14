@@ -392,7 +392,7 @@ class RollingAudioService : Service() {
         fun requestStart(context: Context): Boolean = AnalyzerSetupTransitionCoordinator.withServiceStart {
             AnalyzerAudioTrace.write(context, "ROLLING_REQUEST_START", "owner=${MicCaptureArbiter.owner} engine=${RollingAudioEngine.isRunning}")
             ensureChannel(context)
-            return runCatching {
+            runCatching {
                 val i = Intent(context, RollingAudioService::class.java).setAction(ACTION_START)
                 ContextCompat.startForegroundService(context, i)
                 true

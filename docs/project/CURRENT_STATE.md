@@ -1,8 +1,12 @@
 # LFN-Scout CURRENT_STATE – Phase 3O/14
 
 **Stand:** 14.10.2026 · Entwicklungsziel `0.5.56` · Gradle `versionName 0.5.55`, `versionCode 213` unverändert.
-**Letzter bestätigter GitHub TEST:** Phase 3O/13 **GRÜN (Nutzerbestätigung)**. Keine zugehörige Commit-ID neu verifiziert.
-**Neuer Quellkandidat:** Phase 3O/14; GitHub TEST und Android-Gerätetest **OFFEN**.
+**Letzter bestätigter GitHub TEST:** Phase 3O/13 **GRÜN (Nutzerbestätigung)**. Phase 3O/14 **ROT** (Kotlin compileDebugKotlin, RollingAudioService.kt:395:13, unzulässiges `return`). Keine zugehörige Commit-ID neu verifiziert.
+**Neuer Quellkandidat:** Phase 3O/14-FIX1; GitHub TEST und Android-Gerätetest **OFFEN**.
+
+## Fehlerkorrektur 3O/14-FIX1
+
+`RollingAudioService.requestStart()` liefert nun den `runCatching`-Ausdruck als Lambda-Ergebnis von `withServiceStart`, statt innerhalb der nicht-inline-Lambda ein verbotenes unqualifiziertes `return` zu verwenden. Ursprung: GitHub TEST 14.10.2026 10:47 UTC. Statische gezielte Regression ergänzt; Gradle-TEST dieses Fixes noch offen.
 
 ## Implementiert
 

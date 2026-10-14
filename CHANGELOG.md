@@ -1,3 +1,9 @@
+## Phase 3O/14-FIX1 · 2026-10-14
+
+- GitHub TEST Phase 3O/14 ROT: `RollingAudioService.kt:395:13 'return' is prohibited here`.
+- Entfernt das unzulässige unqualifizierte `return` innerhalb von `AnalyzerSetupTransitionCoordinator.withServiceStart`-Lambda; Rückgabewert bleibt `Boolean`.
+- Keine Änderung an Gradle-Version, Workflows, Termux v4, Cloud, Recordern oder Produktivfreigabe. GitHub TEST des Fixes offen.
+
 # Phase 3O/14 – Rolling-/Direct-Startschutz (14.10.2026)
 
 - GitHub TEST Phase 3O/13: **GRÜN laut Nutzer**; Phase 3O/14 noch nicht durch GitHub/Android bestätigt.
