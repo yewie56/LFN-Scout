@@ -1,3 +1,12 @@
+## Phase 3O/11 – Audio-Owner-Abweisung (2026-10-14)
+
+- Nutzer bestätigt Phase 3O/10 GitHub TEST **GRÜN**. Phase 3O/11 GitHub TEST und Gerätetest offen.
+- `AnalyzerSetupAudioOwnerGate.kt` liest ausschließlich `MicCaptureArbiter.owner`, `RollingAudioEngine.isRunning`, `AnalyzerDirectAudioService.isCapturing` und `AnalyzerMonitorRecording.isActive()`.
+- `AnalyzerSetupSwitchTransaction.execute` verweigert den Vorgang bereits bei einem dieser aktiven Zustände; auch ein Fehler beim Abfragen führt zur Ablehnung. Keine Recorder-Start-/Stop-Aktion, kein Preference-/JSON-Schreiben.
+- **Keine Atomarität:** Die getrennten Service-/Recorder-Übergänge verwenden bisher kein gemeinsames Transaktions-Lock. Ein scheinbar freier Zustand ist ausdrücklich **keine** Erlaubnis zur Übernahme. `Plan.executable=false`, keine Adapter- oder UI-Freigabe.
+- Statische Regression `tools/verify_lfn056_phase3o_owner_gate.py` (9 Prüfungen); Kotlin CI und dynamische Rennen-/Gerätetests offen.
+- Historisches Storage-Backup bleibt in GitHub `main`, nicht in der Quell-ZIP. Gradle `0.5.55/213` und Termux v4 unverändert.
+
 
 ## Phase 3O/10 – STOP-Konfiguration bei fehlgeschlagenem Session-Aufbau (14.10.2026)
 

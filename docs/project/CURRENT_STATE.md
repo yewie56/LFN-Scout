@@ -1,3 +1,21 @@
+# LFN-Scout – CURRENT_STATE, Phase 3O/11
+
+**Stand:** 14.10.2026. Entwicklungsziel v0.5.56; Gradle unverändert `versionName 0.5.55`, `versionCode 213`.
+**Letzter vom Nutzer bestätigter grüner GitHub TEST:** Phase 3O, Teilstufe 10. Commit-ID hier nicht unabhängig nachgewiesen.
+**Neuer Quellkandidat 3O/11:** Statische Tests durchgeführt; GitHub TEST und Gerätetest noch offen.
+
+**Neu:** `AnalyzerSetupAudioOwnerGate.kt` liest Mikrofon-Owner, Rolling-, Direct- und MON-Aufnahmezustand. Die bisher ohnehin nicht produktiv angeschlossene `AnalyzerSetupSwitchTransaction` lehnt bei aktiver Nutzung oder Abfragefehler ab. Kein Recorder und kein Audio-Service wird verändert.
+
+**Sicherheitsgrenze:** Dies ist eine zusätzliche lesende Abweisung, **KEINE atomare Besitzersperre**, kein Hardware-/Recorder-Rollback und keine ausführbare Setup-Umschaltung. `AnalyzerSetupSwitchPlan.Plan.executable == false`. Zur Freigabe müssen alle Zustandsübergänge denselben Lock oder ein vergleichbar garantiertes Service-Protokoll verwenden und mit dynamischen Race-Tests geprüft werden.
+
+**Pflichtregeln:** `DIRECTIVES.md`, `BUILD_WORKFLOWS.md`, `CHANGELOG.md`, `docs/project/DEFERRED_TASKS.md` sowie Phase-3-Dokumentation lesen; vollständige ZIP ohne Wurzelordner; Regressionen. Termux v4 nicht ändern, geschützte Workflows/Signatur, Cloud, Recorder und Gradle unverändert lassen. Nur GitHub TEST zunächst ausreichend.
+
+**Historisches Archiv:** `supabase/storage_backup_before_v0526` bleibt unverändert in GitHub `main`, gehört nicht in Entwicklungs-ZIPs; Fehlen im Archiv darf nicht zum Löschen im Termux-Arbeitsverzeichnis führen.
+
+**Als nächstes:** Gemeinsam garantierte Koordination der tatsächlichen Recorder-/Service-Übergänge und dynamische Tests; danach speicherfreien STOP/START und verifizierbaren Rollback implementieren.
+
+---
+
 # LFN-Scout CURRENT STATE – Phase 3O/10, Quellkandidat
 
 **Projekt:** v0.5.56 in Entwicklung, Gradle weiterhin `versionName 0.5.55`, `versionCode 213`.
