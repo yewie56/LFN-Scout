@@ -244,6 +244,23 @@ internal fun AnalyzerJsonSetupBrowser(context: Context) {
                     }.getOrElse { "Umschaltprüfung fehlgeschlagen: ${it.message}" }
                 }) { Text("Audio/FFT-Umschaltprüfung (nur lesen)") }
 
+                OutlinedButton(onClick = {
+                    runtimeComparison = runCatching {
+                        val saved = repository.load(checkNotNull(inspectedId))
+                            .getJSONObject("parameters").optJSONObject("legacy")
+                            ?: error("Setup enthält keine Analyzer-Parameter")
+                        val state = LiveAnalyzerController.snapshot()
+                        val live = AnalyzerRuntimeSetupSnapshot.capture(state)
+                        val plan = AnalyzerSetupSwitchPlan.prepare(saved, live, state.running,
+                            AnalyzerMonitorRecording.isActive(), AnalyzerMonitor.enabled,
+                            AnalyzerDisplayPreviewSession.activeSetupId != null)
+                        "Audio/FFT-Ablaufplan (nur lesen, nicht ausführbar):\n" +
+                            plan.steps.mapIndexed { i, step -> "${i + 1}. $step" }.joinToString("\n") +
+                            "\nSperren: " + plan.blockers.joinToString("; ").ifEmpty { "keine aktuell erkannt" } +
+                            "\nFreigabe zur Ausführung: NEIN (Transaktions-Executor noch nicht implementiert)."
+                    }.getOrElse { "Umschaltplan nicht verfügbar: ${it.message}" }
+                }) { Text("Audio/FFT-Ablaufplan (nur lesen)") }
+
                 OutlinedButton(onClick = { requestedDisplayPreview = inspectedId },
                     enabled = displayPreviewId == null && !AnalyzerMonitor.enabled && !AnalyzerMonitorRecording.isActive()) {
                     Text("Anzeige-Vorschau (12 Werte, ohne Speichern)")

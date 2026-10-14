@@ -1,3 +1,7 @@
+## v0.5.56 – Phase 3N (Entwicklung, nicht freigegeben)
+
+Lesender Audio-/FFT-Ablaufplan mit Zustands-Fingerprints, Sperrgründen und späterer STOP-/Rollback-Schrittfolge. Keine ausführbare Umschaltung; GitHub-Build/Gerätetest der Phase offen.
+
 ## v0.5.56 – Phase 3M (Entwicklung, nicht freigegeben)
 
 Lesende Audio-/FFT-Umschaltprüfung mit Änderungs-/STOP-/nicht-unterstützt-/null-Kategorisierung; keine tatsächliche Audio-/FFT-Aktivierung. GitHub-Android-Build und Gerätetest offen; MON-/Anzeige-Vorschau aus vorherigen Phasen erhalten.
