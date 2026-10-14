@@ -1,3 +1,11 @@
+## Phase 3O/12 – MicCaptureArbiter-Reservierung (14.10.2026)
+
+- Nutzer bestätigt GitHub TEST für Phase 3O/11 GRÜN; Teilstufe 12 ist noch **nicht** GitHub-getestet.
+- `AnalyzerSetupMicrophoneReservation.withReservation` reserviert für einen synchronen Block exklusiv den bestehenden Mikrofon-Arbiter und gibt den Token per `use` auch bei Ausnahme frei. Konkurrenz mit Rolling und Direct/Scout AudioRecord wird für diesen Block vermieden.
+- Drei neue dynamische JUnit-Regressionstests: Konkurrenz über Threads, Ablehnung bei bestehendem Owner, Ausnahmefreigabe. Noch nicht auf GitHub ausgeführt.
+- **Nicht atomar für MON-/Service-/Recorder-Übergänge insgesamt**, nicht in produktiven Setup-Executor integriert; keine freigegebene Audio-/FFT-Umschaltung und `Plan.executable=false`. Keine Umkonfiguration/Recorderänderung.
+- Gradle 0.5.55/213 und Termux v4 unverändert, Backup `supabase/storage_backup_before_v0526` weiterhin auf GitHub main, nicht in Projekt-ZIPs.
+
 ## Phase 3O/11 – Audio-Owner-Abweisung (2026-10-14)
 
 - Nutzer bestätigt Phase 3O/10 GitHub TEST **GRÜN**. Phase 3O/11 GitHub TEST und Gerätetest offen.

@@ -27,4 +27,5 @@ internal object AnalyzerSetupAudioOwnerGate {
         directCapturing = AnalyzerDirectAudioService.isCapturing,
         monRecording = AnalyzerMonitorRecording.isActive()
     )
+
 }

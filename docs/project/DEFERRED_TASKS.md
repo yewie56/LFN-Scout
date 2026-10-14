@@ -192,3 +192,7 @@ Die Kennzeichnung **R01–R07, O01–O08 und A01–A05** können wir künftig al
 ### Phase 3O/9 – Fehlerrücknahme nach Sessionstart
 - Initialisierungsfehler des lokalen Analyzers räumen jetzt Session/Buffer best-effort auf (Quellkandidat 3O/9). Noch offen: JVM-/Geräte-Fault-Injection, Startfehler vor/nach der Sessionerstellung, readback-Prüfung nach Restore, Transaktion mit dem tatsächlichen Recorder-/Service-Owner und Hardware-Modewechsel. `Plan.executable` bleibt false.
 - Historisches `supabase/storage_backup_before_v0526` bleibt in GitHub `main` versioniert, wird aber in Projekt-ZIPs nicht mehr mitgeliefert. Keine Git-Löschung oder Änderung an Termux v4.
+
+### Phase 3O/12 – verbleibende Aufgaben
+- [ ] Gemeinsamer Übergangs-/Sperrvertrag für **alle** Recorder inklusive MON, Service-Start/Stop, Analyzer-STOP/START und Fehlerrollback; MicCaptureArbiter-Reservierung alleine genügt nicht.
+- [ ] Dynamische Tests der vollständigen Übergänge und Geräteprüfung sowie UI-Freigabe erst nach nachgewiesener Sicherheit.
