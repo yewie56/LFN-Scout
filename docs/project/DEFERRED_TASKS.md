@@ -1,3 +1,7 @@
+## Nach Arbeitspaket 18 offen
+- Tatsächliche AudioRecord-Freigabe und Ende sämtlicher Android-Capture-Jobs atomar unter Hardware-Lease verifizieren.
+- STOP–Reconfigure–START-Adapter und Hardware-Rollback inklusive Fehler-Injektion und Gerätetest; `Plan.executable=false` beibehalten.
+
 # Phase 3O – Arbeitspaket 17 (Quellkandidat)
 
 **Stand:** 14.10.2026; Entwicklungsziel `0.5.56`, Gradle `0.5.55 / 213`.

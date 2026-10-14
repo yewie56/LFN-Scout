@@ -1,3 +1,14 @@
+# Phase 3O – Arbeitspaket 18 (Quellkandidat)
+
+**Stand:** 14.10.2026; Zielversion `0.5.56`; Gradle `0.5.55 / 213` unverändert.
+**Letzter vom Benutzer bestätigter GitHub-TEST:** Arbeitspaket 17 **GRÜN**.
+**Änderung:** Rein lesende STOP-Grenzdiagnose berücksichtigt jetzt zusätzlich die Abonnentenzahl des gemeinsamen Roh-PCM-Hubs (`AnalyzerSessionGateway.rawPcm.activeSubscribers`). Positive Abonnentenzahlen, negative unplausible Werte und Ausnahmen liefern getrennte Sperrgründe. Die Produktionsabfrage übergibt die bestehende Hub-Beobachtung; drei neue JUnit-Regressionsfälle sichern alle drei Fehlerklassen ab. Kein Stopp, kein Hardware-Release, keine Mutation.
+**Sicherheitsgrenze:** Der Abonnentenzähler ist keine atomare Hardware-Release-Bestätigung. `executionAuthorized=false`, `Plan.executable=false`. Controlleradapter, echte AudioRecord-Freigabebestätigung, Rollback und Android-Gerätetest bleiben offen.
+**Tests:** Statische Quellprüfungen lokal; JUnit und vollständiger Android-Build für Paket 18 erst im GitHub-TEST zu bestätigen.
+**Schutz:** Termux v4, Workflows, Gradle/Signierung, `.gitignore`, Cloud unverändert; Storage-Backup nur auf GitHub.
+
+---
+
 # Phase 3O – Arbeitspaket 17 (Quellkandidat)
 
 **Stand:** 14.10.2026; Entwicklungsziel `0.5.56`, Gradle `0.5.55 / 213`.

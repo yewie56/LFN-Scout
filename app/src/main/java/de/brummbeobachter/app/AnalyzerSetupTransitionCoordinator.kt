@@ -97,7 +97,8 @@ internal object AnalyzerSetupTransitionCoordinator {
      */
     internal fun diagnoseStoppedBoundary(
         localStopProbe: () -> LiveAnalyzerController.LocalStopVerification,
-        ownerProbe: () -> AnalyzerSetupAudioOwnerGate.Observation
+        ownerProbe: () -> AnalyzerSetupAudioOwnerGate.Observation,
+        sharedPcmSubscribersProbe: () -> Int = { 0 }
     ): SafetyDiagnosis {
         val reasons = diagnoseSafety(ownerProbe).blockers.toMutableList()
         try {
@@ -108,14 +109,23 @@ internal object AnalyzerSetupTransitionCoordinator {
         } catch (_: Throwable) {
             reasons.add("analyzer_local_stop_probe_failed")
         }
-        // Local STOP does not attest AudioRecord release or Android service completion.
+        try {
+            val subscribers = sharedPcmSubscribersProbe()
+            if (subscribers > 0) reasons.add("shared_pcm_subscribers_active:$subscribers")
+            if (subscribers < 0) reasons.add("shared_pcm_subscribers_invalid")
+        } catch (_: Throwable) {
+            reasons.add("shared_pcm_subscribers_probe_failed")
+        }
+        // Shared subscribers are observed without an atomic hardware lease.
+        // This diagnosis does not attest AudioRecord release or service completion.
         return SafetyDiagnosis(reasons.distinct())
     }
 
     /** Read-only production diagnosis; no STOP, START, preferences or file writes. */
     internal fun diagnoseCurrentStoppedBoundary(): SafetyDiagnosis = diagnoseStoppedBoundary(
         { LiveAnalyzerController.verifyLocalStopForSetupTransition() },
-        { AnalyzerSetupAudioOwnerGate.observe() }
+        { AnalyzerSetupAudioOwnerGate.observe() },
+        { AnalyzerSessionGateway.rawPcm.activeSubscribers }
     )
 
     fun withTrackedServiceStart(service: String, start: () -> Boolean): Boolean = synchronized(mutex) {

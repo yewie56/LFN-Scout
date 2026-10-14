@@ -615,6 +615,36 @@ class AnalyzerSetupTransitionCoordinatorTest {
         assertFalse(diagnosis.executionAuthorized)
     }
 
+    @Test fun stoppedBoundaryRejectsSharedPcmSubscribers() {
+        val result = AnalyzerSetupTransitionCoordinator.diagnoseStoppedBoundary(
+            { LiveAnalyzerController.LocalStopVerification(false, false, false) },
+            { AnalyzerSetupAudioOwnerGate.Observation(null, false, false, false) },
+            { 2 }
+        )
+        assertTrue(result.blockers.contains("shared_pcm_subscribers_active:2"))
+        assertFalse(result.executionAuthorized)
+    }
+
+    @Test fun stoppedBoundaryFailsClosedOnSharedPcmProbeFailure() {
+        val result = AnalyzerSetupTransitionCoordinator.diagnoseStoppedBoundary(
+            { LiveAnalyzerController.LocalStopVerification(false, false, false) },
+            { AnalyzerSetupAudioOwnerGate.Observation(null, false, false, false) },
+            { throw IllegalStateException("hub unavailable") }
+        )
+        assertTrue(result.blockers.contains("shared_pcm_subscribers_probe_failed"))
+        assertFalse(result.executionAuthorized)
+    }
+
+    @Test fun stoppedBoundaryRejectsInvalidSharedPcmCount() {
+        val result = AnalyzerSetupTransitionCoordinator.diagnoseStoppedBoundary(
+            { LiveAnalyzerController.LocalStopVerification(false, false, false) },
+            { AnalyzerSetupAudioOwnerGate.Observation(null, false, false, false) },
+            { -1 }
+        )
+        assertTrue(result.blockers.contains("shared_pcm_subscribers_invalid"))
+        assertFalse(result.executionAuthorized)
+    }
+
     @Test fun unknownTrackedServiceNeverRunsSubmission() {
         val c = AnalyzerSetupTransitionCoordinator
         var called = false
