@@ -1,3 +1,6 @@
+## Phase 3O/6 – offener Integrationsrest
+STOP-DSP-Checkpoint vorhanden, aber Gesamtkonfiguration (Sampling, Direct, Timing, Recorder) nicht abgedeckt. Noch erforderlich: Audio-/Recorder-Eigentümer synchronisieren, vollständigen Laufzeit-Checkpoint, echter fehlergetesteter Session-Rollback, 8-/48-kHz-Wechsel, JUnit-/Gerätetests und explizite UI-Freigabe. Plan bleibt nur lesend.
+
 ## Phase 3O – nach Teilstufe 5
 Speicherfreier FFT-/Filter-Startentwurf vorhanden; unvollständige Audiofelder, Recorder-Lock, Modewechsel, tiefer Checkpoint, Rollback, UI-Freigabe und Gerätetests sind weiterhin offen. Teilstufe 4 GitHub TEST laut Nutzer grün.
 
@@ -161,3 +164,6 @@ Die Kennzeichnung **R01–R07, O01–O08 und A01–A05** können wir künftig al
 ## Phase 3O – dritte Teilstufe: Legacy-Grenzwertschutz (14.10.2026)
 
 `AnalyzerRuntimeSetupSnapshot.capture` darf Filtergrenzen nicht mehr stillschweigend von `Double` nach `Int` abschneiden. `exactLegacyFilterHz` akzeptiert nur endliche, exakt ganzzahlige Werte im Int-Bereich; bei echten Bruchteilen bricht die *lesende* Erfassung mit einer klaren Fehlermeldung ab. Grund: Das aktuelle Legacy-JSON-Schema deklariert `filter_min_hz` und `filter_max_hz` als Integer. Dieser Guard dient der Integrität, **ist keine Unterstützung für Bruch-Hz**. Für eine vollwertige Übernahme muss die Schema-/Controller-Frage explizit geklärt werden. `AnalyzerSetupFormat` prüft Integerwerte jetzt über `BigDecimal.toBigIntegerExact()` statt verlustbehaftetem `Double`. Vier JUnit-Regressionsfälle hinzugefügt, deren Ausführung durch Gradle aussteht. Keine Änderung an Recordern, Audiopipeline, SharedPreferences, JSON-Dateien, Workflows oder Gradle-Version. `Plan.executable=false`, kein Adapter aktiv.
+
+## 14.10.2026 – Offener Phase-3O-Folgeumfang
+3O/7 dokumentiert einen **lesenden** STOP-Audio-/Timing-Checkpoint mit Stale-Kontrolle; vollständiger Restore/STOP/START-Executor, gemeinsames Aufnahme-Lock, Android-Geräte- und Fehler/Rollback-Regressionstests bleiben offen. Pflichtübergabe `docs/project/CURRENT_STATE.md` bei jeder Projekt-ZIP aktualisieren. R01–R07, O01–O08 und A01–A05 unverändert.

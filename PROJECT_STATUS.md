@@ -1,3 +1,6 @@
+## 14.10.2026 – Phase 3O/6 (Quellkandidat)
+FFT-/Filterbank-Checkpoint bei STOP einschließlich validierter speicherfreier Wiederherstellung implementiert. Nicht als kompletter Audio-Rollback oder Setup-Switch interpretieren. GitHub-TEST Teilstufe 5: GRÜN (Nutzermeldung). Teilstufe 6: CI und Gerätetest OFFEN. Gradle 0.5.55/213.
+
 Phase 3O/5: Optionaler speicherfreier FFT-/8-kHz-Filterbank-Startentwurf (`DspStartOverride`) eingebaut; komplette Audio-/Recorder-Transaktion, Rollback und UI bleiben gesperrt. Teilstufe 4 GitHub TEST laut Nutzer grün; Teilstufe 5 nicht gebaut.
 
 ## v0.5.56 – Phase 3O, Teilstufe 4 (Quellkandidat, 14.10.2026)
@@ -573,3 +576,6 @@ Neue persistente Maximalzeit des Rolling-BETRIEBS (12 h Default, GUI 1–168 h) 
 ## Phase 3O – dritte Teilstufe: Legacy-Grenzwertschutz (14.10.2026)
 
 `AnalyzerRuntimeSetupSnapshot.capture` darf Filtergrenzen nicht mehr stillschweigend von `Double` nach `Int` abschneiden. `exactLegacyFilterHz` akzeptiert nur endliche, exakt ganzzahlige Werte im Int-Bereich; bei echten Bruchteilen bricht die *lesende* Erfassung mit einer klaren Fehlermeldung ab. Grund: Das aktuelle Legacy-JSON-Schema deklariert `filter_min_hz` und `filter_max_hz` als Integer. Dieser Guard dient der Integrität, **ist keine Unterstützung für Bruch-Hz**. Für eine vollwertige Übernahme muss die Schema-/Controller-Frage explizit geklärt werden. `AnalyzerSetupFormat` prüft Integerwerte jetzt über `BigDecimal.toBigIntegerExact()` statt verlustbehaftetem `Double`. Vier JUnit-Regressionsfälle hinzugefügt, deren Ausführung durch Gradle aussteht. Keine Änderung an Recordern, Audiopipeline, SharedPreferences, JSON-Dateien, Workflows oder Gradle-Version. `Plan.executable=false`, kein Adapter aktiv.
+
+## 14.10.2026 – Phase 3O Teilstufe 7
+Nur lesender STOP-Audio-/Timing-Checkpoint im Controller und CURRENT_STATE.md ergänzt. Letzter vom Nutzer als grün bestätigter GitHub-Test: 3O Teilstufe 5; 3O/6 und 3O/7 Buildstatus offen. JSON-Audio-Executor weiterhin gesperrt; kein Recorder-Rollback. Interne Gradle-Version unverändert.

@@ -1,3 +1,8 @@
+## Phase 3O – Teilstufe 6 (Quellkandidat, 14.10.2026)
+- STOP-gebundener `StoppedDspCheckpoint` mit capture/restore für FFT und (8-kHz) Filterbank; zunächst vollständige Validierung, dann Laufzeitzuweisung, ohne Preferences-Schreibzugriff.
+- Keine Audio-/Recorder-Rücknahme, keine automatische Aktivierung, keine UI-Anbindung; Phase-3N-Plan bleibt gesperrt.
+- Nutzer meldet GitHub TEST Teilstufe 5 GRÜN; Teilstufe 6 GitHub-/Gerätetest offen.
+
 ## Phase 3O – Teilstufe 5 (Entwicklungskandidat, 14.10.2026)
 - `LiveAnalyzerController.start` akzeptiert optional `DspStartOverride`, um FFT und optional 8-kHz-Filterbank **nach** dem Preferences-Lesen speicherfrei für genau diesen Start zu übernehmen.
 - Vollständigkeits-, Finite-, FFT- und Filterbank-Validierung unter dem Controller-Lock vor Überschreiben der DSP-Werte; keine Setup-UI und keine automatische Aktivierung.
@@ -1822,3 +1827,8 @@ Kein PASS für Android-Build, Emulator oder Xiaomi ohne tatsächlichen Lauf. 16:
 ## Phase 3O – dritte Teilstufe: Legacy-Grenzwertschutz (14.10.2026)
 
 `AnalyzerRuntimeSetupSnapshot.capture` darf Filtergrenzen nicht mehr stillschweigend von `Double` nach `Int` abschneiden. `exactLegacyFilterHz` akzeptiert nur endliche, exakt ganzzahlige Werte im Int-Bereich; bei echten Bruchteilen bricht die *lesende* Erfassung mit einer klaren Fehlermeldung ab. Grund: Das aktuelle Legacy-JSON-Schema deklariert `filter_min_hz` und `filter_max_hz` als Integer. Dieser Guard dient der Integrität, **ist keine Unterstützung für Bruch-Hz**. Für eine vollwertige Übernahme muss die Schema-/Controller-Frage explizit geklärt werden. `AnalyzerSetupFormat` prüft Integerwerte jetzt über `BigDecimal.toBigIntegerExact()` statt verlustbehaftetem `Double`. Vier JUnit-Regressionsfälle hinzugefügt, deren Ausführung durch Gradle aussteht. Keine Änderung an Recordern, Audiopipeline, SharedPreferences, JSON-Dateien, Workflows oder Gradle-Version. `Plan.executable=false`, kein Adapter aktiv.
+
+## v0.5.56 – Phase 3O / Teilstufe 7 (Quellkandidat, noch kein Release)
+- Nur lesender Audio-/Timing-STOP-Checkpoint mit 12 Feldern und Stale-Readback im Controller ergänzt; keine Aufnahme-/Service-/Hardwareumschaltung.
+- `docs/project/CURRENT_STATE.md` als fortzuführende verbindliche Übergabe eingeführt.
+- Regression `tools/verify_lfn056_phase3o_audio_timing_checkpoint.py`, kein neuer Kotlin-/GitHub-/Gerätetest behauptet. Gradle 0.5.55 / 213 unverändert.

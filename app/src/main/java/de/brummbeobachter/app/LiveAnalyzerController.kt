@@ -284,6 +284,96 @@ internal object LiveAnalyzerController {
         val filterBands: Int? = null
     )
 
+    /** Phase 3O/6: in-memory checkpoint of ONLY the stopped FFT/filter geometry.
+     * Not a checkpoint of the audio owner, recorder, capture mode or a running session.
+     * Never writes SharedPreferences; restoring is forbidden while running.
+     */
+    data class StoppedDspCheckpoint(
+        val directMode: Boolean,
+        val fftSize: Int,
+        val window: AnalyzerWindow,
+        val smoothingEnabled: Boolean,
+        val smoothingTimeSeconds: Double,
+        val filterMinHz: Double?,
+        val filterMaxHz: Double?,
+        val filterBands: Int?
+    )
+
+    fun captureStoppedDspCheckpoint(): StoppedDspCheckpoint = synchronized(lock) {
+        check(!running) { "DSP-Checkpoint nur bei STOP" }
+        StoppedDspCheckpoint(direct48k, fftSize, windowType, smoothingEnabled, smoothingTimeSeconds,
+            if (direct48k) null else filterMinHz,
+            if (direct48k) null else filterMaxHz,
+            if (direct48k) null else filterBandCount)
+    }
+
+    fun restoreStoppedDspCheckpoint(checkpoint: StoppedDspCheckpoint) {
+        synchronized(lock) {
+            check(!running) { "DSP-Restore nur bei STOP" }
+            check(direct48k == checkpoint.directMode) { "DSP-Restore: Audio-Modus geändert" }
+            require(checkpoint.fftSize in if (direct48k) DirectAnalyzerConfig.fftSizes else AnalyzerTiming.allowedFftSizes)
+            require(checkpoint.smoothingTimeSeconds.isFinite() && checkpoint.smoothingTimeSeconds in 0.01..60.0)
+            val filter = if (direct48k) {
+                require(checkpoint.filterMinHz == null && checkpoint.filterMaxHz == null && checkpoint.filterBands == null)
+                null
+            } else {
+                FastFilterBank.Config(
+                    requireNotNull(checkpoint.filterMinHz),
+                    requireNotNull(checkpoint.filterMaxHz),
+                    requireNotNull(checkpoint.filterBands))
+            }
+            // Validation finished before the first assignment. No preference access.
+            fftSize = checkpoint.fftSize
+            windowType = checkpoint.window
+            smoothingEnabled = checkpoint.smoothingEnabled
+            smoothingTimeSeconds = checkpoint.smoothingTimeSeconds
+            if (filter != null) {
+                filterMinHz = filter.minHz
+                filterMaxHz = filter.maxHz
+                filterBandCount = filter.bands
+            }
+            pendingFilter = null
+            filterAutoRange = null
+            filterAutoRangeStartNs = 0L
+            status = "DSP-Checkpoint bei STOP wiederhergestellt"
+        }
+    }
+
+    /** Phase 3O/7: read-only STOP snapshot of additional audio/timing state.
+     * Diagnostic boundary only: DOES NOT restore service, PCM, Recorder or preferences.
+     * A future rollback must validate all of these before mutating anything.
+     */
+    data class StoppedAudioTimingCheckpoint(
+        val directMode: Boolean,
+        val directInputRateHz: Int,
+        val directSmoothingAlpha: Double,
+        val directPeakMarkers: Int,
+        val directSubtractDc: Boolean,
+        val directStayAwake: Boolean,
+        val directTimeSmoothing: Boolean,
+        val decimationFactor: Int,
+        val fftHopSamples: Int,
+        val waterfallIntervalMs: Int,
+        val historySeconds: Int,
+        val analysisGainDb: Int
+    )
+
+    fun captureStoppedAudioTimingCheckpoint(): StoppedAudioTimingCheckpoint = synchronized(lock) {
+        check(!running) { "Audio-/Timing-Checkpoint nur bei STOP" }
+        StoppedAudioTimingCheckpoint(
+            direct48k, directInputRateHz, directSmoothingAlpha, directPeakMarkers,
+            directSubtractDc, directStayAwake, directTimeSmoothing, decimationFactor,
+            fftHopSamples, waterfallIntervalMs, historySeconds, analyzerGainDb
+        )
+    }
+
+    /** Compare a previously captured stopped state without side effects.
+     * False means stale state; caller must not apply/restart. No preference reads.
+     */
+    fun isStoppedAudioTimingCheckpointCurrent(checkpoint: StoppedAudioTimingCheckpoint): Boolean = synchronized(lock) {
+        !running && captureStoppedAudioTimingCheckpoint() == checkpoint
+    }
+
     fun start(context: Context, dspOverride: DspStartOverride? = null) {
         synchronized(lock) {
             if (running) return
