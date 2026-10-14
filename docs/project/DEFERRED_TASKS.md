@@ -1,3 +1,7 @@
+## v0.5.56 – Phase 3M (Entwicklung, nicht freigegeben)
+
+Lesende Audio-/FFT-Umschaltprüfung mit Änderungs-/STOP-/nicht-unterstützt-/null-Kategorisierung; keine tatsächliche Audio-/FFT-Aktivierung. GitHub-Android-Build und Gerätetest offen; MON-/Anzeige-Vorschau aus vorherigen Phasen erhalten.
+
 ## v0.5.56 – Phase 3J (Entwicklung, nicht freigegeben)
 
 Analyzer-Anzeige-Vorschau mit 12 Feldern und expliziter Wiederherstellung ergänzt; JSON/SharedPreferences werden dabei nicht geschrieben. Vollständige Setup-Aktivierung, Prozessrestart-Verhalten, UI-Panels und Android-Gerätetest weiterhin offen. Bestehende R-/O-/A-Kennungen unverändert.

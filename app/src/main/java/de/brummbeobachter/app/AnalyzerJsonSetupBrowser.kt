@@ -223,6 +223,27 @@ internal fun AnalyzerJsonSetupBrowser(context: Context) {
                     }.getOrElse { "Laufzeitvergleich fehlgeschlagen: ${it.message}" }
                 }) { Text("Mit laufendem Analyzer vergleichen (nur lesen)") }
                 if (runtimeComparison.isNotBlank()) Text(runtimeComparison, color = Color(0xFFABB8C0), fontSize = 12.sp)
+                OutlinedButton(onClick = {
+                    runtimeComparison = runCatching {
+                        val saved = repository.load(checkNotNull(inspectedId))
+                            .getJSONObject("parameters").optJSONObject("legacy")
+                            ?: error("Setup enthält keine Analyzer-Parameter")
+                        val currentState = LiveAnalyzerController.snapshot()
+                        val live = AnalyzerRuntimeSetupSnapshot.capture(currentState)
+                        val report = AnalyzerSetupSwitchPreflight.assess(
+                            saved, live, currentState.running, AnalyzerMonitorRecording.isActive())
+                        "Umschaltprüfung (nur lesen): " +
+                            "Anzeige ${report.displayPreviewable.size}, " +
+                            "STOP/Neustart ${report.stopRequired.size}, " +
+                            "noch nicht unterstützt ${report.unsupported.size}, " +
+                            "fehlend/null ${report.missingOrNull.size}.\n" +
+                            "STOP/Neustart: ${report.stopRequired.joinToString(", ").ifEmpty { "keine" }}\n" +
+                            "Nicht unterstützt: ${report.unsupported.joinToString(", ").ifEmpty { "keine" }}\n" +
+                            "Aufnahme aktiv: ${report.recordingActive}; Messung läuft: ${report.measurementRunning}. " +
+                            "Vollständiges Anwenden weiterhin gesperrt."
+                    }.getOrElse { "Umschaltprüfung fehlgeschlagen: ${it.message}" }
+                }) { Text("Audio/FFT-Umschaltprüfung (nur lesen)") }
+
                 OutlinedButton(onClick = { requestedDisplayPreview = inspectedId },
                     enabled = displayPreviewId == null && !AnalyzerMonitor.enabled && !AnalyzerMonitorRecording.isActive()) {
                     Text("Anzeige-Vorschau (12 Werte, ohne Speichern)")
