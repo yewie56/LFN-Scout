@@ -7,6 +7,43 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 
 class AnalyzerSetupTransitionCoordinatorTest {
+    @Test fun setupReservationHoldsRealMicLeaseUntilCallbackFinishes() {
+        val c = AnalyzerSetupTransitionCoordinator
+        assertEquals("held", c.withSetupReservation {
+            assertEquals("analyzer_setup_preflight", MicCaptureArbiter.owner)
+            assertNull(MicCaptureArbiter.tryAcquire("competing_recorder"))
+            "held"
+        })
+        assertNull(MicCaptureArbiter.owner)
+    }
+
+    @Test fun busyHardwareOwnerDeniesSetupAndDoesNotInvokeCallback() {
+        val busy = MicCaptureArbiter.tryAcquire("competing_recorder")
+        assertNotNull(busy)
+        try {
+            var invoked = false
+            assertNull(AnalyzerSetupTransitionCoordinator.withSetupReservation {
+                invoked = true
+                "unsafe"
+            })
+            assertFalse(invoked)
+            assertEquals("competing_recorder", MicCaptureArbiter.owner)
+        } finally { busy!!.close() }
+        assertFalse(AnalyzerSetupTransitionCoordinator.snapshotGate().setupReserved)
+    }
+
+    @Test fun setupReservationReleasesMicLeaseOnException() {
+        try {
+            AnalyzerSetupTransitionCoordinator.withSetupReservation<Unit> {
+                assertEquals("analyzer_setup_preflight", MicCaptureArbiter.owner)
+                throw IllegalStateException("injected")
+            }
+            fail("exception expected")
+        } catch (_: IllegalStateException) { }
+        assertNull(MicCaptureArbiter.owner)
+        assertFalse(AnalyzerSetupTransitionCoordinator.snapshotGate().setupReserved)
+    }
+
     @Test fun ownerBlockersRejectReservationWithoutRunningCallback() {
         val c = AnalyzerSetupTransitionCoordinator
         var invoked = false

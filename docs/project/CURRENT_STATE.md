@@ -1,3 +1,13 @@
+# LFN-Scout CURRENT_STATE – Phase 3O, Arbeitspaket 8 (Quellkandidat)
+
+**Stand:** 14.10.2026; Entwicklungsziel `0.5.56`; Gradle `0.5.55` / `213` unverändert.
+**Letzter durch Benutzer bestätigter GitHub-TEST:** Arbeitspaket 7 **GRÜN**.
+**Arbeitspaket 8:** `withSetupReservation` hält während der vollständigen synchronen Operation zusätzlich einen echten Token des bestehenden `MicCaptureArbiter` (`analyzer_setup_preflight`). Kann das Token nicht erworben werden, wird der Nutzerblock nicht ausgeführt; ein bereits aktiver Besitzer bleibt unangetastet. Die Freigabe erfolgt mittels `use` auch bei Ausnahmen; die Koordinatorreservierung bleibt bis zum Ende des Vorgangs gesetzt. Die injizierbare, rein testorientierte Owner-Probe bleibt unverändert.
+**Regressionen:** Drei neue JUnit-Tests für Lease-Haltung, Belegung und Exception-Cleanup sowie neuer statischer Prüfer. 23 Phase-3O-Quellprüfungen lokal zu verifizieren; GitHub-JUnit/Android-Build für Paket 8 offen.
+**Grenzen:** Kein produktiver Controller-Adapter, keine Session-Reinitialisierung, keine Hardware-Rollback- oder Android-Gerätevalidierung. Nicht alle vorhandenen Android-Audio-Start-/Stop-Routen sind atomar koordiniert. Der Token darf nicht als Freigabe des Setup-Executors gewertet werden; `Plan.executable=false` bleibt bestehen. Termux v4, Workflows, Gradle, Cloud, Signierung und Supabase unverändert. `supabase/storage_backup_before_v0526/` bleibt nur auf GitHub.
+
+---
+
 # LFN-Scout CURRENT_STATE – Phase 3O, Arbeitspaket 7 (Quellkandidat)
 
 **Stand:** 14.10.2026; Ziel `0.5.56`; Gradle `0.5.55` / `213` unverändert.

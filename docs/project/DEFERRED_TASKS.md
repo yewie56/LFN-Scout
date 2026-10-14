@@ -1,3 +1,10 @@
+## Phase 3O / Arbeitspaket 8 – weiterhin offen
+
+- [ ] Gemeinsame atomare Absicherung aller realen Analyzer-/MON-/Scout-/Rolling-/Direct-Start- und Stop-Lebenszyklen; das bestehende MIC-Token allein schützt nicht alle laufenden Ressourcen und ist kein vollständiger Hardware-Lease über die Setuptransaktion.
+- [ ] Sicherer STOP–Reconfigure–START-Controller-Adapter mit unveränderter JSON-/Preference-Persistenz und umfassendem Rollback bei Hardwarefehlern.
+- [ ] GitHub-JUnit/Android-Build und anschließend Android-Gerätetest für Paket 8; vor echter Setup-Freigabe Fault-Injection und Konkurrenztests.
+- [ ] `Plan.executable=false` bis zur ausdrücklichen Freigabe beibehalten.
+
 ## Phase 3O / Arbeitspaket 7 – verbleibende Aufgaben
 
 - Die konservative Rolling-/Direct-/MON-Startbarriere ersetzt keinen hardwareweiten atomaren Mikrofon-Lease; auch Analyzer-/Scout-/sonstige Start-/Stop-Pfade und tatsächliche Ressourcenübergänge noch integrieren.

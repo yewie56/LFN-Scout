@@ -178,7 +178,14 @@ internal object AnalyzerSetupTransitionCoordinator {
      * guaranteed even when the block throws. Must not be used for suspend code.
      */
     fun <T> withSetupReservation(block: () -> T): T? =
-        withOwnerCheckedReservation({ AnalyzerSetupAudioOwnerGate.observe().blockers }, block)
+        withOwnerCheckedReservation({ AnalyzerSetupAudioOwnerGate.observe().blockers }) {
+            // Package 8: bridge the coordinator reservation to the existing hardware
+            // owner lease. Hold the token throughout the synchronous callback and
+            // release it on every exit. Failure to acquire must never run the block.
+            val lease = MicCaptureArbiter.tryAcquire("analyzer_setup_preflight")
+                ?: return@withOwnerCheckedReservation null
+            lease.use { block() }
+        }
 
     /** Phase 3O / package 6: shared reservation decision with a conservative owner
      * probe under the coordinator mutex. Injection permits JVM tests without Android
