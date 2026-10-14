@@ -398,9 +398,43 @@ internal object LiveAnalyzerController {
             captureStoppedAudioTimingCheckpoint() == checkpoint.audioTiming
     }
 
+    /** Internal rollback for a failed subscriber start. Called only under [lock] and
+     * only with a checkpoint captured immediately before this start attempt.
+     * Does not restore hardware ownership, service/recorder or saved preferences.
+     */
+    private fun restoreStoppedConfigAfterFailedStart(cp: StoppedAnalyzerConfigCheckpoint) {
+        check(!running && direct48k == cp.dsp.directMode && direct48k == cp.audioTiming.directMode)
+        fftSize = cp.dsp.fftSize
+        windowType = cp.dsp.window
+        smoothingEnabled = cp.dsp.smoothingEnabled
+        smoothingTimeSeconds = cp.dsp.smoothingTimeSeconds
+        if (!direct48k) {
+            filterMinHz = requireNotNull(cp.dsp.filterMinHz)
+            filterMaxHz = requireNotNull(cp.dsp.filterMaxHz)
+            filterBandCount = requireNotNull(cp.dsp.filterBands)
+        }
+        directInputRateHz = cp.audioTiming.directInputRateHz
+        directSmoothingAlpha = cp.audioTiming.directSmoothingAlpha
+        directPeakMarkers = cp.audioTiming.directPeakMarkers
+        directSubtractDc = cp.audioTiming.directSubtractDc
+        directStayAwake = cp.audioTiming.directStayAwake
+        directTimeSmoothing = cp.audioTiming.directTimeSmoothing
+        decimationFactor = cp.audioTiming.decimationFactor
+        fftHopSamples = cp.audioTiming.fftHopSamples
+        waterfallIntervalMs = cp.audioTiming.waterfallIntervalMs
+        historySeconds = cp.audioTiming.historySeconds
+        analyzerGainDb = cp.audioTiming.analysisGainDb
+        pendingFilter = null
+        filterAutoRange = null
+        filterAutoRangeStartNs = 0L
+    }
+
     fun start(context: Context, dspOverride: DspStartOverride? = null) {
         synchronized(lock) {
             if (running) return
+            // Restore all stopped controller configuration if subscriber creation fails.
+            // This snapshot does not include the microphone owner or the recorder.
+            val beforeStart = captureStoppedAnalyzerConfigCheckpoint()
             appContext = context.applicationContext
             NoiseFloorReference.attach(context.applicationContext)
             val prefs = context.getSharedPreferences("lfn_scout_live_analyzer", Context.MODE_PRIVATE)
@@ -527,6 +561,11 @@ internal object LiveAnalyzerController {
                 runCatching { LocalAnalyzerAudioBuffer.stop() }
                 running = false
                 paused = false
+                // The initial state was captured while holding the same controller lock.
+                // Restore ALL captured in-memory configuration, not only the DSP fields.
+                // Do not touch SharedPreferences, rolling PCM or active WAV writers.
+                runCatching { restoreStoppedConfigAfterFailedStart(beforeStart) }
+                    .exceptionOrNull()?.let { startFailure.addSuppressed(it) }
                 status = "Analyzer-Start fehlgeschlagen; Analyzer gestoppt"
                 throw startFailure
             }

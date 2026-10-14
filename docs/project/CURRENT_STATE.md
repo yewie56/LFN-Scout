@@ -1,3 +1,20 @@
+# LFN-Scout CURRENT STATE – Phase 3O/10, Quellkandidat
+
+**Projekt:** v0.5.56 in Entwicklung, Gradle weiterhin `versionName 0.5.55`, `versionCode 213`.
+**Letzter vom Nutzer bestätigter grüner GitHub-TEST:** Phase 3O/9. **Phase 3O/10:** statisch geprüft; GitHub-TEST und Android-Gerätetest offen. Letzter bestätigter Commit hier nicht erneut unabhängig ermittelt.
+
+**Neu:** `LiveAnalyzerController` rollt bei einem Fehler der Session-Initialisierung den vorher erfassten DSP-/Audio-/Timing-STOP-Checkpoint ohne Speicherung zurück. Den Originalfehler nicht durch einen sekundären Rollback-Fehler ersetzen. Statische Regression `tools/verify_lfn056_phase3o_start_rollback.py`.
+
+**Sperren und Grenzen:** Phase-3N-Plan bleibt `executable=false`. Keine vollständige Audio-/FFT-/JSON-Aktivierung, keine atomare Aufnahmeeigentümer-Koordination, kein umfassender Rollback für Hardware/Recorder oder Fehler vor der Session-Initialisierung. Keine mobile Funktionsprüfung behaupten.
+
+**Sicherungen:** `supabase/storage_backup_before_v0526` verbleibt unverändert auf GitHub `main`, aus Quell-ZIPs ausgeschlossen, fehlende ZIP-Dateien niemals als Löschauftrag behandeln.
+
+**Verbindlich:** Termux v4 unverändert, Gradle 0.5.55/213, GitHub TEST allein genügt zunächst, `CURRENT_STATE.md` bei jeder ZIP aktualisieren; `DIRECTIVES.md`, `BUILD_WORKFLOWS.md`, `CHANGELOG.md`, `PROJECT_STATUS.md`, `DEFERRED_TASKS.md` beachten.
+
+**Nächster Schritt:** echte Recorder-/Service-Owner-Koordination und dynamische Fault-Injection-Tests; erst dann ausführungssichere STOP-/START-Übernahme evaluieren.
+
+---
+
 # LFN-Scout – CURRENT_STATE (verbindliche laufende Übergabe)
 
 **Stand:** 2026-10-14 · **Quellkandidat:** v0.5.56, Phase 3O, Teilstufe 9 · **Noch kein Release**

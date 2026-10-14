@@ -1,3 +1,12 @@
+
+## Phase 3O/10 – STOP-Konfiguration bei fehlgeschlagenem Session-Aufbau (14.10.2026)
+
+- Nutzerbestätigung: **Phase 3O/9 GitHub TEST GRÜN**; Phase 3O/10 GitHub TEST noch offen.
+- `LiveAnalyzerController.start()` erfasst vor dem Laden der Präferenzen einen gemeinsamen STOP-Checkpoint. Falls `LocalAnalyzerAudioBuffer.start()` oder `newSession()` einen Fehler auslösen, wird nach Best-effort-Cleanup die zuvor erfasste DSP-/Audio-/Timing-Konfiguration wiederhergestellt. Rücknahme findet nur unter Controller-Lock bei `running=false` statt, ohne `SharedPreferences`- oder JSON-Schreibzugriff. Fehler in der Rücknahme werden dem ursprünglichen Fehler als suppressed hinzugefügt.
+- **Grenzen:** Kein allgemeiner Rollback bei Fehlern im früheren Pref-/Konfigurations- und Validierungsabschnitt; keine Recorder-/Service-/Hardware-Rücknahme und keine Freigabe der Setup-Umschaltung. Die getrennten Aufnahmeeigentümer (Scout, MON, Rolling) sind noch nicht unter einem gemeinsamen Lock verbunden.
+- Statische Regression: `tools/verify_lfn056_phase3o_start_rollback.py`; Kotlin-/Android- und Fault-Injection-Test offen.
+- GitHub `main` behält das historische `supabase/storage_backup_before_v0526`; Entwicklungs-ZIPs enthalten es nicht. Bei fehlenden Dateien in der ZIP **nicht löschen**. Termux v4, Gradle 0.5.55/213, Workflows und Cloud unverändert.
+
 # Phase 3O – Teilstufe: Transaktionsschutz, noch keine Audio-/FFT-Aktivierung
 
 ## Befund aus dem vollständigen Phase-3N-Quellstand
