@@ -1,3 +1,9 @@
+## Phase 3O – Teilstufe 5 (Entwicklungskandidat, 14.10.2026)
+- `LiveAnalyzerController.start` akzeptiert optional `DspStartOverride`, um FFT und optional 8-kHz-Filterbank **nach** dem Preferences-Lesen speicherfrei für genau diesen Start zu übernehmen.
+- Vollständigkeits-, Finite-, FFT- und Filterbank-Validierung unter dem Controller-Lock vor Überschreiben der DSP-Werte; keine Setup-UI und keine automatische Aktivierung.
+- Die bestehende Standard-Startsignatur bleibt durch optionalen Parameter kompatibel. Recorder-/Audio-Modus-/Persistenz- und Rollback-Integration bleiben offen. Kein vollständiger Setupwechsel.
+- Statische Quellregression ergänzt. GitHub TEST und Gerätetest Teilstufe 5 offen; Teilstufe 4 laut Nutzerbericht grün.
+
 ## v0.5.56 – Phase 3O, Teilstufe 4 (Quellkandidat, 14.10.2026)
 
 - `LiveAnalyzerController.setDsp` und `setFilterConfig`: optional `persist=false` für STOP-begrenzte, speicherfreie Controller-Änderungen; `persist=true` als unveränderter Standard für Legacy-Aufrufer. Kein Anschluss an Setup-UI oder Transaktionsport.

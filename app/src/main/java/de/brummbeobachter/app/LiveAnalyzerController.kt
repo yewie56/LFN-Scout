@@ -270,7 +270,21 @@ internal object LiveAnalyzerController {
     private var lastSave = "–"
     private var status = "Analyzer gestoppt"
 
-    fun start(context: Context) {
+    /** Phase 3O/5: optional non-persistent FFT/filter restart override.
+     * This is not a complete audio setup switch. Caller must coordinate recorder ownership.
+     * Overrides are intentionally consumed only for this start call; normal start reads prefs.
+     */
+    data class DspStartOverride(
+        val fftSize: Int,
+        val window: AnalyzerWindow,
+        val smoothingEnabled: Boolean,
+        val smoothingTimeSeconds: Double,
+        val filterMinHz: Double? = null,
+        val filterMaxHz: Double? = null,
+        val filterBands: Int? = null
+    )
+
+    fun start(context: Context, dspOverride: DspStartOverride? = null) {
         synchronized(lock) {
             if (running) return
             appContext = context.applicationContext
@@ -323,6 +337,31 @@ internal object LiveAnalyzerController {
                 }
                 filterAutoRangeDurationSec=prefs.getInt("filter_autorange_duration_sec",2).coerceIn(1,30)
                 filterAutoRangeMarginDb=prefs.getInt("filter_autorange_margin_db",5).coerceIn(0,30)
+            }
+            // Override only after prefs initialization, before newSession(); no writes.
+            // Validate the complete override before modifying any DSP state.
+            if (dspOverride != null) {
+                require(dspOverride.fftSize in if (direct48k) DirectAnalyzerConfig.fftSizes else AnalyzerTiming.allowedFftSizes)
+                require(dspOverride.smoothingTimeSeconds.isFinite() && dspOverride.smoothingTimeSeconds in 0.01..60.0)
+                val filterValues = listOf(dspOverride.filterMinHz, dspOverride.filterMaxHz, dspOverride.filterBands)
+                require(filterValues.all { it == null } || filterValues.all { it != null }) {
+                    "Filterentwurf muss alle drei Werte enthalten"
+                }
+                require(direct48k.not() || filterValues.all { it == null }) {
+                    "Filterbank-Entwurf nur im 8-kHz-Modus"
+                }
+                if (filterValues.all { it != null }) {
+                    FastFilterBank.Config(dspOverride.filterMinHz!!, dspOverride.filterMaxHz!!, dspOverride.filterBands!!)
+                }
+                fftSize = dspOverride.fftSize
+                windowType = dspOverride.window
+                smoothingEnabled = dspOverride.smoothingEnabled
+                smoothingTimeSeconds = dspOverride.smoothingTimeSeconds
+                if (filterValues.all { it != null }) {
+                    filterMinHz = dspOverride.filterMinHz!!
+                    filterMaxHz = dspOverride.filterMaxHz!!
+                    filterBandCount = dspOverride.filterBands!!
+                }
             }
             filterAutoRange=null; filterAutoRangeStartNs=0L
             auto = prefs.getBoolean("auto_png", false)

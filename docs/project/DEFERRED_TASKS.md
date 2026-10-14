@@ -1,3 +1,6 @@
+## Phase 3O – nach Teilstufe 5
+Speicherfreier FFT-/Filter-Startentwurf vorhanden; unvollständige Audiofelder, Recorder-Lock, Modewechsel, tiefer Checkpoint, Rollback, UI-Freigabe und Gerätetests sind weiterhin offen. Teilstufe 4 GitHub TEST laut Nutzer grün.
+
 ## Phase 3O – offene Integration nach Teilstufe 4 (14.10.2026)
 
 Zwei speicherfreie STOP-Setter (`setDsp`, `setFilterConfig`) vorhanden; vollständige speicherfreie `start()`-Injektion, 8-/48-kHz-Mode-Switch, gemeinsamer Recorder-State-Lock, Checkpoint/Rollback, Setup-UI-Integration sowie Kotlin-/Geräte-Regressionen sind **offen**. Kein Audio-Setup freigegeben. Teilstufe 3 CI vom Nutzer grün bestätigt; Teilstufe 4 CI offen. Bestehende Kennungen R/O/A bleiben unverändert.

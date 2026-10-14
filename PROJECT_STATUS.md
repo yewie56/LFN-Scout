@@ -1,3 +1,5 @@
+Phase 3O/5: Optionaler speicherfreier FFT-/8-kHz-Filterbank-Startentwurf (`DspStartOverride`) eingebaut; komplette Audio-/Recorder-Transaktion, Rollback und UI bleiben gesperrt. Teilstufe 4 GitHub TEST laut Nutzer grün; Teilstufe 5 nicht gebaut.
+
 ## v0.5.56 – Phase 3O, Teilstufe 4 (Quellkandidat, 14.10.2026)
 
 - `LiveAnalyzerController.setDsp` und `setFilterConfig`: optional `persist=false` für STOP-begrenzte, speicherfreie Controller-Änderungen; `persist=true` als unveränderter Standard für Legacy-Aufrufer. Kein Anschluss an Setup-UI oder Transaktionsport.
