@@ -1,3 +1,7 @@
+## Phase 3O – Arbeitspaket 2 (14.10.2026)
+
+**Letzter bestätigter GitHub-TEST:** Arbeitspaket 1 GRÜN (Nutzerbestätigung). **Neuer Quellkandidat:** Arbeitspaket 2, GitHub-TEST OFFEN. Interne Gate-Markerprüfung für Reservierung und Diagnose vereinheitlicht und unbekannte Services abgewiesen; drei JUnit-Regressionen ergänzt. Produktive Umschaltung weiterhin deaktiviert; kein Hardware-Rollback und kein Laufzeit-Gerätetest. Siehe `docs/project/CURRENT_STATE.md`.
+
 ## Phase 3O – Arbeitspaket 1 (14.10.2026)
 
 **Letzter bestätigter GitHub-TEST:** Phase 3O/20 GRÜN (Benutzer). **Aktueller Quellkandidat:** Arbeitspaket 1; CI und Gerätetest offen. Gemeinsame ablehnende Diagnose von Koordinator-Markern und externen Audio-Besitzern in der bestehenden Setup-Transaktionsprüfung ergänzt. Keine produktive Umschaltung; Gradle 0.5.55 / 213 bleibt. Detailstand: `docs/project/CURRENT_STATE.md`.

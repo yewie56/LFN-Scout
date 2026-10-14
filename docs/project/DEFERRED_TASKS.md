@@ -1,3 +1,7 @@
+# Phase 3O – Arbeitspaket 2: offene Folgepakete (14.10.2026)
+
+Interne Gate-Markerprüfung ist jetzt in Diagnose und Reservierung vereinheitlicht. Offen: vollständige Audio-Owner-/Capture-Generationen-Absicherung einschließlich externem Mic-Arbiter; STOP–Reconfigure–START; vollständiger Recovery-Pfad mit Fault-Injection; UI und Gerätetests. `Plan.executable=false`; ein leeres Gate ist keine Hardware-Freigabe. GitHub-TEST Arbeitspaket 1 GRÜN (Benutzer), Arbeitspaket 2 OFFEN. Bereits früher zurückgestellte R-/O-/A-Aufgaben bleiben bestehen.
+
 # Phase 3O – Arbeitspaket 1: Restarbeiten (14.10.2026)
 
 Die Diagnosen sind jetzt in einer ablehnenden Prüfung kombiniert, aber nicht atomar. Offen bleiben die vier Restpakete aus `CURRENT_STATE.md`: Audio-Eigentümer-Lebenszyklen absichern, exklusiven STOP–Reconfigure–START-Transaktionskern implementieren, vollständigen Rollback mit Fehler-Injektion testen sowie UI-/Geräteabnahme. **Keine Freigabe aufgrund leerer Sperrgründe.** Historische aufgeschobene Aufgaben folgen unverändert.

@@ -273,4 +273,36 @@ class AnalyzerSetupTransitionCoordinatorTest {
         assertFalse(result.executionAuthorized)
     }
 
+    @Test fun unknownTrackedServiceNeverRunsSubmission() {
+        val c = AnalyzerSetupTransitionCoordinator
+        var called = false
+        assertFalse(c.withTrackedServiceStart("unknown-service") { called = true; true })
+        assertFalse(called)
+        assertTrue(c.assessGate().coordinatorMarkersClear)
+    }
+
+    @Test fun reservationRejectedDuringOutstandingServiceLifecycle() {
+        val c = AnalyzerSetupTransitionCoordinator
+        assertTrue(c.withTrackedServiceStart(c.DIRECT) { true })
+        try {
+            assertFalse(c.assessGate().coordinatorMarkersClear)
+            assertNull(c.withSetupReservation { "not allowed" })
+        } finally { c.serviceDestroyed(c.DIRECT) }
+        assertTrue(c.assessGate().coordinatorMarkersClear)
+    }
+
+    @Test fun setupReservationBlocksOtherReservationAndTrackedStart() {
+        val c = AnalyzerSetupTransitionCoordinator
+        val result = c.withSetupReservation {
+            var called = false
+            assertNull(c.withSetupReservation { "nested" })
+            assertFalse(c.withTrackedServiceStart(c.ROLLING) { called = true; true })
+            assertFalse(called)
+            assertTrue(c.assessGate().blockingReasons.contains("setup_reserved"))
+            "held"
+        }
+        assertEquals("held", result)
+        assertTrue(c.assessGate().coordinatorMarkersClear)
+    }
+
 }

@@ -1,3 +1,10 @@
+## v0.5.56 – Phase 3O, Arbeitspaket 2 (14.10.2026, Quellkandidat)
+
+- Interne Sicherheitsentscheidung für Gate-Diagnose und Setup-Reservierung vereinheitlicht; verwaiste Lifecycle-Marker sperren nun beide Pfade.
+- Unbekannte Service-Bezeichner und bereits markierte Destroy-Zustände verhindern einen getrackten Start.
+- Drei zusätzliche JUnit-Regressionen und ein statischer Konsistenztest. Keine Recorder-/Cloud-/Workflow-Änderung, Executor bleibt gesperrt, Gradle 0.5.55/213 unverändert.
+- Arbeitspaket 1: GitHub-TEST GRÜN laut Benutzer; Arbeitspaket 2: GitHub-TEST OFFEN.
+
 ## v0.5.56 – Phase 3O, Arbeitspaket 1 (14.10.2026, Quellkandidat)
 
 - Ausschließlich ablehnende Sicherheitsdiagnose führt interne Setup-/Service-/Cleanup-Marker mit Audio-Owner-Status zusammen; Ausfall der Owner-Abfrage führt zur Sperre.

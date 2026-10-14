@@ -1,8 +1,38 @@
+# LFN-Scout CURRENT_STATE – Phase 3O, Arbeitspaket 2 (Quellkandidat)
+
+**Stand:** 14.10.2026; Entwicklungsziel `0.5.56`; Gradle `0.5.55` / `213` unverändert.
+**Letzter durch Benutzer bestätigter GitHub-TEST:** Phase 3O, Arbeitspaket 1 **GRÜN**.
+**Aktueller Kandidat:** Phase 3O, Arbeitspaket 2; GitHub-TEST und Android-Gerätetest **OFFEN**.
+
+## Umsetzung
+
+- Die interne Markerentscheidung wird aus `blockingReasonsLocked()` abgeleitet und sowohl bei `assessGate()` als auch bei `withSetupReservation()` unter demselben Koordinator-Mutex verwendet. Insbesondere blockieren inkonsistente/verwaiste Destroy-Marker jetzt auch eine Reservierung (Fail-closed).
+- `withTrackedServiceStart()` lehnt unbekannte Service-Bezeichner ohne Startaufruf ab und akzeptiert keine bereits vorhandenen Destroy-Marker desselben Service.
+- Drei JUnit-Regressionstests: unbekannte Services, Ablehnung einer Reservierung während eines Service-Lifecycles sowie geschachtelte Reservierungs-/Start-Sperre.
+- Ergänzter statischer Regressionstest `tools/verify_lfn056_phase3o_package2_gate_consistency.py`.
+
+## Grenzen und verbleibende Arbeit
+
+Dieser Schritt verbessert die gemeinsame interne Gate-Entscheidung, **stellt aber keine atomare Hardware-/Audio-Owner-Reservierung her**. Insbesondere bleiben Überlappungen verschiedener Capture-Jobs, fremde Recorder, asynchrone Lifecycle-Rennen, tatsächlicher STOP–Reconfigure–START, Rollback und UI-Aktivierung offen. Kein produktiver Setupwechsel; `Plan.executable=false`. Keine Modifikation an Services, AudioRecord, Cloud, Workflows, Signatur oder Termux v4. Historisches `supabase/storage_backup_before_v0526/` bleibt auf GitHub und wird nicht in Entwicklungs-ZIPs aufgenommen.
+
+## Verbleibende größere Arbeitspakete
+
+1. Abschluss aller asynchronen Audio-/Capture-Lifecycle-Sicherheitsgrenzen, einschließlich mehrerer Job-Generationen und externem Mic-Arbiter.
+2. Transaktionaler STOP–Reconfigure–START-Kern unter nachgewiesen exklusivem Besitz.
+3. Rollback, Fehler-Injektion und sichere Fehler-Endzustände.
+4. Setup-UI, integrierte Regressionen und Geräteabnahme; Freischaltung erst nach ausdrücklich geprüfter Abnahme.
+
+## Testnachweis
+
+Sämtliche 21 Phase-3O-Quellskripte lokal PASS (einschließlich zwei aktualisierter statischer Prüfer für die gemeinsame Markerfunktion); JUnit wird ausschließlich durch GitHub-TEST verifiziert, nicht durch lokale Quellprüfungen. GitHub-TEST für Arbeitspaket 2 steht aus.
+
+---
+
 # LFN-Scout CURRENT_STATE – Phase 3O, Arbeitspaket 1 (nach Teilstufe 20)
 
 **Stand:** 14.10.2026 · Entwicklungsziel `0.5.56` · Gradle `0.5.55` / `213` unverändert.
 **Letzter durch Benutzer bestätigter GitHub-TEST:** Phase 3O/20 **GRÜN**.
-**Neuer Quellkandidat:** Phase 3O, Arbeitspaket 1. GitHub-TEST / Android-Gerätetest **OFFEN**.
+**Quellkandidat:** Phase 3O, Arbeitspaket 1. **GitHub-TEST GRÜN laut Benutzer**, Android-Gerätetest nicht belegt.
 
 ## Inhalt dieses Arbeitspakets
 

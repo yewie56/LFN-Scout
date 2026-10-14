@@ -47,7 +47,9 @@ internal object AnalyzerSetupTransitionCoordinator {
         val blockingReasons: List<String>
     )
 
-    internal fun assessGate(): GateAssessment = synchronized(mutex) {
+    // Single source of truth for diagnostic and reservation-side marker checks.
+    // Must only be called with mutex held.
+    private fun blockingReasonsLocked(): List<String> {
         val reasons = mutableListOf<String>()
         if (setupReserved) reasons.add("setup_reserved")
         inFlightServices.sorted().forEach { reasons.add("service_in_flight:$it") }
@@ -55,7 +57,12 @@ internal object AnalyzerSetupTransitionCoordinator {
         // A destroyed marker with no active lifecycle is an inconsistency worth diagnosing.
         destroyedServices.sorted().filter { it !in inFlightServices && it !in captureJobsPending }
             .forEach { reasons.add("orphan_destroy_marker:$it") }
-        GateAssessment(reasons.isEmpty(), reasons.toList())
+        return reasons.toList()
+    }
+
+    internal fun assessGate(): GateAssessment = synchronized(mutex) {
+        val reasons = blockingReasonsLocked()
+        GateAssessment(reasons.isEmpty(), reasons)
     }
 
     /** Fail-closed combined diagnosis; NOT a permission token or transactional lock.
@@ -81,7 +88,8 @@ internal object AnalyzerSetupTransitionCoordinator {
     }
 
     fun withTrackedServiceStart(service: String, start: () -> Boolean): Boolean = synchronized(mutex) {
-        if (setupReserved || inFlightServices.contains(service) || captureJobsPending.contains(service)) return@synchronized false
+        if (service != ROLLING && service != DIRECT) return@synchronized false
+        if (setupReserved || inFlightServices.contains(service) || captureJobsPending.contains(service) || destroyedServices.contains(service)) return@synchronized false
         // Reject duplicate starts while a previous lifecycle/cleanup is unresolved.
         // Otherwise a repeated request could share the same Set marker and be released early.
         // Mark BEFORE invoking the asynchronous Android start request.
@@ -146,7 +154,9 @@ internal object AnalyzerSetupTransitionCoordinator {
      */
     fun <T> withSetupReservation(block: () -> T): T? {
         synchronized(mutex) {
-            if (setupReserved || inFlightServices.isNotEmpty() || captureJobsPending.isNotEmpty() || AnalyzerMonitorRecording.isActive()) return null
+            // Reserve only if EXACTLY the same internal marker policy as diagnosis passes.
+            // In particular, orphan destroy markers must not be silently ignored.
+            if (blockingReasonsLocked().isNotEmpty() || AnalyzerMonitorRecording.isActive()) return null
             setupReserved = true
         }
         try { return block() }
