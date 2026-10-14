@@ -1,3 +1,9 @@
+## 14.10.2026 – Phase 3O, Arbeitspaket 13 (Quellkandidat)
+
+- Drei JUnit-Konkurrenztests mit echten Threads/Latches statt ausschließlich verschachtelter Aufrufe: laufende Setup-Lease gegen Rolling/Direct, zweite Setup-Anforderung und Freigabe nach fehlerhaftem Setup-Callback.
+- Produktive Audio-Routinen und Setup-Executor unverändert (`Plan.executable=false`). Die Tests liefern keinen Nachweis für Android-Hardware oder asynchrone Service-Lebenszyklen; diese bleiben offen.
+- Letzter vom Benutzer bestätigter GitHub-TEST: Arbeitspaket 12 GRÜN. JUnit/Android-Build für Paket 13 ausstehend.
+
 ### Phase 3O – Arbeitspaket 12
 
 Arbeitspaket 11 GitHub-TEST GRÜN. Arbeitspaket 12 als Quellkandidat: isolierter Legacy-Reservierungspfad an Koordinator angeschlossen, drei JUnit-Regressionen ergänzt. GitHub-TEST offen, produktiver Setupwechsel gesperrt.

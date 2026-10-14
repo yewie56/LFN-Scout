@@ -1,3 +1,13 @@
+# LFN-Scout CURRENT_STATE – Phase 3O, Arbeitspaket 13 (Quellkandidat)
+
+**Stand:** 14.10.2026; Entwicklungsziel `0.5.56`; Gradle `0.5.55` / `213` unverändert.
+**Letzter durch Benutzer bestätigter GitHub-TEST:** Arbeitspaket 12 **GRÜN**.
+**Arbeitspaket 13:** Drei echte Multi-Thread-JUnit-Regressionen prüfen, dass eine laufende Setup-Lease Rolling-/Direct-Starts sperrt, dass zwei Setup-Operationen sich nicht überlappen und dass nach einem fehlgeschlagenen Callback der Mikrofon-Token freigegeben ist. Die produktive Koordinatorlogik bleibt unverändert; dies ist ein Test-/Stabilisierungspaket.
+**Grenze:** Die JUnit-Tests beweisen nur In-Process-Koordination unter synthetischen Race-Bedingungen. Android-Service-Lifecycle, AudioRecord-Release, produktiver STOP–Reconfigure–START-Adapter und Hardware-Rollback bleiben offen. `Plan.executable=false` bleibt verbindlich.
+**Teststatus:** GitHub-JUnit/Android-Build für Paket 13 noch ausstehend; kein Gerätetest. Termux v4, Workflows, Gradle, Signierung, `.gitignore`, Cloud/Supabase unverändert. Historisches Storage-Backup verbleibt auf GitHub.
+
+---
+
 # LFN-Scout CURRENT_STATE – Phase 3O, Arbeitspaket 12 (Quellkandidat)
 
 **Stand:** 14.10.2026; Entwicklungsziel `0.5.56`; Gradle `0.5.55` / `213` unverändert.

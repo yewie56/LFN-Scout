@@ -1,3 +1,7 @@
+### Phase 3O – nach Arbeitspaket 13
+
+- Hardware-End-to-End-Tests, asynchrone Service-Start/Stop-Races, tatsächlicher Controller-Adapter und Fehler-Rollback bleiben offen. Keine Freischaltung von `Plan.executable` ohne diese Nachweise.
+
 ### Phase 3O – Weiter offen nach Arbeitspaket 12
 
 - End-to-End-Atomarität der asynchronen Service-/Audio-Starts, Controller-Adapter, Hardware-Rollback und Android-Gerätetests. `Plan.executable=false` bis zur vollständigen Verifikation beibehalten.

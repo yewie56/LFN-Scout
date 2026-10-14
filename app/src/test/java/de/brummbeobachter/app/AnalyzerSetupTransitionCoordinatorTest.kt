@@ -7,6 +7,88 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 
 class AnalyzerSetupTransitionCoordinatorTest {
+    // Package 13: real cross-thread contention, not merely reentrant calls.
+    @Test fun concurrentTrackedStartIsDeniedUntilSetupLeaseReleased() {
+        val entered = CountDownLatch(1)
+        val release = CountDownLatch(1)
+        val workerFailure = java.util.concurrent.atomic.AtomicReference<Throwable?>()
+        val worker = Thread {
+            try {
+                AnalyzerSetupTransitionCoordinator.withOwnerCheckedReservation({ emptyList() }) {
+                    entered.countDown()
+                    check(release.await(5, TimeUnit.SECONDS))
+                }
+            } catch (failure: Throwable) { workerFailure.set(failure) }
+        }
+        worker.start()
+        try {
+            assertTrue("setup lease not acquired", entered.await(5, TimeUnit.SECONDS))
+            val c = AnalyzerSetupTransitionCoordinator
+            var submissions = 0
+            assertFalse(c.withTrackedServiceStart(c.ROLLING) { submissions++; true })
+            assertFalse(c.withTrackedServiceStart(c.DIRECT) { submissions++; true })
+            assertEquals(0, submissions)
+            assertEquals("analyzer_setup_preflight", MicCaptureArbiter.owner)
+        } finally {
+            release.countDown()
+            worker.join(5000)
+        }
+        assertFalse("setup thread leaked", worker.isAlive)
+        workerFailure.get()?.let { throw AssertionError("setup worker failed", it) }
+        assertNull(MicCaptureArbiter.owner)
+        assertFalse(AnalyzerSetupTransitionCoordinator.snapshotGate().setupReserved)
+    }
+
+    @Test fun concurrentSecondSetupCannotEnterCriticalSection() {
+        val entered = CountDownLatch(1)
+        val release = CountDownLatch(1)
+        val workerFailure = java.util.concurrent.atomic.AtomicReference<Throwable?>()
+        val first = Thread {
+            try {
+                AnalyzerSetupTransitionCoordinator.withOwnerCheckedReservation({ emptyList() }) {
+                    entered.countDown()
+                    check(release.await(5, TimeUnit.SECONDS))
+                }
+            } catch (failure: Throwable) { workerFailure.set(failure) }
+        }
+        first.start()
+        try {
+            assertTrue("first setup did not enter", entered.await(5, TimeUnit.SECONDS))
+            var executed = false
+            assertNull(AnalyzerSetupTransitionCoordinator.withOwnerCheckedReservation({ emptyList() }) {
+                executed = true
+                "unsafe"
+            })
+            assertFalse(executed)
+        } finally {
+            release.countDown()
+            first.join(5000)
+        }
+        assertFalse(first.isAlive)
+        workerFailure.get()?.let { throw AssertionError("first setup failed", it) }
+        assertEquals("available", AnalyzerSetupTransitionCoordinator.withOwnerCheckedReservation({ emptyList() }) { "available" })
+    }
+
+    @Test fun failedSetupOnWorkerReleasesLeaseForLaterServiceStart() {
+        val failure = java.util.concurrent.atomic.AtomicReference<Throwable?>()
+        val worker = Thread {
+            try {
+                AnalyzerSetupTransitionCoordinator.withOwnerCheckedReservation<Unit>({ emptyList() }) {
+                    throw IllegalStateException("injected setup failure")
+                }
+            } catch (error: Throwable) { failure.set(error) }
+        }
+        worker.start()
+        worker.join(5000)
+        assertFalse("setup thread leaked", worker.isAlive)
+        assertTrue(failure.get() is IllegalStateException)
+        assertNull(MicCaptureArbiter.owner)
+        val c = AnalyzerSetupTransitionCoordinator
+        assertTrue(c.withTrackedServiceStart(c.ROLLING) { true })
+        c.serviceDestroyed(c.ROLLING)
+        assertFalse(c.snapshotGate().serviceLifecycleBlocked)
+    }
+
     @Test fun legacyReservationSharesCoordinatorGateAndMicToken() {
         val result = AnalyzerSetupMicrophoneReservation.withReservation {
             assertTrue(AnalyzerSetupTransitionCoordinator.snapshotGate().setupReserved)
