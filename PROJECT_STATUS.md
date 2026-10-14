@@ -1,3 +1,10 @@
+## v0.5.56 – Phase 3O, Teilstufe 4 (Quellkandidat, 14.10.2026)
+
+- `LiveAnalyzerController.setDsp` und `setFilterConfig`: optional `persist=false` für STOP-begrenzte, speicherfreie Controller-Änderungen; `persist=true` als unveränderter Standard für Legacy-Aufrufer. Kein Anschluss an Setup-UI oder Transaktionsport.
+- `start(context)` lädt weiter aus SharedPreferences; vollständige Audio-/FFT-Umschaltung, Recorder-Lock und Rollback bleiben gesperrt. Lesender Phase-3N-Plan weiterhin `executable=false`.
+- Neuer statischer Regressionstest `tools/verify_lfn056_phase3o_draft_setters.py`; GitHub TEST für diese Teilstufe noch offen. Vorherige Teilstufe 3: GitHub TEST laut Nutzer GRÜN.
+- Gradle `0.5.55` / `213` unverändert; Termux-v4-Skript nicht geändert.
+
 ## v0.5.45.8 – 12.10.2026 – Android-GitHub-Build + Signalstatus-Regression (Quellkandidat)
 - `AnalyzerSignalValidity`: gültige Original-FFT-Daten im Bereich der technischen Anzeigeuntergrenze sind kein Audioausfall. Nur leere/nichtfinite FFT-Puffer führen zu `NO_INPUT`; Quellenalter und Audioaufnahmefehler bleiben unabhängig zu prüfen.
 - Regressionstests für wechselnden 1/f-Restpegel sowie durchgehend unter Rauschboden liegende FFT.

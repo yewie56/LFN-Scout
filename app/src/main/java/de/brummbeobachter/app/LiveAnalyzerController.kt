@@ -650,14 +650,16 @@ internal object LiveAnalyzerController {
     }
 
     /** Filter band geometry is set only while STOP. One existing PCM consumer; no new recorder. */
-    fun setFilterConfig(context: Context, minimum: Double, maximum: Double, bands: Int) {
+    fun setFilterConfig(context: Context, minimum: Double, maximum: Double, bands: Int, persist: Boolean = true) {
         val config=FastFilterBank.Config(minimum,maximum,bands)
         synchronized(lock) {
             check(!running && !direct48k) { "FILTER-Parameter nur nach STOP im 8-kHz-Modus ändern" }
-            filterMinHz=config.minHz; filterMaxHz=config.maxHz; filterBandCount=config.bands
-            context.getSharedPreferences("lfn_scout_live_analyzer",Context.MODE_PRIVATE).edit()
+            // Phase 3O: draft path does not touch legacy preferences.
+            // A later start() still reloads preferences; this is NOT yet an active setup switch.
+            if (persist) context.getSharedPreferences("lfn_scout_live_analyzer",Context.MODE_PRIVATE).edit()
                 .putFloat("filter_min_hz",minimum.toFloat()).putFloat("filter_max_hz",maximum.toFloat())
                 .putInt("filter_bands",bands).apply()
+            filterMinHz=config.minHz; filterMaxHz=config.maxHz; filterBandCount=config.bands
             filterHistory.clear()
             repeat(history.size) { filterHistory.addLast(FastFilterBank.Levels(doubleArrayOf(),doubleArrayOf())) }
             pendingFilter=null; filterAutoRange=null;filterAutoRangeStartNs=0L; waterfallRevision++
@@ -781,14 +783,16 @@ internal object LiveAnalyzerController {
         }
     }
 
-    fun setDsp(context: Context, size: Int, window: AnalyzerWindow, enabled: Boolean, timeSeconds: Double) {
+    fun setDsp(context: Context, size: Int, window: AnalyzerWindow, enabled: Boolean, timeSeconds: Double, persist: Boolean = true) {
         require(size in if (direct48k) DirectAnalyzerConfig.fftSizes else AnalyzerTiming.allowedFftSizes)
         require(timeSeconds.isFinite() && timeSeconds in 0.01..60.0)
-        context.getSharedPreferences("lfn_scout_live_analyzer", Context.MODE_PRIVATE).edit()
-            .putInt("fft_size", size).putString("fft_window", window.name)
-            .putBoolean("smoothing_enabled", enabled)
-            .putFloat("smoothing_time_sec", timeSeconds.toFloat()).apply()
         synchronized(lock) {
+            // Draft-only route is restricted to STOP. Preserve legacy live edits when persist=true.
+            if (!persist) check(!running) { "FFT-Entwurf nur bei gestopptem Analyzer übernehmen" }
+            if (persist) context.getSharedPreferences("lfn_scout_live_analyzer", Context.MODE_PRIVATE).edit()
+                .putInt("fft_size", size).putString("fft_window", window.name)
+                .putBoolean("smoothing_enabled", enabled)
+                .putFloat("smoothing_time_sec", timeSeconds.toFloat()).apply()
             if (size == fftSize && window == windowType && enabled == smoothingEnabled &&
                 kotlin.math.abs(timeSeconds - smoothingTimeSeconds) < 0.0001) return
             fftSize = size; windowType = window; smoothingEnabled = enabled

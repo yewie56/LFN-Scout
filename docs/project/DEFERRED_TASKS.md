@@ -1,3 +1,7 @@
+## Phase 3O – offene Integration nach Teilstufe 4 (14.10.2026)
+
+Zwei speicherfreie STOP-Setter (`setDsp`, `setFilterConfig`) vorhanden; vollständige speicherfreie `start()`-Injektion, 8-/48-kHz-Mode-Switch, gemeinsamer Recorder-State-Lock, Checkpoint/Rollback, Setup-UI-Integration sowie Kotlin-/Geräte-Regressionen sind **offen**. Kein Audio-Setup freigegeben. Teilstufe 3 CI vom Nutzer grün bestätigt; Teilstufe 4 CI offen. Bestehende Kennungen R/O/A bleiben unverändert.
+
 ## v0.5.56 – Phase 3N (Entwicklung, nicht freigegeben)
 
 Lesender Audio-/FFT-Ablaufplan mit Zustands-Fingerprints, Sperrgründen und späterer STOP-/Rollback-Schrittfolge. Keine ausführbare Umschaltung; GitHub-Build/Gerätetest der Phase offen.
