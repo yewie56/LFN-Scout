@@ -1,3 +1,8 @@
+# Phase 3O/19 – weiterhin offen
+
+- `AnalyzerSetupTransitionCoordinator.snapshotGate()` ergänzt: synchronisierte, unverändernd lesbare Kopien von Start-, Destroy- und Capture-Job-Markern; zwei JUnit-Tests und statischer Verifikator.
+- Keine automatische Entsperrung und keine produktive Audio-/FFT-Umschaltung. Letzter durch Nutzer bestätigter GitHub TEST: 3O/18 GRÜN, 3O/19 offen.
+
 # Phase 3O/14 – Rolling-/Direct-Startschutz (14.10.2026)
 
 - GitHub TEST Phase 3O/13: **GRÜN laut Nutzer**; Phase 3O/14 noch nicht durch GitHub/Android bestätigt.

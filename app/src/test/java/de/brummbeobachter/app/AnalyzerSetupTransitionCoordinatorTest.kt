@@ -187,4 +187,30 @@ class AnalyzerSetupTransitionCoordinatorTest {
         assertFalse(c.hasInFlightServiceStarts())
     }
 
+    @Test fun snapshotReportsInFlightAndCaptureCleanupWithoutClearingThem() {
+        val c = AnalyzerSetupTransitionCoordinator
+        assertTrue(c.withTrackedServiceStart(c.ROLLING) { true })
+        c.captureJobPending(c.ROLLING)
+        c.serviceDestroyed(c.ROLLING)
+        try {
+            val snapshot = c.snapshotGate()
+            assertTrue(snapshot.serviceLifecycleBlocked)
+            assertTrue(snapshot.inFlightServices.contains(c.ROLLING))
+            assertTrue(snapshot.destroyedServices.contains(c.ROLLING))
+            assertTrue(snapshot.captureJobsPending.contains(c.ROLLING))
+            // Snapshot is a copy: lifecycle remains blocked until actual completion.
+            assertNull(c.withSetupReservation { "unsafe" })
+        } finally { c.captureJobFinished(c.ROLLING) }
+        assertFalse(c.snapshotGate().serviceLifecycleBlocked)
+    }
+
+    @Test fun snapshotCopiesCannotMutateFutureCoordinatorState() {
+        val c = AnalyzerSetupTransitionCoordinator
+        assertTrue(c.withTrackedServiceStart(c.DIRECT) { true })
+        val oldSnapshot = c.snapshotGate()
+        c.serviceDestroyed(c.DIRECT)
+        assertTrue(oldSnapshot.inFlightServices.contains(c.DIRECT))
+        assertFalse(c.snapshotGate().inFlightServices.contains(c.DIRECT))
+    }
+
 }

@@ -17,6 +17,28 @@ internal object AnalyzerSetupTransitionCoordinator {
     const val ROLLING = "rolling"
     const val DIRECT = "direct"
 
+    /** Phase 3O/19: non-mutating diagnostic view of all setup blocking markers.
+     * Never clears an in-flight marker automatically: a missing Android lifecycle
+     * callback must fail closed rather than permit a potentially unsafe switch.
+     */
+    internal data class GateSnapshot(
+        val setupReserved: Boolean,
+        val inFlightServices: Set<String>,
+        val destroyedServices: Set<String>,
+        val captureJobsPending: Set<String>
+    ) {
+        val serviceLifecycleBlocked: Boolean get() = inFlightServices.isNotEmpty() || captureJobsPending.isNotEmpty()
+    }
+
+    internal fun snapshotGate(): GateSnapshot = synchronized(mutex) {
+        GateSnapshot(
+            setupReserved = setupReserved,
+            inFlightServices = inFlightServices.toSet(),
+            destroyedServices = destroyedServices.toSet(),
+            captureJobsPending = captureJobsPending.toSet()
+        )
+    }
+
     fun withTrackedServiceStart(service: String, start: () -> Boolean): Boolean = synchronized(mutex) {
         if (setupReserved || inFlightServices.contains(service) || captureJobsPending.contains(service)) return@synchronized false
         // Reject duplicate starts while a previous lifecycle/cleanup is unresolved.

@@ -1,3 +1,8 @@
+# Phase 3O/19 – read-only Gate-Diagnose
+
+- `AnalyzerSetupTransitionCoordinator.snapshotGate()` ergänzt: synchronisierte, unverändernd lesbare Kopien von Start-, Destroy- und Capture-Job-Markern; zwei JUnit-Tests und statischer Verifikator.
+- Keine automatische Entsperrung und keine produktive Audio-/FFT-Umschaltung. Letzter durch Nutzer bestätigter GitHub TEST: 3O/18 GRÜN, 3O/19 offen.
+
 ## Phase 3O/18 (14.10.2026, Quellkandidat; GitHub TEST offen)
 
 - Koordinator ignoriert verspätete/doppelte Lifecycle- und Job-Ende-Callbacks ohne gültige aktive Vormerkung; zwei JUnit-Tests und Quelltest.

@@ -1,8 +1,12 @@
-# LFN-Scout CURRENT_STATE – Phase 3O/18
+# LFN-Scout CURRENT_STATE – Phase 3O/19
 
 **Stand:** 14.10.2026 · Entwicklungsziel `0.5.56` · Gradle `versionName 0.5.55`, `versionCode 213` unverändert.
-**Letzter bestätigter GitHub TEST:** Phase 3O/17 **GRÜN (Nutzerbestätigung)**. Keine Commit-ID neu verifiziert.
-**Neuer Quellkandidat:** Phase 3O/18; GitHub TEST und Android-Gerätetest OFFEN.
+**Letzter bestätigter GitHub TEST:** Phase 3O/18 **GRÜN (Nutzerbestätigung)**. Keine Commit-ID neu verifiziert.
+**Neuer Quellkandidat:** Phase 3O/19; GitHub TEST und Android-Gerätetest OFFEN.
+
+## Implementiert in 3O/19
+
+Der `AnalyzerSetupTransitionCoordinator` stellt einen synchronisierten, **rein lesenden** `GateSnapshot` mit Setup-Reservierung, laufenden Service-Starts, Destroy-Markern und ausstehenden Capture-Cleanups bereit. Die Sets werden kopiert; Diagnostik kann damit keine Koordinatorzustände verändern oder ausstehende Marker löschen. Zwei JUnit-Regressionsfälle sowie `tools/verify_lfn056_phase3o_gate_snapshot.py` hinzugefügt. Dies ist noch keine UI-Anzeige, kein automatischer Timeout und keine Freigabe einer Transaktion. GitHub TEST von 3O/19 offen.
 
 ## Implementiert in 3O/18
 
@@ -37,6 +41,6 @@ Weitere Audio-/Recorder-Ressourcen inklusive Fremd-Coroutinen und stale `inFligh
 
 ## Prüfhistorie 3O/16
 
-Phase-3O-Quelltests PASS. Ältere Phase-3F-/3J-Quelltests schlagen wegen später hinzugefügter Setup-UI-/Session-Funktionen fehl (3F 3 von 12 Checks, 3J 2 von 18); diese Tests wurden nicht als PASS ausgegeben. GitHub TEST von 3O/16 GRÜN (Nutzerbestätigung); GitHub TEST von 3O/17 GRÜN (Nutzerbestätigung).
+Phase-3O-Quelltests PASS. Ältere Phase-3F-/3J-Quelltests schlagen wegen später hinzugefügter Setup-UI-/Session-Funktionen fehl (3F 3 von 12 Checks, 3J 2 von 18); diese Tests wurden nicht als PASS ausgegeben. GitHub TEST von 3O/16 GRÜN (Nutzerbestätigung); GitHub TEST von 3O/17 und 3O/18 GRÜN (Nutzerbestätigung).
 
 Historie: Phase 3O/14 führte gemeinsame Rolling-/Direct-Startschranken ein; Phase 3O/14-FIX1 korrigierte den Kotlin-Return-Fehler.
