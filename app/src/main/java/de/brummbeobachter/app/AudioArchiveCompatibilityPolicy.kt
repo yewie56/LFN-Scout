@@ -10,10 +10,11 @@ object AudioArchiveCompatibilityPolicy {
         FAILED
     }
 
-    fun relativePaths(): List<String> = listOf(
-        CURRENT_RELATIVE_PATH,
-        LEGACY_RELATIVE_PATH
-    )
+    fun relativePaths(): List<String> = if (PublicDataDirectory.isTest) {
+        listOf(PublicDataDirectory.relativePath)
+    } else {
+        listOf(CURRENT_RELATIVE_PATH, LEGACY_RELATIVE_PATH)
+    }
 
     fun shouldRemoveMetadataAfterDelete(deleteResult: DeleteResult): Boolean =
         deleteResult != DeleteResult.FAILED

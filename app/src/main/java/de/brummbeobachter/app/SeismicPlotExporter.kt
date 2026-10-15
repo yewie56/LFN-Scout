@@ -17,8 +17,8 @@ import java.time.LocalDateTime
 import kotlin.math.max
 
 object SeismicPlotExporter {
-    const val PUBLIC_RELATIVE_PATH = "Download/LFN-Scout/"
-    const val PUBLIC_DISPLAY_PATH = "Download/LFN-Scout/"
+    val PUBLIC_RELATIVE_PATH = PublicDataDirectory.relativePath
+    val PUBLIC_DISPLAY_PATH = PublicDataDirectory.relativePath
 
     fun save(context: Context, snapshot: SeismicLiveService.Snapshot, nearPlotBitmap: Bitmap? = null): String {
         val fileName = SeismicPlotUiPolicy.exportFileName(
@@ -232,7 +232,7 @@ object SeismicPlotExporter {
         } else {
             val directory = File(
                 Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
-                "LFN-Scout"
+                PublicDataDirectory.folder
             )
             check(directory.exists() || directory.mkdirs()) { "Zielverzeichnis konnte nicht angelegt werden" }
             val target = File(directory, fileName)
@@ -268,7 +268,7 @@ object SeismicPlotExporter {
         } else {
             val directory = File(
                 Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
-                "LFN-Scout"
+                PublicDataDirectory.folder
             ).apply { mkdirs() }
             val file = File(directory, fileName)
             file.outputStream().use { output ->

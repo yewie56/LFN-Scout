@@ -533,7 +533,7 @@ object WaterfallGenerator {
         } else {
             File(
                 Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
-                "LFN-Scout/$imageName"
+                "${PublicDataDirectory.folder}/$imageName"
             ).exists()
         }
     }
@@ -555,7 +555,7 @@ object WaterfallGenerator {
         } else {
             File(
                 Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
-                "LFN-Scout/$imageName"
+                "${PublicDataDirectory.folder}/$imageName"
             ).delete()
         }
     }
@@ -675,7 +675,7 @@ object WaterfallGenerator {
                         .getExternalStoragePublicDirectory(
                             Environment.DIRECTORY_DOWNLOADS
                         ),
-                    "LFN-Scout"
+                    PublicDataDirectory.folder
                 ).apply {
                     mkdirs()
                 }

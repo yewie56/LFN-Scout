@@ -10,7 +10,7 @@ import java.util.Locale
 /** Separate diagnostic CSV; never changes the measurement/filter CSV or cloud schema. */
 internal object RollingFilterPerformanceCsvExporter {
     private const val NAME = "RollingCsvFilterPerformance.csv"
-    private const val PATH = "Download/LFN-Scout/"
+    private val PATH = PublicDataDirectory.relativePath
     private const val HEADER = "window_start_ms;window_end_ms;method;bands;sample_rate_hz;samples;mean_us_per_sample;peak_us_per_sample;peak_epoch_us;p50_epoch_us;p95_epoch_us;p99_epoch_us;epoch_count;total_us;realtime_percent\n"
 
     @Synchronized

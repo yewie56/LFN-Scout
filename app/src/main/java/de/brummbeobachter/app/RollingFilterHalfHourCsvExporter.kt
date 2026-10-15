@@ -15,7 +15,7 @@ internal object RollingFilterHalfHourCsvExporter {
             if (Build.VERSION.SDK_INT < 29) error("MediaStore Downloads requires API 29")
             val name = "HalfHourFilterStatistics_${rows.first().startEpochMs}.csv"
             val resolver = context.contentResolver
-            val relative = "Download/LFN-Scout/"
+            val relative = PublicDataDirectory.relativePath
             var existing: android.net.Uri? = null
             resolver.query(MediaStore.Downloads.EXTERNAL_CONTENT_URI,
                 arrayOf(MediaStore.MediaColumns._ID),

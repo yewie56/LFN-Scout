@@ -1,3 +1,13 @@
+# Phase 3O – AP28: TEST-Speichertrennung (Quellkandidat, 15.10.2026)
+
+- Nutzervorgabe: In der Android-Dateimanageransicht **Downloads/lfn-scout-test/**. Technisch wird der von Android bereitgestellte öffentliche Downloads-Ordner (`Environment.DIRECTORY_DOWNLOADS`, MediaStore `Download/`) verwendet; damit kein zusätzliches paralleles `Downloads`-Verzeichnis entsteht.
+- Nur `applicationId` mit `.githubdebug` verwendet `lfn-scout-test`; REGULAR bleibt `LFN-Scout`. Es wird weder automatisch migriert noch eine REGULAR-Datei kopiert. Legacy-Lookups der TEST-App werden auf das neue Verzeichnis eingeschränkt.
+- Modifizierte Bereiche: Audioarchiv/WAV, Statistiken/CSV, Wasserfallbilder, Diagnose, Export/Importordner, Setup-Dateien. App-interne Android-Daten werden weiterhin durch getrennte Paketkennungen isoliert.
+- Gradle: `0.5.58` / `216`; Workflow, Signierung, Supabase, Mic/FFT und `Plan.executable=false` unverändert.
+- Prüfstatus: ZIP-/statische Pfadprüfung lokal. Android-Gradle und Gerätemessung noch offen.
+
+---
+
 # Phase 3O – AP25 Setup-Facelift (Quellkandidat, 15.10.2026)
 
 **Basis:** Vollständiges AP24-Übergabe-ZIP. AP24 GitHub-/Termux-TEST vom Benutzer GRÜN bestätigt. Nach manueller Freigabe des Mikrofons meldet der Benutzer einen fehlerfreien Android-Gerätetest für die bestehenden Funktionen. Das ist kein Test von AP25.
@@ -419,3 +429,10 @@ Historie: Phase 3O/14 führte gemeinsame Rolling-/Direct-Startschranken ein; Pha
 - Separater TEST-Paketname (`.githubdebug`), unveränderte Workflows und Signaturwege. Keine Änderungen an Audio-, Setup- und Cloud-Implementierung gegenüber AP25.
 - Android kann auch APKs mit gleicher versionCode aktualisieren; der genaue Installationsfehler ist noch nicht diagnostiziert. Bei `INSTALL_FAILED_UPDATE_INCOMPATIBLE` Signatur prüfen und nicht blind Daten löschen/deinstallieren.
 - Quellkandidat: Android/Gradle-Test und Hardwareinstallation noch offen. AP25-Android-Prüfung ist nicht als erfolgreich zu bewerten.
+
+## Phase 3O / AP27 – Mikrofon- und GPS-Berechtigungsdialog (15.10.2026)
+
+- Beim ersten Öffnen einer neuen Activity-Instanz zeigt die App bei fehlenden Runtime-Berechtigungen einen erklärenden Dialog zu Mikrofon (Analyzer/MON/Aufnahme) und GPS/Standort (Messort). `Berechtigungen erteilen` fordert ausschließlich fehlende Rechte über Androids Systemdialog(e) an; `Später` ist jederzeit möglich. Keine automatische Audio-/GPS-Aktivierung und keine Änderung an Audio-/Cloud-/Setup-Routinen.
+- Manifestberechtigungen existierten bereits. Standort erlaubt auch ungefähre Ortung; Fine und Coarse werden gemeinsam abgefragt. Ein verweigertes Recht blockiert nicht den App-Start. Bereits genehmigte Rechte werden nicht erneut abgefragt.
+- `versionName=0.5.57`, `versionCode=215` für aktualisierbare TEST-APK. Separater TEST-Paketname und Build-/Signierwege unverändert. `Plan.executable=false` unverändert.
+- Validierung: Quell- und ZIP-Prüfungen lokal; GitHub/Gradle-Build und Android-Hardwaretest noch ausstehend.

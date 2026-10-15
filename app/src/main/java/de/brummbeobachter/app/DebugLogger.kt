@@ -126,7 +126,7 @@ object DebugLogger {
         } else {
             val dir = File(
                 Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
-                "LFN-Scout"
+                PublicDataDirectory.folder
             )
             check(dir.exists() || dir.mkdirs()) { "Log-Verzeichnis konnte nicht angelegt werden" }
             File(dir, fileName).writeText(text, Charsets.UTF_8)

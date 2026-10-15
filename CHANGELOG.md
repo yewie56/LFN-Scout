@@ -1,3 +1,13 @@
+# Phase 3O – AP28: TEST-Speichertrennung (Quellkandidat, 15.10.2026)
+
+- Nutzervorgabe: In der Android-Dateimanageransicht **Downloads/lfn-scout-test/**. Technisch wird der von Android bereitgestellte öffentliche Downloads-Ordner (`Environment.DIRECTORY_DOWNLOADS`, MediaStore `Download/`) verwendet; damit kein zusätzliches paralleles `Downloads`-Verzeichnis entsteht.
+- Nur `applicationId` mit `.githubdebug` verwendet `lfn-scout-test`; REGULAR bleibt `LFN-Scout`. Es wird weder automatisch migriert noch eine REGULAR-Datei kopiert. Legacy-Lookups der TEST-App werden auf das neue Verzeichnis eingeschränkt.
+- Modifizierte Bereiche: Audioarchiv/WAV, Statistiken/CSV, Wasserfallbilder, Diagnose, Export/Importordner, Setup-Dateien. App-interne Android-Daten werden weiterhin durch getrennte Paketkennungen isoliert.
+- Gradle: `0.5.58` / `216`; Workflow, Signierung, Supabase, Mic/FFT und `Plan.executable=false` unverändert.
+- Prüfstatus: ZIP-/statische Pfadprüfung lokal. Android-Gradle und Gerätemessung noch offen.
+
+---
+
 ## Phase 3O/AP25 – Setup-Facelift (Source Candidate, 15.10.2026)
 
 - Analyzer: Setup-Verwaltung sichtbar hervorgehoben; ausgewählter Platz, Speicherstatus und Setup-Name; direkter Einstieg und Setup-Kategorie zuerst.
@@ -2095,3 +2105,8 @@ Kein PASS für Android-Build, Emulator oder Xiaomi ohne tatsächlichen Lauf. 16:
 - Separater TEST-Paketname (`.githubdebug`), unveränderte Workflows und Signaturwege. Keine Änderungen an Audio-, Setup- und Cloud-Implementierung gegenüber AP25.
 - Android kann auch APKs mit gleicher versionCode aktualisieren; der genaue Installationsfehler ist noch nicht diagnostiziert. Bei `INSTALL_FAILED_UPDATE_INCOMPATIBLE` Signatur prüfen und nicht blind Daten löschen/deinstallieren.
 - Quellkandidat: Android/Gradle-Test und Hardwareinstallation noch offen. AP25-Android-Prüfung ist nicht als erfolgreich zu bewerten.
+
+## Phase 3O / AP27 – Berechtigungsdialog (15.10.2026)
+- Startdialog für Mikrofon- und GPS-/Standortfreigabe bei fehlenden Android-Laufzeitrechten, mit Auswahl „Später“.
+- Keine Änderung an bestehender Audioverarbeitung oder Standortermittlung.
+- TEST/REGULAR Gradle-Version angehoben auf 0.5.57 / 215; REGULAR nicht gebaut oder installiert.

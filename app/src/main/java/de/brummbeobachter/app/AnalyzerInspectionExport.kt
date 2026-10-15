@@ -22,8 +22,8 @@ import java.util.zip.ZipOutputStream
 internal object AnalyzerInspectionExport {
     private const val PREFS = "lfn_scout_live_analyzer"
     private const val EXPORT_PREFS = "lfn_scout_inspection_export"
-    private const val FOLDER = "LFN-Scout/Setups/"
-    private const val DIAGNOSTICS_FOLDER = "LFN-Scout/Diagnostics/"
+    private val FOLDER = PublicDataDirectory.setupFolder
+    private val DIAGNOSTICS_FOLDER = PublicDataDirectory.diagnosticFolder
 
     private fun safeScalar(value: Any?): Any? = when (value) {
         is String, is Boolean, is Int, is Long, is Float, is Double -> value

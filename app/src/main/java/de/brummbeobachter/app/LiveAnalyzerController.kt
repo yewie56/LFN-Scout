@@ -1338,7 +1338,7 @@ internal object LiveAnalyzerController {
                     put(MediaStore.MediaColumns.DISPLAY_NAME, name)
                     put(MediaStore.MediaColumns.MIME_TYPE, format.mimeType)
                     if (Build.VERSION.SDK_INT >= 29) {
-                        put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS + "/LFN-Scout")
+                        put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS + "/" + PublicDataDirectory.folder)
                         put(MediaStore.MediaColumns.IS_PENDING, 1)
                     }
                 }

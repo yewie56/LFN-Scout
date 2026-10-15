@@ -364,3 +364,5 @@ Die Kennzeichnung **R01–R07, O01–O08 und A01–A05** können wir künftig al
 ### AP26 – Installationsnachprüfung
 - [ ] GitHub-TEST und Android-Installation mit `0.5.56/214` prüfen.
 - [ ] Falls Installation scheitert: genaue Android-Paketinstallationsmeldung sammeln, insbesondere Paketkennung und Signaturkonflikt; keine produktiven Setups löschen.
+
+- AP27: Hardwareprüfung des neuen Mikrofon-/Standortberechtigungsdialogs (Neustart bei bereits erteilten Berechtigungen, Ablehnung/„Später“, ungefähre Ortung) steht aus. Keine erneute Promptanzeige bei bereits erteilten Rechten.

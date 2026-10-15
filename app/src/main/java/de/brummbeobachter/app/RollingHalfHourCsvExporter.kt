@@ -20,7 +20,7 @@ internal object RollingHalfHourCsvExporter {
             }
             val name = "HalfHourStatistics_${result.startEpochMs}.csv"
             val resolver = context.contentResolver
-            val relative = "Download/LFN-Scout/"
+            val relative = PublicDataDirectory.relativePath
             var existing: android.net.Uri? = null
             resolver.query(MediaStore.Downloads.EXTERNAL_CONTENT_URI,
                 arrayOf(MediaStore.MediaColumns._ID),

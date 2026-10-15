@@ -15,7 +15,7 @@ import java.io.File
 internal object AnalyzerLegacySetupMigration {
     private const val STORE = "lfn_scout_live_analyzer"
     private const val STATUS = "lfn_scout_setup_migration"
-    private const val DIRECTORY = "LFN-Scout/Setups/"
+    private val DIRECTORY = PublicDataDirectory.setupFolder
     private val files = (1..4).associateWith { if (it == 4) "Setup_4_48k.json" else "Setup_$it.json" }
     private val allowed = setOf(
         "min_frequency", "range", "decimation_factor", "fft_size", "fft_hop", "window",

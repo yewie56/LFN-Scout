@@ -56,7 +56,7 @@ internal class RollingEpochCsvExporter(private val context: Context, private val
             if (Build.VERSION.SDK_INT < 29) error("Android 10+ required for public Downloads")
             val name = "HalfHourEpochs_${snapshot.bucket}.csv"
             val resolver = context.contentResolver
-            val relative = "Download/LFN-Scout/"
+            val relative = PublicDataDirectory.relativePath
             var uri: android.net.Uri? = null
             resolver.query(MediaStore.Downloads.EXTERNAL_CONTENT_URI,
                 arrayOf(MediaStore.MediaColumns._ID),

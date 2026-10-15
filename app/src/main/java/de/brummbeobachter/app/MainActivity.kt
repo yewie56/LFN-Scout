@@ -145,6 +145,67 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             LFNScoutTheme {
+                // AP27: opt-in permission onboarding; does not start or stop audio services.
+                val missingRuntimePermissions = buildList {
+                    if (ContextCompat.checkSelfPermission(
+                            this@MainActivity, Manifest.permission.RECORD_AUDIO
+                        ) != PackageManager.PERMISSION_GRANTED
+                    ) add(Manifest.permission.RECORD_AUDIO)
+                    val fineGranted = ContextCompat.checkSelfPermission(
+                        this@MainActivity, Manifest.permission.ACCESS_FINE_LOCATION
+                    ) == PackageManager.PERMISSION_GRANTED
+                    val coarseGranted = ContextCompat.checkSelfPermission(
+                        this@MainActivity, Manifest.permission.ACCESS_COARSE_LOCATION
+                    ) == PackageManager.PERMISSION_GRANTED
+                    if (!fineGranted) {
+                        // Android 12+: FINE must be requested together with COARSE.
+                        add(Manifest.permission.ACCESS_FINE_LOCATION)
+                        add(Manifest.permission.ACCESS_COARSE_LOCATION)
+                    } else if (!coarseGranted) {
+                        add(Manifest.permission.ACCESS_COARSE_LOCATION)
+                    }
+                }
+                var showPermissionIntro by remember {
+                    mutableStateOf(savedInstanceState == null && missingRuntimePermissions.isNotEmpty())
+                }
+                val startupPermissionsLauncher = rememberLauncherForActivityResult(
+                    ActivityResultContracts.RequestMultiplePermissions()
+                ) { results ->
+                    DebugLogger.log(
+                        applicationContext,
+                        "STARTUP_PERMISSIONS",
+                        "mic=${results[Manifest.permission.RECORD_AUDIO]} " +
+                            "fine=${results[Manifest.permission.ACCESS_FINE_LOCATION]} " +
+                            "coarse=${results[Manifest.permission.ACCESS_COARSE_LOCATION]}"
+                    )
+                }
+                if (showPermissionIntro) {
+                    AlertDialog(
+                        onDismissRequest = { showPermissionIntro = false },
+                        title = { Text("Berechtigungen für LFN-Scout") },
+                        text = {
+                            Text(
+                                "Für Analyzer, MON und Audioaufnahmen benötigt LFN-Scout " +
+                                    "Zugriff auf das Mikrofon. Für die Standortzuordnung " +
+                                    "der Messungen wird die GPS-/Standortberechtigung " +
+                                    "benötigt. Android fragt beide Berechtigungen separat ab. " +
+                                    "Du kannst auch ohne Freigabe fortfahren; betroffene " +
+                                    "Funktionen stehen dann nur eingeschränkt zur Verfügung."
+                            )
+                        },
+                        confirmButton = {
+                            TextButton(onClick = {
+                                showPermissionIntro = false
+                                startupPermissionsLauncher.launch(missingRuntimePermissions.toTypedArray())
+                            }) { Text("Berechtigungen erteilen") }
+                        },
+                        dismissButton = {
+                            TextButton(onClick = { showPermissionIntro = false }) {
+                                Text("Später")
+                            }
+                        }
+                    )
+                }
                 LFNScoutApp(
                     keyStore =
                         KeyStore(applicationContext),

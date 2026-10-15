@@ -93,7 +93,7 @@ internal object LocalAudioStatisticsRepository {
         }
     }
     private fun publish(context: Context, bytes: ByteArray, name: String, mime: String, inRoot: Boolean = false): Uri? {
-        val relativePath = "${Environment.DIRECTORY_DOWNLOADS}/LFN-Scout/" + if (inRoot) "" else "LocalSaves/"
+        val relativePath = PublicDataDirectory.relativePath + if (inRoot) "" else "LocalSaves/"
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             val values = ContentValues().apply {
                 put(MediaStore.MediaColumns.DISPLAY_NAME, name)
@@ -115,7 +115,7 @@ internal object LocalAudioStatisticsRepository {
                 throw e
             }
         }
-        val directory = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), if (inRoot) "LFN-Scout" else "LFN-Scout/LocalSaves")
+        val directory = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), if (inRoot) PublicDataDirectory.folder else PublicDataDirectory.localSaveFolder.trimEnd('/'))
         check(directory.exists() || directory.mkdirs())
         File(directory, name).writeBytes(bytes)
         return null

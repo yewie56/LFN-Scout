@@ -135,7 +135,7 @@ internal fun LiveAnalyzerSettingsPanel(
         message = "Setup $slot gespeichert; JSON-Export läuft …"
         exportScope.launch {
             runCatching { withContext(Dispatchers.IO) { AnalyzerInspectionExport.exportSetups(context) } }
-                .onSuccess { message="Setup $slot gespeichert · $it JSON-Datei(en) in Download/LFN-Scout/Setups/" }
+                .onSuccess { message="Setup $slot gespeichert · $it JSON-Datei(en) in ${PublicDataDirectory.relativePath}Setups/" }
                 .onFailure { message="Setup intern gespeichert; JSON-Export fehlgeschlagen: ${it.javaClass.simpleName}: ${it.message ?: "ohne Details"}" }
         }
     }
@@ -945,7 +945,7 @@ internal fun LiveAnalyzerSettingsPanel(
                     SettingToggle("Auto-Bild: erste volle ${state.historySeconds}-s-Historie, danach je ${state.historySeconds} s",state.autoSave) {
                         LiveAnalyzerController.setAutoSave(context,it);onRefresh()
                     }
-                    SettingNote("Speicherort Android 10+: Downloads/LFN-Scout/ · Dateiendung .png oder .jpg. Beim langen Druck wird unabhängig von der Automatik ein Einzelbild gespeichert.")
+                    SettingNote("Speicherort Android 10+: ${PublicDataDirectory.relativePath} · Dateiendung .png oder .jpg. Beim langen Druck wird unabhängig von der Automatik ein Einzelbild gespeichert.")
                     SettingNote("Auslöser für Ereignis-PNG und CSV-Export: geplant, derzeit ohne Schalter.")
                 }
                 "Kalibrierung" -> {
@@ -973,7 +973,7 @@ internal fun LiveAnalyzerSettingsPanel(
                                 .onSuccess {
                                     val pending = AnalyzerLegacySetupMigration.pendingSlots(context)
                                     val suffix = if (pending.isEmpty()) "" else " · Altdatei(en) Slot ${pending.joinToString()} behalten; aktuelle Kopien als CURRENT_v2. Details in Diagnose."
-                                    message="$it Setup-Datei(en) unter Download/LFN-Scout/Setups/ exportiert$suffix"
+                                    message="$it Setup-Datei(en) unter ${PublicDataDirectory.relativePath}Setups/ exportiert$suffix"
                                 }
                                 .onFailure { message="Export fehlgeschlagen: ${it.javaClass.simpleName}: ${it.message ?: "ohne Details"}" }
                         }

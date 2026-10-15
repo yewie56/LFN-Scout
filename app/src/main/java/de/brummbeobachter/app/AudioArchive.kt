@@ -55,11 +55,11 @@ data class AudioArchiveEntry(
 
 object AudioArchive {
 
-    const val PUBLIC_RELATIVE_PATH =
-        AudioArchiveCompatibilityPolicy.CURRENT_RELATIVE_PATH
+    val PUBLIC_RELATIVE_PATH =
+        PublicDataDirectory.relativePath
 
-    const val PUBLIC_DISPLAY_PATH =
-        "Download/LFN-Scout/"
+    val PUBLIC_DISPLAY_PATH =
+        PublicDataDirectory.relativePath
 
     private const val METADATA_DIRECTORY_NAME =
         "audio_archive_meta"
@@ -93,7 +93,7 @@ object AudioArchive {
                     .getExternalStoragePublicDirectory(
                         Environment.DIRECTORY_DOWNLOADS
                     ),
-                "LFN-Scout"
+                PublicDataDirectory.folder
             ).absolutePath
         }
     }
@@ -312,7 +312,7 @@ object AudioArchive {
         }
 
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
-            for (directoryName in listOf("LFN-Scout", "BrummBeobachter")) {
+            for (directoryName in if (PublicDataDirectory.isTest) listOf(PublicDataDirectory.folder) else listOf("LFN-Scout", "BrummBeobachter")) {
                 val file = File(
                     Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
                     "$directoryName/${entry.wavFileName}"
@@ -610,7 +610,7 @@ object AudioArchive {
                 throw e
             }
         }
-        val directory = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "LFN-Scout").apply { mkdirs() }
+        val directory = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), PublicDataDirectory.folder).apply { mkdirs() }
         val destination = File(directory, targetDisplayName)
         sourceFile.copyTo(destination, overwrite = true)
         return PublishedWav(destination.name, null, destination.absolutePath)
@@ -918,7 +918,7 @@ object AudioArchive {
                             Environment
                                 .DIRECTORY_DOWNLOADS
                         ),
-                    "LFN-Scout"
+                    PublicDataDirectory.folder
                 ).apply {
                     mkdirs()
                 }
@@ -1006,7 +1006,7 @@ object AudioArchive {
         }
 
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
-            for (directoryName in listOf("LFN-Scout", "BrummBeobachter")) {
+            for (directoryName in if (PublicDataDirectory.isTest) listOf(PublicDataDirectory.folder) else listOf("LFN-Scout", "BrummBeobachter")) {
                 val file = File(
                     Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
                     "$directoryName/${entry.wavFileName}"
