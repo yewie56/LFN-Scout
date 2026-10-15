@@ -81,6 +81,8 @@ internal object LiveAnalyzerController {
     )
 
     private val lock = Any()
+    /** Shared in-process controller lock; does not substitute for the service lifecycle gate. */
+    internal val setupTransitionLock: Any get() = lock
     private val writer = Executors.newSingleThreadExecutor { r -> Thread(r, "LFN-Analyzer-Image").apply { isDaemon = true } }
     private val writing = AtomicBoolean(false)
     private var session: AnalyzerRawLfSession? = null
@@ -1284,6 +1286,108 @@ internal object LiveAnalyzerController {
                 (filterAutoRangeDurationSec*1_000_000_000.0)).toFloat().coerceIn(0f,1f),
             filterAutoRangeDurationSec,filterAutoRangeMarginDb,
             directTimeSmoothing)
+    }
+
+    /** AP31: strict STOP-only, preference-free application of a complete legacy
+     * snapshot. The *whole* JSON is validated before touching controller fields.
+     * No automatic mode switch, no AudioRecord start, no legacy slot write.
+     * The caller must coordinate service/recorder lifetime separately.
+     */
+    internal fun applyStoppedJsonDraft(draft: org.json.JSONObject, rollbackOnFailure: Boolean = true) = synchronized(lock) {
+        check(!running && session == null) { "Analyzer muss vollständig STOP sein" }
+        val before = AnalyzerRuntimeSetupSnapshot.capture(snapshotLocked())
+        AnalyzerSetupFormat.validate(org.json.JSONObject().put("legacy", draft))
+        val expectedKeys = AnalyzerSetupExactComparison.keys(before)
+        require(AnalyzerSetupExactComparison.keys(draft) == expectedKeys) {
+            "JSON nicht vollständig oder enthält nicht abbildbare Parameter"
+        }
+        require(draft.keys().asSequence().none { draft.isNull(it) }) { "JSON enthält null-Werte" }
+        // Validate all value dependencies up-front. No setter is permitted to write preferences.
+        val min = draft.getInt("min_frequency")
+        val max = draft.getInt("range")
+        val factor = draft.getInt("decimation_factor")
+        val rate = draft.getInt("direct_sample_rate")
+        require(if (direct48k) AnalyzerTiming.validWidebandRange(min, max) &&
+            max <= rate / 2 else AnalyzerTiming.validRange(min, max))
+        require(if (direct48k) DirectAnalyzerConfig.valid(rate, factor)
+            else factor in AnalyzerTiming.allowedDecimationFactors)
+        if (direct48k) require(rate in DirectAnalyzerConfig.inputRates)
+        val size = draft.getInt("fft_size")
+        require(size in if (direct48k) DirectAnalyzerConfig.fftSizes else AnalyzerTiming.allowedFftSizes)
+        val hop = draft.getInt("fft_hop")
+        require(hop in if (direct48k) DirectAnalyzerConfig.permissibleHops else AnalyzerTiming.allowedFftHops)
+        val interval = draft.getInt("water_interval")
+        val historySec = draft.getInt("history_seconds")
+        require(interval in AnalyzerTiming.allowedWaterfallIntervalsMs)
+        require(AnalyzerTiming.validHistory(historySec, interval))
+        val smoothSec = draft.getDouble("smoothing_time")
+        require(smoothSec.isFinite() && smoothSec in 0.01..60.0)
+        val w = AnalyzerWindow.valueOf(draft.getString("window"))
+        val wm = WaterfallMode.valueOf(draft.getString("water_mode"))
+        val im = AnalyzerImageFormat.valueOf(draft.getString("image_format"))
+        val fmin = draft.getDouble("filter_min_hz")
+        val fmax = draft.getDouble("filter_max_hz")
+        val fbands = draft.getInt("filter_bands")
+        if (!direct48k) FastFilterBank.Config(fmin, fmax, fbands)
+        val displayMin = draft.getInt("display_min")
+        val displayMax = draft.getInt("display_max")
+        require(isValidDisplayRange(displayMin, displayMax))
+        require(draft.getInt("jpg_quality") in 70..100)
+        require(draft.getInt("autorange_duration") in 1..30 && draft.getInt("autorange_margin") in 0..30)
+        require(draft.getInt("filter_auto_duration") in 1..30 && draft.getInt("filter_auto_margin") in 0..30)
+        require(AnalyzerTiming.validStatistics(draft.getInt("stat_min"), draft.getInt("stat_max"),
+            draft.getInt("stat_window"), draft.getDouble("stat_average")))
+        require(draft.getDouble("direct_smoothing_alpha") in 0.0..1.0)
+        require(draft.getInt("gain") in -120..120)
+        require(draft.getInt("filter_display_max") - draft.getInt("filter_display_min") >= 10)
+        require(draft.getInt("direct_peak_markers") in 0..2)
+        // Commit is in-memory only; for an unexpected failure restore the prior snapshot.
+        try {
+        minFrequencyHz = min; range = max; decimationFactor = factor
+        fftSize = size; fftHopSamples = hop; windowType = w
+        smoothingEnabled = draft.getBoolean("smoothing_enabled"); smoothingTimeSeconds = smoothSec
+        showCurrent = draft.getBoolean("current"); showAverage = draft.getBoolean("average")
+        showFloor = draft.getBoolean("floor"); showMaxHold = draft.getBoolean("max_hold")
+        analyzerGainDb = draft.getInt("gain")
+        displayMinDb = displayMin; displayMaxDb = displayMax
+        historySeconds = historySec; waterfallIntervalMs = interval; waterfallMode = wm
+        statisticsMinHz = draft.getInt("stat_min"); statisticsMaxHz = draft.getInt("stat_max")
+        statisticsWindowSec = draft.getInt("stat_window")
+        statisticsAverageSec = draft.getDouble("stat_average")
+        filterMinHz = fmin; filterMaxHz = fmax; filterBandCount = fbands
+        filterDisplayMinDb = draft.getInt("filter_display_min")
+        filterDisplayMaxDb = draft.getInt("filter_display_max")
+        filterAutoRangeDurationSec = draft.getInt("filter_auto_duration")
+        filterAutoRangeMarginDb = draft.getInt("filter_auto_margin")
+        showOriginalWaterfall = draft.getBoolean("filter_show_original")
+        showFilterWaterfall = draft.getBoolean("filter_show_filter")
+        autoRangeDurationSec = draft.getInt("autorange_duration")
+        autoRangeMarginDb = draft.getInt("autorange_margin")
+        auto = draft.getBoolean("auto"); imageFormat = im
+        jpgQuality = draft.getInt("jpg_quality")
+        directInputRateHz = rate
+        directSmoothingAlpha = draft.getDouble("direct_smoothing_alpha")
+        directTimeSmoothing = draft.getBoolean("direct_time_smoothing")
+        directPeakMarkers = draft.getInt("direct_peak_markers")
+        directSubtractDc = draft.getBoolean("direct_subtract_dc")
+        directStayAwake = draft.getBoolean("direct_stay_awake")
+        history.clear(); historyEpochMillis.clear(); filterHistory.clear(); pendingFilter = null
+        clearStatistics(); current = null; floor = doubleArrayOf()
+        autoRange = null; filterAutoRange = null
+        waterfallAccumulator.clear(); waterfallPhaseSamples = 0
+        waterfallRevision++
+        val actual = AnalyzerRuntimeSetupSnapshot.capture(snapshotLocked())
+        check(AnalyzerSetupExactComparison.sameComplete(draft, actual)) {
+            "Controllerwerte nach JSON-Übernahme nicht identisch"
+        }
+        } catch (failure: Throwable) {
+            // This method is reentrant under the same monitor. Restore the fully validated
+            // previous draft, and propagate the error to the transaction coordinator.
+            if (rollbackOnFailure) try { applyStoppedJsonDraft(before, false) } catch (restore: Throwable) {
+                failure.addSuppressed(restore)
+            }
+            throw failure
+        }
     }
 
     fun snapshot(): Snapshot = synchronized(lock) {

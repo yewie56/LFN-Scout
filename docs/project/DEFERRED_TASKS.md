@@ -1,3 +1,8 @@
+
+## AP31 noch offen (15.10.2026)
+- Vollständige transaktionale Analyzer-Setup-Aktivierung mit STOP-/Audio-/FFT-Gates, Rollback und Verifikation; ältere Slots nicht überschreiben.
+- Vollständiges JSON-Snapshot für bislang fehlende Parameter und tatsächlich nutzbare MRU-Schnellschalter auf der Hauptseite.
+- GitHub-Unit-Build und Geräteprüfung für 0.5.61 erforderlich.
 # Phase 3O – AP30: Kotlin-Testkompilierung korrigiert (15.10.2026)
 
 - Ausgangslage: AP29 GitHub-TEST ROT (`38665752366`): `SeismicPlotInteractionContractTest.kt:62:49 Unresolved reference 'folder'` bei `:app:compileDebugUnitTestKotlin`. Die Test-Assertion enthielt eine nicht escapte Kotlin-Stringinterpolation `$folder`.

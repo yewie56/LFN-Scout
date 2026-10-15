@@ -953,7 +953,7 @@ internal fun LiveAnalyzerSettingsPanel(
                     SettingNote("Mikrofonprofile, Frequenzgangkorrektur und absolute Referenzkalibrierung sind geplant, im Live-Analyzer aber noch nicht implementiert.")
                 }
                 "Setups" -> {
-                    SettingNote("Setup-Facelift AP25: Oben bleibt die bewährte lokale Platzverwaltung aktiv. Die JSON-Liste ist derzeit nur zur Ansicht; Aktivieren/Importieren noch nicht freigegeben.")
+                    SettingNote("JSON-Setups können angelegt, importiert, exportiert, umbenannt und mit Backup gelöscht werden. Vollständiges Analyzer-Laden bleibt aus Sicherheitsgründen gesperrt; oben gelten weiterhin die alten Slots.")
                     AnalyzerJsonSetupBrowser(context)
                     Spacer(Modifier.height(12.dp))
                     SettingNote("Oben: lokalen Platz 1–3 wählen. Name und Beschreibung gehören zum Platz und werden beim Speichern übernommen.")

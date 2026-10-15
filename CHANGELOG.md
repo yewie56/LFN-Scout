@@ -1,3 +1,16 @@
+## 15.10.2026 – AP31 STOP-JSON-Adapter (Entwicklungsstand)
+
+Controllerseitige STOP-JSON-Entwurfsübernahme, strikte Vollständigkeits- und Werteprüfung, Rücknahme und Port-Anbindung ergänzt. Noch **kein** dauerhaftes Laden mit START/MON; keine freigegebene TEST-Version. Siehe `docs/project/CURRENT_STATE.md`.
+
+# Phase 3O – AP31 (ENTWICKLUNGSSTAND, KEIN FREIGEGEBENES RELEASE) – 15.10.2026
+
+- Grundlage: AP30 v0.5.60/218. Geänderter Gradle-Quellkandidat 0.5.61/219.
+- AnalyzerJsonSetupBrowser: echtes Erstellen einer versionierten JSON-Datei aus der aktuellen Controller-Momentaufnahme plus MON, SAF-Dokumentauswahl für Import/Export, Umbenennen, Löschen mit internem Backup. Import vergibt bewusst neue UUID und überschreibt keine Setups; Dateigröße begrenzt auf 2 MiB. Alte 1–4-Slots bleiben unverändert.
+- Nicht erledigt: Transaktionales Anwenden der gesamten Analyzer-/Audio-/FFT-Parameter auf den laufenden Controller, Ersetzung der Slot-Steuerung, vollständige Parametererfassung inklusive geräteabhängiger Quellen und abgesicherte Rücknahme. `Plan.executable=false` bleibt absichtlich; kein Scheinerfolg.
+- Validierung: Quelltext-/Paket-Struktur geprüft; Android-Gradle-Build und Hardwaretest NICHT ausgeführt. Nicht als lauffähige TEST-APK bezeichnen. Vor Hardwareeinsatz GitHub-Unit-Tests und vollständigen APK-Build erforderlich.
+
+---
+
 # Phase 3O – AP30: Kotlin-Testkompilierung korrigiert (15.10.2026)
 
 - Ausgangslage: AP29 GitHub-TEST ROT (`38665752366`): `SeismicPlotInteractionContractTest.kt:62:49 Unresolved reference 'folder'` bei `:app:compileDebugUnitTestKotlin`. Die Test-Assertion enthielt eine nicht escapte Kotlin-Stringinterpolation `$folder`.
@@ -2128,3 +2141,9 @@ Kein PASS für Android-Build, Emulator oder Xiaomi ohne tatsächlichen Lauf. 16:
 - Startdialog für Mikrofon- und GPS-/Standortfreigabe bei fehlenden Android-Laufzeitrechten, mit Auswahl „Später“.
 - Keine Änderung an bestehender Audioverarbeitung oder Standortermittlung.
 - TEST/REGULAR Gradle-Version angehoben auf 0.5.57 / 215; REGULAR nicht gebaut oder installiert.
+
+
+### AP31 – kombinierte STOP-Entwürfe (Entwicklungsstand)
+- Analyzer und MON lassen sich gemeinsam als nicht persistenter JSON-STOP-Entwurf anwenden.
+- Bei MON-Fehler werden beide Parametergruppen zurückgesetzt und verglichen.
+- Produktive dauerhafte JSON-Aktivierung bleibt ausdrücklich offen.

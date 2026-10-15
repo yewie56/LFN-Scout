@@ -25,7 +25,11 @@ internal object AnalyzerSetupSwitchTransaction {
         /** Only when STOPPED; must not write preferences or JSON. */
         fun applyStoppedDraft(saved: JSONObject)
         fun restoreStopped(checkpoint: Any)
+        /** Must independently verify ALL checkpoint fields; default fails closed. */
+        fun verifyRestored(checkpoint: Any): Boolean = false
         fun verifyApplied(saved: JSONObject): Boolean
+        /** Only a verified implementation may opt in; legacy UI ports remain deny-only. */
+        val supportsAtomicStoppedApply: Boolean get() = false
     }
     sealed class Outcome {
         data class Rejected(val reason: String): Outcome()
@@ -35,7 +39,7 @@ internal object AnalyzerSetupSwitchTransaction {
     }
 
     /** A restricted stopped-only transaction. Deliberately does NOT stop or restart audio.
-     * Adapter installation is prohibited until a verified preference-free controller API exists.
+     * Only verified preference-free adapters with complete rollback may opt in.
      */
     fun execute(plan: AnalyzerSetupSwitchPlan.Plan, port: Port): Outcome = synchronized(port.transitionLock) {
         // Deny-only combined gate; no authorization even when blockers are absent.
@@ -62,9 +66,9 @@ internal object AnalyzerSetupSwitchTransaction {
             catch (t: Exception) { return@synchronized Outcome.Rejected("Validierung: ${t.message}") }
         if (current.missingOrNull.isNotEmpty() || current.unsupported.isNotEmpty())
             return@synchronized Outcome.Rejected("Unvollständige oder nicht unterstützte Parameter")
-        // Phase 3O does not authorize changing even one stop-required value until all
-        // audio/FFT setter side effects and rollback paths have been reviewed.
-        if (current.stopRequired.isNotEmpty())
+        // No production controller port opts in until it can prove a complete,
+        // preference-free STOP apply and restore under the same hardware lock.
+        if (current.stopRequired.isNotEmpty() && !port.supportsAtomicStoppedApply)
             return@synchronized Outcome.Rejected("Audio-/FFT-Übernahme noch nicht freigegeben")
         // Only an exact, full keyset equality can be reported as a no-op.
         // A partial saved preset must not be interpreted as complete activation.
@@ -72,8 +76,35 @@ internal object AnalyzerSetupSwitchTransaction {
             return@synchronized if (AnalyzerSetupExactComparison.sameComplete(saved, live))
                 Outcome.Unchanged else Outcome.Rejected("Laufzeitstatus nicht vollständig vergleichbar")
         }
-        // Display preview has a separate existing implementation, so this executor never
-        // duplicates it or modifies the legacy controller behind its session management.
-        Outcome.Rejected("Anzeigeänderungen ausschließlich über bestehenden Vorschaupfad")
+        if (!port.supportsAtomicStoppedApply)
+            return@synchronized Outcome.Rejected("Kein überprüfter atomarer STOP-Adapter vorhanden")
+        applyWithRollback(port, saved) {
+            val now = port.status()
+            now == state && AnalyzerSetupSwitchPlan.stillCurrent(
+                plan, port.saved(), port.live(), now.running,
+                now.scoutRecording || now.monRecording, now.monEnabled, now.displayPreviewActive)
+        }
+
+    }
+    /** Pure rollback mechanism, testable using a fake Port without Android services.
+     * Production callers MUST hold their exclusive controller/hardware transition lock
+     * and pass a recheck that covers the entire stopped state.
+     */
+    internal fun applyWithRollback(port: Port, saved: JSONObject, recheck: () -> Boolean): Outcome {
+        val before = try { port.checkpoint() } catch (t: Exception) {
+            return Outcome.Rejected("Checkpoint fehlgeschlagen: ${t.message}")
+        }
+        try {
+            if (!recheck()) return Outcome.Rejected("Setup/Analyzer während Checkpoint verändert")
+            port.applyStoppedDraft(saved)
+            check(port.verifyApplied(saved)) { "Angewendete Werte weichen vom JSON ab" }
+            return Outcome.Applied
+        } catch (failure: Throwable) {
+            val restored = try {
+                port.restoreStopped(before)
+                port.verifyRestored(before)
+            } catch (_: Throwable) { false }
+            return Outcome.Failed(failure.message ?: failure.javaClass.simpleName, restored)
+        }
     }
 }

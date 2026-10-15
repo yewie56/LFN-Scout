@@ -18,6 +18,14 @@ internal object AnalyzerSetupSwitchPreflight {
         "filter_max_hz", "filter_bands", "history_seconds", "water_interval"
     )
 
+    private val stoppedDraftFields = setOf(
+        "smoothing_enabled", "smoothing_time", "gain", "stat_min", "stat_max",
+        "stat_window", "stat_average", "filter_show_original", "filter_show_filter",
+        "auto", "image_format", "jpg_quality", "direct_smoothing_alpha",
+        "direct_time_smoothing", "direct_peak_markers", "direct_subtract_dc", "direct_stay_awake",
+        "water_mode"
+    )
+
     data class Report(
         val displayPreviewable: List<String>,
         val stopRequired: List<String>,
@@ -54,7 +62,7 @@ internal object AnalyzerSetupSwitchPreflight {
             changed += key
             when (key) {
                 in displayOnly -> display += key
-                in requiresStop -> stopped += key
+                in requiresStop || key in stoppedDraftFields -> stopped += key
                 else -> unsupported += key
             }
         }
