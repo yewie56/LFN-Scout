@@ -1,3 +1,14 @@
+# v0.5.63 / versionCode 221 – Kotlin FFT-Hop-Typprüfung repariert (15.10.2026)
+
+- Ausgangspunkt: vollständiges v0.5.62-Projekt-ZIP. Ausgewerteter GitHub TEST-Run 38749515984 (15.10.2026): `:app:compileDebugKotlin` scheitert ausschließlich an `LiveAnalyzerController.kt:1318`.
+- Ursache: `(if (direct48k) Set<Int> else IntArray)` liefert keinen einheitlichen Receiver für die Kotlin-Operation `hop in ...`.
+- Korrektur: bedingten Ausdruck in zwei getrennte Membership-Prüfungen aufgeteilt; die Validierungslogik für beide Betriebsarten ist unverändert.
+- Versionswechsel `0.5.62/220` → `0.5.63/221`. Kein Python- oder Buildfix-Schritt in Termux erforderlich; vollständiges Projekt-ZIP.
+- Nachweis: Ausgangsfehler im Quellcode kontrolliert, Änderung und ZIP-Integrität geprüft. Android-Gradle-/GitHub-Build und APK-Erstellung hier nicht durchgeführt; erneuter TEST-Build erforderlich.
+- Bestehende Setups, Speicherpfade, TEST-/REGULAR-Trennung, Supabase und Buildverfahren unverändert.
+
+---
+
 # v0.5.62 / versionCode 220 – Kotlin-Kompilierungsfehler AP31 korrigiert (15.10.2026)
 
 - Grundlage: vollständig hochgeladenes v0.5.61-Paket, Phase 3O AP31. GitHub-TEST-Fehlerlog Run 38746929506 ausgewertet.

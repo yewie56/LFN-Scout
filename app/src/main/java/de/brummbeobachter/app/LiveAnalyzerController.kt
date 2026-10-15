@@ -1315,7 +1315,7 @@ internal object LiveAnalyzerController {
         val size = draft.getInt("fft_size")
         require(size in (if (direct48k) DirectAnalyzerConfig.fftSizes else AnalyzerTiming.allowedFftSizes))
         val hop = draft.getInt("fft_hop")
-        require(hop in (if (direct48k) DirectAnalyzerConfig.permissibleHops else AnalyzerTiming.allowedFftHops))
+        require(if (direct48k) hop in DirectAnalyzerConfig.permissibleHops else hop in AnalyzerTiming.allowedFftHops)
         val interval = draft.getInt("water_interval")
         val historySec = draft.getInt("history_seconds")
         require(interval in AnalyzerTiming.allowedWaterfallIntervalsMs)

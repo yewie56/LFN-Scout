@@ -1,3 +1,9 @@
+## 0.5.63 – 15.10.2026
+
+- Behebt den im GitHub-TEST-Run 38749515984 verbliebenen Kotlin-Kompilierungsfehler in `LiveAnalyzerController.kt:1318`: getrennte `in`-Prüfungen für `Set<Int>` (Direct-Mode) und `IntArray` (Legacy-Mode).
+- `versionName` 0.5.63, `versionCode` 221. Vollständiger Projektstand ohne zusätzliche Termux-Abhängigkeiten.
+- ZIP-/Quelltextprüfung erfolgreich; erneuter GitHub-Build noch ausstehend.
+
 # v0.5.62 / versionCode 220 – Kotlin-Kompilierungsfehler AP31 korrigiert (15.10.2026)
 
 - Grundlage: vollständig hochgeladenes v0.5.61-Paket, Phase 3O AP31. GitHub-TEST-Fehlerlog Run 38746929506 ausgewertet.
