@@ -1,3 +1,14 @@
+# v0.5.62 / versionCode 220 – Kotlin-Kompilierungsfehler AP31 korrigiert (15.10.2026)
+
+- Grundlage: vollständig hochgeladenes v0.5.61-Paket, Phase 3O AP31. GitHub-TEST-Fehlerlog Run 38746929506 ausgewertet.
+- `AnalyzerSetupSwitchPreflight.kt`: `when`-Bedingung für `requiresStop` und `stoppedDraftFields` in gültige Kotlin-Mehrfachbedingung umgestellt.
+- `LiveAnalyzerController.kt`: expliziter `Unit`-Rückgabetyp für rekursive STOP-JSON-Rollback-Funktion; bedingte `in`-Prüfungen auf FFT-Größe (zwei Stellen) und Hop (eine Stelle) geklammert.
+- Versionswechsel `0.5.61/219` → `0.5.62/220`; TEST- und REGULAR-Paketkennungen, Signier- und Buildverfahren bleiben unverändert.
+- Prüfung: Vollständige ZIP-Struktur und alle gezielten Quelltextkorrekturen lokal verifiziert. Ein Android-Gradle-Build und eine APK wurden **nicht** durchgeführt/erzeugt. GitHub-TEST und Hardwaretest offen.
+- Kein Setup-Facelift-Funktionsausbau; produktive vollständige Setup-Aktivierung weiterhin nicht freigegeben (`Plan.executable=false`).
+
+---
+
 ## 15.10.2026 – AP31 STOP-JSON-Adapter (Entwicklungsstand)
 
 Controllerseitige STOP-JSON-Entwurfsübernahme, strikte Vollständigkeits- und Werteprüfung, Rücknahme und Port-Anbindung ergänzt. Noch **kein** dauerhaftes Laden mit START/MON; keine freigegebene TEST-Version. Siehe `docs/project/CURRENT_STATE.md`.

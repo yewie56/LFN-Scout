@@ -1040,7 +1040,7 @@ internal object LiveAnalyzerController {
     }
 
     fun setDsp(context: Context, size: Int, window: AnalyzerWindow, enabled: Boolean, timeSeconds: Double, persist: Boolean = true) {
-        require(size in if (direct48k) DirectAnalyzerConfig.fftSizes else AnalyzerTiming.allowedFftSizes)
+        require(size in (if (direct48k) DirectAnalyzerConfig.fftSizes else AnalyzerTiming.allowedFftSizes))
         require(timeSeconds.isFinite() && timeSeconds in 0.01..60.0)
         synchronized(lock) {
             // Draft-only route is restricted to STOP. Preserve legacy live edits when persist=true.
@@ -1293,7 +1293,7 @@ internal object LiveAnalyzerController {
      * No automatic mode switch, no AudioRecord start, no legacy slot write.
      * The caller must coordinate service/recorder lifetime separately.
      */
-    internal fun applyStoppedJsonDraft(draft: org.json.JSONObject, rollbackOnFailure: Boolean = true) = synchronized(lock) {
+    internal fun applyStoppedJsonDraft(draft: org.json.JSONObject, rollbackOnFailure: Boolean = true): Unit = synchronized(lock) {
         check(!running && session == null) { "Analyzer muss vollständig STOP sein" }
         val before = AnalyzerRuntimeSetupSnapshot.capture(snapshotLocked())
         AnalyzerSetupFormat.validate(org.json.JSONObject().put("legacy", draft))
@@ -1313,9 +1313,9 @@ internal object LiveAnalyzerController {
             else factor in AnalyzerTiming.allowedDecimationFactors)
         if (direct48k) require(rate in DirectAnalyzerConfig.inputRates)
         val size = draft.getInt("fft_size")
-        require(size in if (direct48k) DirectAnalyzerConfig.fftSizes else AnalyzerTiming.allowedFftSizes)
+        require(size in (if (direct48k) DirectAnalyzerConfig.fftSizes else AnalyzerTiming.allowedFftSizes))
         val hop = draft.getInt("fft_hop")
-        require(hop in if (direct48k) DirectAnalyzerConfig.permissibleHops else AnalyzerTiming.allowedFftHops)
+        require(hop in (if (direct48k) DirectAnalyzerConfig.permissibleHops else AnalyzerTiming.allowedFftHops))
         val interval = draft.getInt("water_interval")
         val historySec = draft.getInt("history_seconds")
         require(interval in AnalyzerTiming.allowedWaterfallIntervalsMs)

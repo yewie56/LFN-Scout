@@ -62,7 +62,7 @@ internal object AnalyzerSetupSwitchPreflight {
             changed += key
             when (key) {
                 in displayOnly -> display += key
-                in requiresStop || key in stoppedDraftFields -> stopped += key
+                in requiresStop, in stoppedDraftFields -> stopped += key
                 else -> unsupported += key
             }
         }
