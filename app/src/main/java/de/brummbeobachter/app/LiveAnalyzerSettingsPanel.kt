@@ -266,7 +266,15 @@ internal fun LiveAnalyzerSettingsPanel(
     // Active setup selector is always located above category content.
     Column(Modifier.fillMaxWidth().border(1.dp,stroke,RoundedCornerShape(10.dp))
         .background(surface,RoundedCornerShape(10.dp)).padding(10.dp)) {
-        Text("Aktives Setup",fontSize=15.sp,fontWeight=FontWeight.Bold,color=amber)
+        Text("Analyzer · Setup-Verwaltung",fontSize=17.sp,fontWeight=FontWeight.Bold,color=amber)
+        Text("Bestehende Setup-Plätze · keine automatische Überschreibung",fontSize=11.sp,color=muted)
+        val slotSaved = prefs.contains("setup_${slot}_range")
+        val slotLabel = prefs.getString("setup_${slot}_name", "")?.trim().orEmpty()
+        Text("Ausgewählt: Platz $slot · " +
+            (if (slotSaved) (slotLabel.ifBlank { "Ohne Namen" }) else "Noch nicht gespeichert"),
+            fontSize=13.sp,color=white)
+        Text("Auswählen ändert nur den Platz; Laden übernimmt Werte, Speichern überschreibt den gewählten Platz.",
+            fontSize=11.sp,color=muted)
         Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically,
             horizontalArrangement=Arrangement.spacedBy(6.dp)) {
             Text("Setup:",fontSize=12.sp,color=white)
@@ -289,11 +297,17 @@ internal fun LiveAnalyzerSettingsPanel(
                 else {slot=free;prefs.edit().putInt("last_setup_slot",slot).apply();message="Leerer Platz $slot gewählt – Speichern zum Anlegen"}
             },modifier=Modifier.weight(1f)) { Text("+ Neu",fontSize=11.sp,color=white) }
         }
+        if (selected != "Setups") {
+            OutlinedButton(onClick={ onSelect("Setups"); onNavigate() },modifier=Modifier.fillMaxWidth()) {
+                Text("Setup-Namen, Beschreibung und JSON-Übersicht öffnen ›",color=white,fontSize=12.sp)
+            }
+        }
         if(message.isNotBlank())Text(message,color=cyan,fontSize=11.sp)
     }
     Spacer(Modifier.height(9.dp))
     if(selected == null) {
         listOf(
+            Triple("Setups","Plätze, Namen, Export und JSON-Übersicht","▤"),
             Triple("Spektrum","Frequenzbereich, FFT, Kurven","⌁"),
             Triple("Audio","Eingang, Quelle, Gain","♩"),
             Triple("Anzeige","dBFS, Wasserfall, Farben","▣"),
@@ -301,7 +315,6 @@ internal fun LiveAnalyzerSettingsPanel(
             Triple("Filterbank","FAST-Bänder, Frequenzgrenzen","▥"),
             Triple("Automatiken","Autorange, PNG","⚙"),
             Triple("Kalibrierung","Profile, Referenz","◎"),
-            Triple("Setups","Laden, Speichern, Import","▤"),
             Triple("Diagnose","Rohpegel, Fehler, Tempo","⌕")
         ).forEach { (name,subtitle,symbol) ->
             Row(Modifier.fillMaxWidth().padding(bottom=6.dp)
@@ -940,6 +953,7 @@ internal fun LiveAnalyzerSettingsPanel(
                     SettingNote("Mikrofonprofile, Frequenzgangkorrektur und absolute Referenzkalibrierung sind geplant, im Live-Analyzer aber noch nicht implementiert.")
                 }
                 "Setups" -> {
+                    SettingNote("Setup-Facelift AP25: Oben bleibt die bewährte lokale Platzverwaltung aktiv. Die JSON-Liste ist derzeit nur zur Ansicht; Aktivieren/Importieren noch nicht freigegeben.")
                     AnalyzerJsonSetupBrowser(context)
                     Spacer(Modifier.height(12.dp))
                     SettingNote("Oben: lokalen Platz 1–3 wählen. Name und Beschreibung gehören zum Platz und werden beim Speichern übernommen.")

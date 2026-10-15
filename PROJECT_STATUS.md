@@ -1,3 +1,7 @@
+## Phase 3O/AP25 – sichtbares Analyzer-Setup-Facelift (15.10.2026)
+
+Quellkandidat auf AP24: Setup-Verwaltung mit Namen/Platz/Status und direktem Einstieg sichtbar priorisiert. Keine Änderung der persistenten Setup-Logik oder Audioverarbeitung. GitHub-Build und Geräteprüfung für AP25 offen; AP24 war laut Benutzer grün.
+
 # Phase 3O – Arbeitspaket 24 (Quellkandidat)
 
 **Stand:** 15.10.2026; Entwicklungsziel `0.5.56`, Gradle `0.5.55 / 213` unverändert.

@@ -1,3 +1,9 @@
+## Phase 3O/AP25 – Setup-Facelift (Source Candidate, 15.10.2026)
+
+- Analyzer: Setup-Verwaltung sichtbar hervorgehoben; ausgewählter Platz, Speicherstatus und Setup-Name; direkter Einstieg und Setup-Kategorie zuerst.
+- Nur UI/Text, keine Änderungen an Audio/FFT/WAV/Persistenz/Cloud/Workflow/Termux. Gradle-Version unverändert.
+- Android-Build und neuer Hardwaretest stehen aus.
+
 # Phase 3O – Arbeitspaket 24 (Quellkandidat)
 
 **Stand:** 15.10.2026; Entwicklungsziel `0.5.56`, Gradle `0.5.55 / 213` unverändert.

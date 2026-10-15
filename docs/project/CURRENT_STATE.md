@@ -1,3 +1,15 @@
+# Phase 3O – AP25 Setup-Facelift (Quellkandidat, 15.10.2026)
+
+**Basis:** Vollständiges AP24-Übergabe-ZIP. AP24 GitHub-/Termux-TEST vom Benutzer GRÜN bestätigt. Nach manueller Freigabe des Mikrofons meldet der Benutzer einen fehlerfreien Android-Gerätetest für die bestehenden Funktionen. Das ist kein Test von AP25.
+
+**Sichtbare Änderung AP25:** Analyzer-Einstellseite zeigt eine eindeutige Setup-Verwaltung mit ausgewähltem Platz, Speicherstatus, Namen, Warnung vor Überschreiben und direkter Schaltfläche zur Setup-Kategorie. Die Setup-Kategorie steht an erster Stelle. JSON wird ausdrücklich als noch nicht aktivierbare Übersicht bezeichnet. Existierende Laden-/Speichern-Mechanik, drei Slots, Direct-Slot 4 und alle Audiofunktionen bleiben unverändert.
+
+**Nicht erledigt:** Beliebige JSON-Setups, MRU, SAF, Scout-Panels, vollständiger Audio-Controller-/Rollback-Executor. `AnalyzerSetupSwitchPlan.Plan.executable=false` bleibt. Gradle `0.5.55 / 213` unverändert, TEST-Paketkennung getrennt. Keine Änderungen an Workflow, Termux, Signierung, Supabase oder produktiver Installation. Historisches Supabase-Storage-Backup bleibt in GitHub und fehlt im Projekt-ZIP.
+
+**Tests AP25:** Quell-/Paketprüfung lokal; Android-Gradle-Build, GitHub-/Termux-Test und Android-Hardwaretest OFFEN. Als Source Candidate behandeln, nicht als erfolgreiche APK ausgeben.
+
+---
+
 # ÜBERGABE 15.10.2026 – Arbeitspaket 24 / TEST-APK-Hardwarebefund
 
 **GitHub-/Termux-TEST AP24: GRÜN (Benutzer bestätigt). Hardwaretest: begonnen, noch NICHT grün.** Die separat installierte TEST-APK zeigt laut Benutzer „Mikrofonberechtigung fehlt“; Ursache offen. `RECORD_AUDIO` ist im Quell-Manifest enthalten, TEST-Build nutzt eigene `applicationId` mit `.githubdebug`. Nächste Aufgabe: Laufzeitberechtigungsanforderung, tatsächliches gemergtes APK-Manifest und Android-/MIUI-Berechtigungsstatus prüfen. Produktive Installation und alte Setups nicht ändern. Phase 3O auf AP24 fortsetzen, kein Rollback auf alte Version. `Plan.executable=false`. Vollständige Übergabe: `docs/project/UEBERGABE_PHASE3O_AP24_2026-10-15.md`.
