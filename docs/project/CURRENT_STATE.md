@@ -1,3 +1,19 @@
+# ÜBERGABE 15.10.2026 – Arbeitspaket 24 / TEST-APK-Hardwarebefund
+
+**GitHub-/Termux-TEST AP24: GRÜN (Benutzer bestätigt). Hardwaretest: begonnen, noch NICHT grün.** Die separat installierte TEST-APK zeigt laut Benutzer „Mikrofonberechtigung fehlt“; Ursache offen. `RECORD_AUDIO` ist im Quell-Manifest enthalten, TEST-Build nutzt eigene `applicationId` mit `.githubdebug`. Nächste Aufgabe: Laufzeitberechtigungsanforderung, tatsächliches gemergtes APK-Manifest und Android-/MIUI-Berechtigungsstatus prüfen. Produktive Installation und alte Setups nicht ändern. Phase 3O auf AP24 fortsetzen, kein Rollback auf alte Version. `Plan.executable=false`. Vollständige Übergabe: `docs/project/UEBERGABE_PHASE3O_AP24_2026-10-15.md`.
+
+---
+
+# Phase 3O – Arbeitspaket 24 (Quellkandidat)
+
+**Stand:** 15.10.2026; Entwicklungsziel `0.5.56`, Gradle `0.5.55 / 213` unverändert.
+**Letzter durch Benutzer bestätigter GitHub-TEST:** Arbeitspaket 23 **GRÜN**.
+**Änderung:** Bei einem bereits quarantänisierten Mikrofon (`MicCaptureArbiter.uncertainReleaseOwner != null`) verweigern Rolling- und Direct-Service nun auch neue Android-`onStartCommand`-Starts *vor* Foreground-Aktivierung und Capture-Job-Registrierung. Rolling führt seinen vorhandenen STOP-Cleanup aus; Direct beendet den Service. Normale Starts bleiben unverändert. Neuer statischer Regressionstest prüft die Reihenfolge.
+**Grenzen:** Keine positive Bestätigung physischer Hardwarefreigabe; keine automatische Entsperrung. Controller-Adapter, Rollback und Gerätetest weiter offen, `Plan.executable=false`.
+**Schutz:** Termux v4, Workflows, Gradle/Signierung, `.gitignore`, Supabase/Cloud unverändert; historisches Storage-Backup nur in GitHub.
+
+---
+
 # Phase 3O – Arbeitspaket 23 (Quellkandidat)
 
 **Stand:** 15.10.2026; Entwicklungsziel `0.5.56`, Gradle `0.5.55 / 213` unverändert.

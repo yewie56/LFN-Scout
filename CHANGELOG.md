@@ -1,3 +1,13 @@
+# Phase 3O – Arbeitspaket 24 (Quellkandidat)
+
+**Stand:** 15.10.2026; Entwicklungsziel `0.5.56`, Gradle `0.5.55 / 213` unverändert.
+**Letzter durch Benutzer bestätigter GitHub-TEST:** Arbeitspaket 23 **GRÜN**.
+**Änderung:** Bei einem bereits quarantänisierten Mikrofon (`MicCaptureArbiter.uncertainReleaseOwner != null`) verweigern Rolling- und Direct-Service nun auch neue Android-`onStartCommand`-Starts *vor* Foreground-Aktivierung und Capture-Job-Registrierung. Rolling führt seinen vorhandenen STOP-Cleanup aus; Direct beendet den Service. Normale Starts bleiben unverändert. Neuer statischer Regressionstest prüft die Reihenfolge.
+**Grenzen:** Keine positive Bestätigung physischer Hardwarefreigabe; keine automatische Entsperrung. Controller-Adapter, Rollback und Gerätetest weiter offen, `Plan.executable=false`.
+**Schutz:** Termux v4, Workflows, Gradle/Signierung, `.gitignore`, Supabase/Cloud unverändert; historisches Storage-Backup nur in GitHub.
+
+---
+
 ## Phase 3O – Arbeitspaket 23 (15.10.2026)
 
 - Rolling-Autorestart endet nach fehlgeschlagener AudioRecord-Freigabe mit gesperrtem Mikrofon-Token; Diagnose-Trace und Logging statt weiterer Restart-Versuche.

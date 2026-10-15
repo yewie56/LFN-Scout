@@ -43,6 +43,13 @@ class AnalyzerDirectAudioService : Service() {
             stopSelf()
             return START_NOT_STICKY
         }
+        // AP24: quarantine also guards a new Android service command, before foreground/capture.
+        if (MicCaptureArbiter.uncertainReleaseOwner != null) {
+            AnalyzerAudioTrace.write(this, "DIRECT_START_BLOCKED_UNCERTAIN_RELEASE", "owner=${MicCaptureArbiter.uncertainReleaseOwner}")
+            DebugLogger.log(applicationContext, "DIRECT_START_BLOCKED", "uncertainReleaseOwner=${MicCaptureArbiter.uncertainReleaseOwner}")
+            stopSelf()
+            return START_NOT_STICKY
+        }
         // A cancelled job is not active, but may still own AudioRecord in finally.
         if (job?.isCompleted == false) return START_NOT_STICKY
         ensureChannel(this)

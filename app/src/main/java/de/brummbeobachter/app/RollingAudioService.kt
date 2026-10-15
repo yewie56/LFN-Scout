@@ -44,6 +44,13 @@ class RollingAudioService : Service() {
             stopRolling("user_or_setting")
             return START_NOT_STICKY
         }
+        // AP24: a quarantined AudioRecord must not spawn a new capture job on a fresh service command.
+        if (MicCaptureArbiter.uncertainReleaseOwner != null) {
+            AnalyzerAudioTrace.write(this, "ROLLING_START_BLOCKED_UNCERTAIN_RELEASE", "owner=${MicCaptureArbiter.uncertainReleaseOwner}")
+            DebugLogger.log(applicationContext, "ROLLING_START_BLOCKED", "uncertainReleaseOwner=${MicCaptureArbiter.uncertainReleaseOwner}")
+            stopRolling("uncertain_release")
+            return START_NOT_STICKY
+        }
         startForeground(NOTIFICATION_ID, buildNotification("Rolling-Buffer startet …"))
         if (wakeLock?.isHeld != true) {
             wakeLock = (getSystemService(Context.POWER_SERVICE) as PowerManager)
