@@ -117,6 +117,25 @@ jobs:
             exit 1
           fi
 
+      - name: Install stable TEST debug keystore
+        if: env.BUILD_VARIANT == 'TEST'
+        shell: bash
+        env:
+          TEST_KEYSTORE_B64: ${{ secrets.LFN_TEST_KEYSTORE_BASE64 }}
+          TEST_CERT_SHA256: ${{ vars.LFN_TEST_CERT_SHA256 }}
+        run: |
+          set -euo pipefail
+          test -n "$TEST_KEYSTORE_B64" || { echo 'TEST-Keystore-Secret fehlt' >&2; exit 1; }
+          test -n "$TEST_CERT_SHA256" || { echo 'TEST-Fingerprint-Variable fehlt' >&2; exit 1; }
+          mkdir -p "$HOME/.android"
+          chmod 700 "$HOME/.android"
+          printf '%s' "$TEST_KEYSTORE_B64" | base64 --decode > "$HOME/.android/debug.keystore"
+          chmod 600 "$HOME/.android/debug.keystore"
+          ACTUAL=$(keytool -list -v -keystore "$HOME/.android/debug.keystore" -storepass android -alias androiddebugkey \
+            | sed -n 's/^[[:space:]]*SHA256:[[:space:]]*//p' | head -1 | tr -d ':' | tr '[:upper:]' '[:lower:]')
+          test "$ACTUAL" = "$TEST_CERT_SHA256" || { echo 'TEST-Zertifikat stimmt nicht' >&2; exit 1; }
+          echo "Feste TEST-Signatur aktiv: $ACTUAL"
+
       - name: Build TEST APK
         if: env.BUILD_VARIANT == 'TEST'
         run: ./gradlew assembleDebug -PlfnGithubTestApp=true --stacktrace
@@ -170,6 +189,13 @@ jobs:
             echo "Falsche REGULAR-Signatur: APK passt nicht zum Windows-Schluessel." >&2
             exit 1
           fi
+          if [ "$BUILD_VARIANT" = "TEST" ]; then
+            test -n "${{ vars.LFN_TEST_CERT_SHA256 }}" || { echo 'TEST-Zertifikat-Fingerprint fehlt' >&2; exit 1; }
+            if [ "$CERT" != "${{ vars.LFN_TEST_CERT_SHA256 }}" ]; then
+              echo 'Falsche TEST-Signatur' >&2
+              exit 1
+            fi
+          fi
           echo "Variante: $BUILD_VARIANT"
           echo "Paketname: $PACKAGE"
           echo "Signaturpruefung: OK"
@@ -178,9 +204,7 @@ jobs:
         if: always()
         shell: bash
         run: |
-          if [ "$BUILD_VARIANT" = "REGULAR" ]; then
-            rm -f "$HOME/.android/debug.keystore"
-          fi
+          rm -f "$HOME/.android/debug.keystore"
 
       - name: Rename debug APK
         shell: bash
