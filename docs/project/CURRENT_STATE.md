@@ -1,3 +1,12 @@
+# Phase 3O – AP29: Seismogramm-Exportvertrag nach TEST-Speichertrennung (15.10.2026)
+
+- Ausgangslage: AP28 GitHub-TEST ROT: `SeismicPlotInteractionContractTest.exporter_writes_full_near_plot_not_only_zoom_viewport`, 260/261 Tests bestanden. Der Vertrag erwartete den festen Legacy-Pfad `Download/LFN-Scout/`, während der reale Export seit AP28 über `PublicDataDirectory.relativePath` den passenden TEST-/REGULAR-Pfad wählt.
+- Korrektur: Nur den veralteten Unit-Test auf die zentrale Pfadbindung umgestellt; neue Regression gegen versehentliches Zusammenlegen der TEST-/REGULAR-Ausgabe. Seismogramm-Renderer, Audio, Setup-Speicher, GitHub-Workflow und Supabase bleiben unverändert.
+- Gradle `0.5.59` / `217` für installierbares TEST-Update; `Plan.executable=false` bleibt unverändert.
+- Prüfstand: lokale Struktur- und ZIP-Prüfung, GitHub-Unit-Tests, Gradle-Build und Android-Hardwaretest **OFFEN**. Keine TEST-APK vor erfolgreichem GitHub-Build.
+
+---
+
 # Phase 3O – AP28: TEST-Speichertrennung (Quellkandidat, 15.10.2026)
 
 - Nutzervorgabe: In der Android-Dateimanageransicht **Downloads/lfn-scout-test/**. Technisch wird der von Android bereitgestellte öffentliche Downloads-Ordner (`Environment.DIRECTORY_DOWNLOADS`, MediaStore `Download/`) verwendet; damit kein zusätzliches paralleles `Downloads`-Verzeichnis entsteht.

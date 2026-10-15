@@ -54,11 +54,22 @@ class SeismicPlotInteractionContractTest {
     }
 
     @Test
+    fun public_export_directory_is_variant_specific() {
+        val policy = source("app/src/main/java/de/brummbeobachter/app/PublicDataDirectory.kt")
+        val exporter = source("app/src/main/java/de/brummbeobachter/app/SeismicPlotExporter.kt")
+        assertTrue(policy.contains("BuildConfig.APPLICATION_ID.endsWith(\".githubdebug\")"))
+        assertTrue(policy.contains("if (isTest) \"lfn-scout-test\" else \"LFN-Scout\""))
+        assertTrue(policy.contains("\"Download/$folder/\""))
+        assertTrue(exporter.contains("val PUBLIC_RELATIVE_PATH = PublicDataDirectory.relativePath"))
+        assertTrue(exporter.contains("put(MediaStore.MediaColumns.RELATIVE_PATH, PUBLIC_RELATIVE_PATH)"))
+    }
+
+    @Test
     fun exporter_writes_full_near_plot_not_only_zoom_viewport() {
         val exporter = source("app/src/main/java/de/brummbeobachter/app/SeismicPlotExporter.kt")
         assertTrue(exporter.contains("renderNearPlot(snapshot)"))
         assertTrue(exporter.contains("snapshot.helicorderRows.forEachIndexed"))
-        assertTrue(exporter.contains("Download/LFN-Scout/"))
+        assertTrue(exporter.contains("PublicDataDirectory.relativePath"))
         assertTrue(exporter.contains("MASTER_WIDTH_PX"))
         assertTrue(exporter.contains("MASTER_HEIGHT_PX"))
         assertTrue(!exporter.contains("Bitmap.createScaledBitmap"))
