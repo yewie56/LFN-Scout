@@ -140,6 +140,28 @@ jobs:
         if: env.BUILD_VARIANT == 'TEST'
         run: ./gradlew assembleDebug -PlfnGithubTestApp=true --stacktrace
 
+      - name: Sign TEST APK with stable key
+        if: env.BUILD_VARIANT == 'TEST'
+        shell: bash
+        run: |
+          set -euo pipefail
+          APK="app/build/outputs/apk/debug/app-debug.apk"
+          SIGNED="app/build/outputs/apk/debug/app-debug-test-signed.apk"
+          test -f "$APK" || { echo 'TEST-APK fehlt' >&2; exit 1; }
+          test -s "$HOME/.android/debug.keystore" || { echo 'Fester TEST-Keystore fehlt' >&2; exit 1; }
+          BUILD_TOOLS=$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)
+          test -n "$BUILD_TOOLS" || { echo 'Android Build-Tools fehlen' >&2; exit 1; }
+          # Gradle-Defaultsignatur durch den festen TEST-Schluessel ersetzen.
+          "$BUILD_TOOLS/apksigner" sign \
+            --ks "$HOME/.android/debug.keystore" \
+            --ks-key-alias androiddebugkey \
+            --ks-pass pass:android \
+            --key-pass pass:android \
+            --out "$SIGNED" "$APK"
+          "$BUILD_TOOLS/apksigner" verify "$SIGNED"
+          mv -f "$SIGNED" "$APK"
+          echo 'TEST-APK mit festem Keystore signiert.'
+
       - name: Build REGULAR APK
         if: env.BUILD_VARIANT == 'REGULAR'
         run: ./gradlew assembleDebug --stacktrace
