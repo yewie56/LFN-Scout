@@ -1,3 +1,12 @@
+# Phase 3O – AP30: Kotlin-Testkompilierung korrigiert (15.10.2026)
+
+- Ausgangslage: AP29 GitHub-TEST ROT (`38665752366`): `SeismicPlotInteractionContractTest.kt:62:49 Unresolved reference 'folder'` bei `:app:compileDebugUnitTestKotlin`. Die Test-Assertion enthielt eine nicht escapte Kotlin-Stringinterpolation `$folder`.
+- Gezielter Fix: Im reinen Test-Quellcode das `$` als `\$folder` escaped, damit die Assertion weiterhin exakt den Quelltext `"Download/$folder/"` von `PublicDataDirectory` prüft. Der Produktivcode und die Pfadtrennung bleiben unverändert.
+- Versionsstand `0.5.60 / 218` für nächstes TEST-Update; `Plan.executable=false` unverändert. REGULAR wird nicht gebaut oder installiert.
+- Verifikation: Quelltext-Assertion und ZIP-Struktur statisch geprüft. Gradle-Unit-Tests, GitHub-Build und Android-Hardwaretest OFFEN.
+
+---
+
 ## AP29 – Verifikation offen
 
 GitHub-Unit-Tests und TEST-APK-Build für AP29 sowie Android-Test der öffentlichen Pfadtrennung `Downloads/lfn-scout-test/` durchführen. Produktionsdaten dürfen nicht verändert werden.
