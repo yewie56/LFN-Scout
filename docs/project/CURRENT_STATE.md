@@ -411,3 +411,11 @@ Weitere Audio-/Recorder-Ressourcen inklusive Fremd-Coroutinen und stale `inFligh
 Phase-3O-Quelltests PASS. Ältere Phase-3F-/3J-Quelltests schlagen wegen später hinzugefügter Setup-UI-/Session-Funktionen fehl (3F 3 von 12 Checks, 3J 2 von 18); diese Tests wurden nicht als PASS ausgegeben. GitHub TEST von 3O/16 GRÜN (Nutzerbestätigung); GitHub TEST von 3O/17 und 3O/18 GRÜN (Nutzerbestätigung).
 
 Historie: Phase 3O/14 führte gemeinsame Rolling-/Direct-Startschranken ein; Phase 3O/14-FIX1 korrigierte den Kotlin-Return-Fehler.
+
+## Phase 3O / AP26 – TEST-Installations-/Versionskorrektur (15.10.2026)
+
+- Nutzer meldet: AP25 TEST-APK lässt sich über bestehende TEST-Installation nicht installieren; die Versionsnummer blieb 0.5.55/213.
+- Gradle `defaultConfig` nach ausdrücklicher Beanstandung des fehlenden Hochzählens auf `versionName = "0.5.56"`, `versionCode = 214` angehoben. Diese Änderung betrifft APK-Versionierung von TEST **und** REGULAR bei einem künftigen Build; es wird keine REGULAR-APK installiert.
+- Separater TEST-Paketname (`.githubdebug`), unveränderte Workflows und Signaturwege. Keine Änderungen an Audio-, Setup- und Cloud-Implementierung gegenüber AP25.
+- Android kann auch APKs mit gleicher versionCode aktualisieren; der genaue Installationsfehler ist noch nicht diagnostiziert. Bei `INSTALL_FAILED_UPDATE_INCOMPATIBLE` Signatur prüfen und nicht blind Daten löschen/deinstallieren.
+- Quellkandidat: Android/Gradle-Test und Hardwareinstallation noch offen. AP25-Android-Prüfung ist nicht als erfolgreich zu bewerten.

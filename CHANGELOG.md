@@ -2087,3 +2087,11 @@ Kein PASS für Android-Build, Emulator oder Xiaomi ohne tatsächlichen Lauf. 16:
 - Fehlgeschlagene/ausnahmewerfende Startanforderungen geben den Marker frei; doppelte Startanforderungen desselben Service bleiben mengenbasiert erfasst.
 - Drei ergänzende JUnit-Tests und statischer Lifecycle-Test. Keine Freigabe des Setup-Executors.
 - Sicherheitsgrenze: Lebenszyklus-Freigabe ist noch kein atomarer Nachweis, dass alle Capture-Coroutinen vollständig beendet sind. Falls Android den Start nie zustellt, bleibt die Marker-Sperre konservativ bestehen.
+
+## Phase 3O / AP26 – TEST-Installations-/Versionskorrektur (15.10.2026)
+
+- Nutzer meldet: AP25 TEST-APK lässt sich über bestehende TEST-Installation nicht installieren; die Versionsnummer blieb 0.5.55/213.
+- Gradle `defaultConfig` nach ausdrücklicher Beanstandung des fehlenden Hochzählens auf `versionName = "0.5.56"`, `versionCode = 214` angehoben. Diese Änderung betrifft APK-Versionierung von TEST **und** REGULAR bei einem künftigen Build; es wird keine REGULAR-APK installiert.
+- Separater TEST-Paketname (`.githubdebug`), unveränderte Workflows und Signaturwege. Keine Änderungen an Audio-, Setup- und Cloud-Implementierung gegenüber AP25.
+- Android kann auch APKs mit gleicher versionCode aktualisieren; der genaue Installationsfehler ist noch nicht diagnostiziert. Bei `INSTALL_FAILED_UPDATE_INCOMPATIBLE` Signatur prüfen und nicht blind Daten löschen/deinstallieren.
+- Quellkandidat: Android/Gradle-Test und Hardwareinstallation noch offen. AP25-Android-Prüfung ist nicht als erfolgreich zu bewerten.

@@ -360,3 +360,7 @@ Die Kennzeichnung **R01–R07, O01–O08 und A01–A05** können wir künftig al
 - [ ] AP25 als TEST-APK auf GitHub bauen, auf Android installieren und neue Setup-Darstellung prüfen.
 - [ ] Beliebig viele JSON-Setups, MRU-3, SAF, acht Analyzer-/sieben Scout-Bereiche: **nicht** durch AP25 implementiert.
 - [ ] Separate aktive JSON-Setup-Übernahme erst nach expliziter Freigabe und Sicherheitstests.
+
+### AP26 – Installationsnachprüfung
+- [ ] GitHub-TEST und Android-Installation mit `0.5.56/214` prüfen.
+- [ ] Falls Installation scheitert: genaue Android-Paketinstallationsmeldung sammeln, insbesondere Paketkennung und Signaturkonflikt; keine produktiven Setups löschen.
