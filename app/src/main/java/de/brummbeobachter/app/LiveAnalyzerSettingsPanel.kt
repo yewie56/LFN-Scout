@@ -273,6 +273,7 @@ internal fun LiveAnalyzerSettingsPanel(
             "MESSUNG & SIGNAL" to listOf(
                 Triple("Spektrum", "Frequenzbereich · FFT · Kurven · Glättung", "⌁"),
                 Triple("Audio", "Audioquelle · Analysegain · Eingangsoptionen", "♫"),
+                Triple("MON & Audio", "Mithören · Bandpass · Dynamik · Aufnahme", "♫"),
                 Triple("Filterbank", "FAST-Filter · 10/20 Bänder · Bandgrenzen", "▥")
             ),
             "ANZEIGE & AUSWERTUNG" to listOf(
@@ -320,6 +321,10 @@ internal fun LiveAnalyzerSettingsPanel(
             Text(selected,color=amber,fontWeight=FontWeight.Bold,fontSize=17.sp)
             Spacer(Modifier.height(8.dp))
             when(selected) {
+                "MON & Audio" -> {
+                    SettingNote("MON-Parameter stehen direkt unterhalb dieses Panels. " +
+                        "Gain und Mittenfrequenz bleiben während RUN über den Wasserfall einstellbar.")
+                }
                 "Filterbank" -> {
                     if(state.direct48k) {
                         SettingNote("Nur 8 kHz · NICHT VERFÜGBAR. Die folgenden Werte sind inaktiv und werden nicht angewendet.")

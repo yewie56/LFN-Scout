@@ -1,3 +1,10 @@
+# v0.5.71 / versionCode 229 – MON-Bereich und automatische Setup-Pause (Quellkandidat)
+
+- Eigenständige MON-&-Audio-Navigationskarte; bisherige MON-Bedienelemente werden in diesem Bereich eingeblendet, die bisherigen Steueraufrufe bleiben unverändert.
+- Bei Öffnen von „Setups“ aus RUN: nur Analyzer STOP, Rolling nicht anfassen; bei Rückkehr zu den Bereichen automatisch RUN, sofern vorher RUN. Vorherige PAUSE wird wiederhergestellt, vorheriges STOP bleibt STOP.
+- Hinweis auf Statistik-Lücke während Analyzer-STOP. Parameterabhängiges STOP/RUN für weitere DSP-Parameter, Rolling-Audioquellenwechsel sowie Statistik-Abdeckungs-CSV sind noch ausdrücklich offen; siehe `docs/project/ANALYZER_SETUP_AUTO_STOP_V0571.md`.
+- 12 statische Quelltextverträge PASS. Android/Kotlin-Build konnte lokal nicht gestartet werden, da Gradle-8.13-Distribution fehlt und Netzwerkzugriff nicht verfügbar ist; Hardwaretest offen.
+
 # v0.5.70 / versionCode 228 – gruppierte, helle Analyzer-Einstellungsübersicht
 
 - Einstellungsnavigation optisch heller und in vier logische Gruppen geordnet; neun vorhandene Unterpanels bleiben samt Bedienelementen und Controller-Aufrufen vollständig erhalten.

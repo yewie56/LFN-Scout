@@ -111,8 +111,55 @@ internal fun LiveAnalyzerScreen(
     }
     var settings by remember { mutableStateOf(false) }
     var settingsSection by remember { mutableStateOf<String?>(null) }
+    // v0.5.71: STOP only the analyzer computation when entering named setups.
+    // Never invoke mode restore/begin here: both may stop or reset Rolling.
+    var resumeAfterNamedSetups by remember { mutableStateOf(false) }
+    var restorePauseAfterNamedSetups by remember { mutableStateOf(false) }
+    var setupTransitionBusy by remember { mutableStateOf(false) }
+    var setupTransitionMessage by remember { mutableStateOf("") }
+    val setupTransitionScope = rememberCoroutineScope()
+    fun selectSettingsSection(target: String?) {
+        if (setupTransitionBusy || settingsSection == target) return
+        if (target == "Setups" && settingsSection != "Setups") {
+            val previousState = LiveAnalyzerController.snapshot()
+            resumeAfterNamedSetups = previousState.running
+            restorePauseAfterNamedSetups = previousState.paused
+            setupTransitionMessage = ""
+            if (resumeAfterNamedSetups) {
+                AnalyzerModeCoordinator.stopMeasurement(context)
+                state = LiveAnalyzerController.snapshot()
+            }
+            settingsSection = target
+            return
+        }
+        val leavingNamedSetups = settingsSection == "Setups" && target != "Setups"
+        settingsSection = target
+        if (leavingNamedSetups && resumeAfterNamedSetups) {
+            resumeAfterNamedSetups = false
+            setupTransitionBusy = true
+            setupTransitionScope.launch {
+                try {
+                    val ok = AnalyzerModeCoordinator.restartMeasurement(context)
+                    if (ok && restorePauseAfterNamedSetups) LiveAnalyzerController.setPaused(true)
+                    state = LiveAnalyzerController.snapshot()
+                    if (!ok) setupTransitionMessage = "Analyzer-Neustart fehlgeschlagen: " +
+                        AnalyzerModeCoordinator.error.ifBlank { "unbekannter Fehler" }
+                } catch (ex: Exception) {
+                    setupTransitionMessage = "Analyzer-Neustart fehlgeschlagen: " +
+                        (ex.message ?: ex.javaClass.simpleName)
+                    state = LiveAnalyzerController.snapshot()
+                } finally {
+                    setupTransitionBusy = false
+                    restorePauseAfterNamedSetups = false
+                }
+            }
+        } else if (leavingNamedSetups) {
+            resumeAfterNamedSetups = false
+        }
+    }
     fun backFromSettings() {
-        if (settingsSection != null) settingsSection = null else settings = false
+        if (setupTransitionBusy) return
+        if (settingsSection != null) selectSettingsSection(null) else settings = false
     }
     BackHandler(enabled=settings) { backFromSettings() }
     val screenScroll = rememberScrollState()
@@ -522,10 +569,20 @@ internal fun LiveAnalyzerScreen(
                 Text(if (state.running && !state.paused) "● Messung aktiv" else if (state.paused) "Ⅱ Pause" else "○ Stopp",
                     color=if(state.running && !state.paused) Color(0xFF2CDAA2) else muted,fontSize=10.sp)
             }
+            if (setupTransitionMessage.isNotBlank()) {
+                Text(setupTransitionMessage, color=Color(0xFFFF6655), fontSize=12.sp)
+            }
+            if (settingsSection == "Setups") {
+                Text("Analyzer für Setupwechsel angehalten; laufendes Rolling bleibt aktiv. " +
+                    "Die Analyzer-Statistik erhält in dieser Zeit keine neuen Werte. " +
+                    "Bei Rückkehr erfolgt der Neustart nur, wenn RUN zuvor aktiv war.",
+                    color=cyan, fontSize=12.sp)
+            }
             LiveAnalyzerSettingsPanel(context,state,onRefresh={ state=LiveAnalyzerController.snapshot() },
                 onNavigate={ scrollScope.launch { screenScroll.scrollTo(0) } },
-                selected=settingsSection, onSelect={ settingsSection=it },
+                selected=settingsSection, onSelect={ selectSettingsSection(it) },
                 onOpenLocalSaveSettings={ localSettingsShown = true })
+            if (settingsSection == "MON & Audio") {
             var monitorWidth by remember { mutableStateOf(AnalyzerMonitor.bandwidthHz.toFloat()) }
             var monitorShiftHz by remember { mutableStateOf(AnalyzerMonitor.shiftHz.toFloat()) }
             Text("Mithören · steilflankiger Bandpass",color=cyan,fontSize=14.sp)
@@ -581,6 +638,7 @@ internal fun LiveAnalyzerScreen(
             Text("Mithörpegel und Mittenfrequenz: Wischen im Wasserfall, solange MON aktiv ist. " +
                 "Mithören kurz drücken = EIN/AUS; lang drücken = Frequenzverschiebung.",
                 color=muted,fontSize=11.sp)
+            }
         } else {
             Row(Modifier.fillMaxWidth().height(42.dp), verticalAlignment=Alignment.CenterVertically,
                 horizontalArrangement=Arrangement.SpaceBetween) {
