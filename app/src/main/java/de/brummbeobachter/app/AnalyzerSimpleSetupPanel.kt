@@ -40,6 +40,7 @@ internal fun AnalyzerSimpleSetupPanel(context: Context) {
     var menuOpen by remember { mutableStateOf(false) }
     var createName by remember { mutableStateOf("") }
     var notice by remember { mutableStateOf("") }
+    var runSwitchWarning by remember { mutableStateOf(false) }
     var failedSwitchId by remember { mutableStateOf<String?>(null) }
     var failedSwitchReason by remember { mutableStateOf("") }
     val ink = Color(0xFF25384C)
@@ -58,8 +59,12 @@ internal fun AnalyzerSimpleSetupPanel(context: Context) {
             return
         }
         // No implicit interruption of measurement/recording or MON.
-        if (LiveAnalyzerController.snapshot().running || AnalyzerMonitor.enabled || AnalyzerMonitorRecording.isActive()) {
-            notice = "Setupwechsel nur bei STOP und ausgeschaltetem MON möglich"
+        if (LiveAnalyzerController.snapshot().running) {
+            runSwitchWarning = true
+            return
+        }
+        if (AnalyzerMonitor.enabled || AnalyzerMonitorRecording.isActive()) {
+            notice = "Setupwechsel nur bei ausgeschaltetem MON möglich"
             return
         }
         if (!discardUnsaved && !saveCurrent()) {
@@ -84,6 +89,14 @@ internal fun AnalyzerSimpleSetupPanel(context: Context) {
                 is AnalyzerSetupSwitchTransaction.Outcome.Failed -> error("${outcome.reason} (Rücknahme: ${outcome.rollbackSucceeded})")
             }
         }.onFailure { notice = "Setup nicht übernommen: ${it.message}" }
+    }
+    if (runSwitchWarning) {
+        AlertDialog(
+            onDismissRequest = { runSwitchWarning = false },
+            title = { Text("Analyzer zuerst stoppen") },
+            text = { Text("Der Setupwechsel ist nur bei Analyzer STOP möglich. Bitte zuerst den Analyzer stoppen. Rolling kann weiterlaufen.") },
+            confirmButton = { TextButton(onClick = { runSwitchWarning = false }) { Text("OK") } }
+        )
     }
     if (failedSwitchId != null) {
         AlertDialog(

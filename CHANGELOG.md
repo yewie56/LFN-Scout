@@ -1,3 +1,10 @@
+# v0.5.69 / versionCode 227 – Setupstatus, RUN-Sperre, FFT-Warm-up (16.10.2026)
+
+- Die obere Analyzer-Setup-Anzeige verfolgt die aktive JSON-Zuordnung während einer geöffneten Analyzer-Oberfläche und aktualisiert den Namen nach erfolgreichem Wechsel.
+- Ein Setupwechsel bei Analyzer RUN öffnet vor jeder Speicherung/Aktivierung den Dialog „Analyzer zuerst stoppen“; Rolling bleibt unberührt. Vorhandene strengere MON-/Audio-Ressourcenprüfungen bleiben bestehen.
+- Während regulären FFT-Warm-ups wird die irreführende Warnung „Kein verwertbares Eingangssignal“ unterdrückt. Die vorhandene Diagnose für spätere Signalfehler bleibt erhalten.
+- Statische Regressionen: `tools/verify_v0569_setup_status.py`. Gradle-/Android-Self-Test und Hardwareprüfung sind noch offen.
+
 # v0.5.68 / versionCode 226 – MON-Anzeige nach benanntem Setupwechsel (16.10.2026)
 
 - Im Analyzer-Refresh werden MON-Center und MON-Gain jetzt aus dem aktuellen MON-Controller synchronisiert; unter aktivem Touch-Drag bleibt die lokale Bedienung vorrangig.

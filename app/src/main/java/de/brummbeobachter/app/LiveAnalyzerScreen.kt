@@ -892,7 +892,7 @@ internal fun LiveAnalyzerScreen(
                 Text("L90($statsRange): ${state.l90DbFs?.let { String.format(Locale.US,"%.1f",it) } ?: "–"}",
                     color=white,fontSize=10.sp,lineHeight=10.sp)
             }
-            if(!state.validSignal) Text("Kein verwertbares Eingangssignal · Diagnose in Einstellungen",color=Color(0xFFFFD17C),
+            if(!state.validSignal && state.running && state.spectra > 0L && !state.status.contains("FFT-Warmup", ignoreCase = true)) Text("Kein verwertbares Eingangssignal · Diagnose in Einstellungen",color=Color(0xFFFFD17C),
                 fontSize=12.sp,modifier=Modifier.align(Alignment.Center).clickable { settings=true })
         }
         // Waterfall is directly below the spectrum; tapping it toggles expanded mode.
