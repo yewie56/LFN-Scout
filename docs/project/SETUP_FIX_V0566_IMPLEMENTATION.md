@@ -18,3 +18,7 @@
 ## Prüfung
 - `python tools/verify_v0566_setup_switch.py` – nur statische Struktur-/Vertragsprüfungen.
 - Noch auszuführen: `gradlew.bat testDebugUnitTest`, `gradlew.bat assembleDebug`, integrierter Android-Self-Test, Gerätetests T01–T20 nach `SETUP_FIX_TESTPLAN.md`.
+
+## Nachtrag: Compile-Fix aus TEST-Build
+
+GitHub Actions Run `38922482903` meldete `Unresolved reference applyCombinedDraft` in `AnalyzerNamedSetupStart.kt`. `applyCombinedDraft` ist im Companion Object von `AnalyzerStoppedJsonControllerPort` deklariert; Aufruf wurde auf `AnalyzerStoppedJsonControllerPort.applyCombinedDraft(...)` berichtigt. GitHub-Neubuild und Android-Gerätetest stehen noch aus.

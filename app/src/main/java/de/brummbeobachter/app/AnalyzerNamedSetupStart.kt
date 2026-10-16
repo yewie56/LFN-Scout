@@ -19,7 +19,7 @@ internal object AnalyzerNamedSetupStart {
         val parameters = repository.load(activeId).getJSONObject("parameters")
         val legacy = parameters.getJSONObject("legacy")
         val monitor = parameters.getJSONObject("monitor")
-        val result = AnalyzerStoppedJsonControllerPort(legacy).applyCombinedDraft(legacy, monitor)
+        val result = AnalyzerStoppedJsonControllerPort.applyCombinedDraft(legacy, monitor)
         when (result) {
             AnalyzerSetupSwitchTransaction.Outcome.Applied,
             AnalyzerSetupSwitchTransaction.Outcome.Unchanged -> {

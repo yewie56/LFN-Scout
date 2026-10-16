@@ -1,3 +1,5 @@
+- Build-Korrektur nach GitHub Actions Run 38922482903: Companion-Object-Funktion `AnalyzerStoppedJsonControllerPort.applyCombinedDraft` korrekt statisch aufgerufen; vorher unerreichbarer Instanz-Aufruf verursachte `Unresolved reference`. Android-Neubuild noch ausstehend.
+
 # v0.5.66 / versionCode 224 – Analyzer-Setupwechsel bei Rolling (16.10.2026)
 
 - 8-kHz-Rolling-Aufnahme ist bei STOP kein pauschaler Sperrgrund für die Analyzer-JSON-Entwurfsübernahme mehr; die erwartete Mikrofon-Eigentümerschaft `rolling` wird ausdrücklich geprüft. Fremde Besitzer, Direct-Audio, MON-Aufnahme, aktive MON-Ausgabe und Preview bleiben gesperrt. Sicherheitsmarker für Rolling werden nur bei nachgewiesenem Rolling-Eigentümer selektiv ausgeklammert.
