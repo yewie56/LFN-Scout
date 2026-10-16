@@ -453,6 +453,7 @@ internal fun LiveAnalyzerScreen(
         )
         Column(Modifier.fillMaxSize().verticalScroll(screenScroll)
             .padding(horizontal=8.dp, vertical=5.dp)) {
+        AnalyzerSetupStatusIndicator(context)
         if (settings) {
             Row(Modifier.fillMaxWidth().height(45.dp), verticalAlignment=Alignment.CenterVertically) {
                 Text("‹", color=white, fontSize=27.sp,

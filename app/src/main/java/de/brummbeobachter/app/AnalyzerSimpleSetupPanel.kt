@@ -40,7 +40,7 @@ internal fun AnalyzerSimpleSetupPanel(context: Context) {
     var notice by remember { mutableStateOf("") }
     val ink = Color(0xFF25384C)
     val sky = Color(0xFFF0F5FA)
-    fun refresh() { listing = runCatching { repo.listing() }.getOrNull() }
+    fun refresh() { listing = runCatching { repo.listing() }.getOrNull(); selectedId = listing?.activeId }
     fun saveCurrent(): Boolean {
         val result = AnalyzerActiveSetupPersistence.saveOnAnalyzerExit(context)
         if (result.isFailure) notice = "Vorheriges Setup konnte nicht gespeichert werden: ${result.exceptionOrNull()?.message}"
@@ -49,7 +49,7 @@ internal fun AnalyzerSimpleSetupPanel(context: Context) {
     fun selectDraft(id: String) {
         if (id == repo.listing().activeId) {
             selectedId = id
-            notice = "Bereits ausgewählt"
+            notice = "Dieses Setup ist bereits zugeordnet."
             return
         }
         // No implicit interruption of measurement/recording or MON.
@@ -68,9 +68,8 @@ internal fun AnalyzerSimpleSetupPanel(context: Context) {
                 AnalyzerSetupSwitchTransaction.Outcome.Unchanged -> {
                     // Do not claim durable activation: START still uses legacy preferences.
                     repo.select(id)
-                    selectedId = id
                     refresh()
-                    notice = "STOP-Entwurf geladen. Vollständiger Messstart mit diesem Setup noch nicht freigegeben."
+                    notice = "Setup-Werte im STOP-Zustand übernommen. Bitte FFT-Größe prüfen. Der nächste Messstart lädt derzeit noch ältere Voreinstellungen."
                 }
                 is AnalyzerSetupSwitchTransaction.Outcome.Rejected -> error(outcome.reason)
                 is AnalyzerSetupSwitchTransaction.Outcome.Failed -> error("${outcome.reason} (Rücknahme: ${outcome.rollbackSucceeded})")
@@ -83,7 +82,9 @@ internal fun AnalyzerSimpleSetupPanel(context: Context) {
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         Text("Meine Analyzer-Setups", color = ink)
-        val selectedName = data?.entries?.firstOrNull { it.id == selectedId }?.name ?: "Noch kein Setup gewählt"
+        val selectedName = data?.entries?.firstOrNull { it.id == data?.activeId }?.name ?: "Kein aktives JSON-Setup"
+        Text("Zugeordnetes Setup: $selectedName", color = ink)
+        Text("Einmal auf einen Namen tippen: Werte werden bei STOP übernommen.", color = ink)
         OutlinedButton(onClick = { menuOpen = true }, modifier = Modifier.fillMaxWidth()) {
             Text("$selectedName  ▾", color = ink)
         }
@@ -108,7 +109,7 @@ internal fun AnalyzerSimpleSetupPanel(context: Context) {
         }
         OutlinedTextField(
             value = createName, onValueChange = { createName = it.take(120) },
-            label = { Text("Neues Setup benennen") }, modifier = Modifier.fillMaxWidth(), singleLine = true
+            label = { Text("Aktuelle Einstellungen speichern unter …") }, modifier = Modifier.fillMaxWidth(), singleLine = true
         )
         Button(onClick = {
             runCatching {
@@ -130,7 +131,7 @@ internal fun AnalyzerSimpleSetupPanel(context: Context) {
             else if (saveCurrent()) notice = "Aktives JSON-Setup gespeichert"
         }) { Text("Jetzt sichern") }
         Text("Änderungen werden beim Verlassen des Analyzers im aktiven JSON-Setup gespeichert.", color = ink)
-        Text("Hinweis: Ein vollständiger, dauerhaft wirksamer Analyzer-Setupwechsel einschließlich Messstart ist technisch noch nicht freigegeben.", color = Color(0xFF835623))
+        Text("Hinweis: Messstart-Übernahme wird noch geprüft. Die Auswahl allein beweist nicht, dass alle Audio-Parameter geladen sind.", color = Color(0xFF835623))
         if (notice.isNotBlank()) Text(notice, color = ink)
     }
 }

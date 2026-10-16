@@ -1,3 +1,13 @@
+# v0.5.65 / versionCode 223 – Setup-Auswahl und Status sichtbar (16.10.2026)
+
+- Analyzer zeigt die **zugeordnete** benannte JSON-Setup-Datei dauerhaft oberhalb der eigentlichen Anzeige; Status ist bewusst nicht als bestätigter Messstart gekennzeichnet.
+- In Einstellungen/Setups ist die aktuelle Zuordnung ausgeschrieben; ein Tippen auf einen anderen Namen führt nur bei STOP den bereits vorhandenen geprüften STOP-Entwurfswechsel aus. Keine zusätzliche Laden-Schaltfläche.
+- Anlegen ist ausdrücklich als „Speichern unter neuem Namen“ bezeichnet; vorhandene Persistenz beim Verlassen des Analyzers bleibt erhalten. Statusmeldungen unterscheiden die bestätigte STOP-Übernahme vom nicht verifizierten START-Laden.
+- Keine Änderung an Audio-Pipeline, REGULAR-Paketkennung, Cloud, Signierung oder Workflow. START lädt weiterhin zum Teil Legacy-Prefs; vollständige aktive Audio-Setup-Umschaltung ist nicht implementiert.
+- Prüfung: lokale statische Verträge und ZIP-Integrität; Android-/GitHub-Kompilierung und Hardwaretest offen.
+
+---
+
 # v0.5.64 / versionCode 222 – Helles JSON-Setup-Panel und Speicherung bei Analyzer-Exit (16.10.2026)
 
 - Neue vereinfachte, hell hinterlegte Setup-Ansicht mit Dropdown, MRU-Schnellwahl und Anlegen benannter JSON-Setups (`AnalyzerSimpleSetupPanel.kt`). Die sichtbare zweite Slot-Verwaltung und die bisherige lange Experten-Ansicht wurden aus der normalen Einstellungen-/Setups-Ansicht ausgeblendet; Altcode und JSON-Repository bleiben erhalten.
