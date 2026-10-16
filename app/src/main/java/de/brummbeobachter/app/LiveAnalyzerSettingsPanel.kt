@@ -264,28 +264,50 @@ internal fun LiveAnalyzerSettingsPanel(
         onRefresh();message="Setup $slot geladen"
     }
     if(selected == null) {
-        listOf(
-            Triple("Setups","Benannte JSON-Setups und Schnellzugriff","▤"),
-            Triple("Spektrum","Frequenzbereich, FFT, Kurven","⌁"),
-            Triple("Audio","Eingang, Quelle, Gain","♩"),
-            Triple("Anzeige","dBFS, Wasserfall, Farben","▣"),
-            Triple("Statistik","L50/L90, Mittelung","▥"),
-            Triple("Filterbank","FAST-Bänder, Frequenzgrenzen","▥"),
-            Triple("Automatiken","Autorange, PNG","⚙"),
-            Triple("Kalibrierung","Profile, Referenz","◎"),
-            Triple("Diagnose","Rohpegel, Fehler, Tempo","⌕")
-        ).forEach { (name,subtitle,symbol) ->
-            Row(Modifier.fillMaxWidth().padding(bottom=6.dp)
-                .border(1.dp,stroke,RoundedCornerShape(9.dp))
-                .background(surface,RoundedCornerShape(9.dp))
-                .clickable { onSelect(name); onNavigate() }.padding(horizontal=13.dp, vertical=13.dp),
-                verticalAlignment=Alignment.CenterVertically) {
-                Text(symbol,color=amber,fontSize=22.sp,modifier=Modifier.width(37.dp))
-                Column(Modifier.weight(1f)) {
-                    Text(name,color=white,fontSize=16.sp,fontWeight=FontWeight.Bold)
-                    Text(subtitle,color=muted,fontSize=11.sp)
+        // Navigation only: existing section identifiers and controller interactions remain unchanged.
+        // Keep MON live controls in the analyzer itself so editing during RUN is unaffected.
+        val groups = listOf(
+            "SETUPS & PROFILE" to listOf(
+                Triple("Setups", "Benannte Analyzer-JSONs · Auswahl und Schnellzugriff", "▤")
+            ),
+            "MESSUNG & SIGNAL" to listOf(
+                Triple("Spektrum", "Frequenzbereich · FFT · Kurven · Glättung", "⌁"),
+                Triple("Audio", "Audioquelle · Analysegain · Eingangsoptionen", "♫"),
+                Triple("Filterbank", "FAST-Filter · 10/20 Bänder · Bandgrenzen", "▥")
+            ),
+            "ANZEIGE & AUSWERTUNG" to listOf(
+                Triple("Anzeige", "Wasserfall · Pegelbereich · Zeitachse", "▣"),
+                Triple("Statistik", "Leq · L50/L90 · lokale SAVE-Einstellungen", "▥"),
+                Triple("Automatiken", "Autorange · Bildspeicherung", "⚙")
+            ),
+            "SERVICE" to listOf(
+                Triple("Kalibrierung", "Pegelbezug · zukünftige Profile", "◎"),
+                Triple("Diagnose", "Audiozustand · Rohpegel · Fehlersuche", "⌕")
+            )
+        )
+        Text("Analyzer-Einstellungen", color=white, fontSize=19.sp,
+            fontWeight=FontWeight.Bold, modifier=Modifier.padding(bottom=4.dp))
+        Text("Ein Bereich je Aufgabe · Änderungen werden wie bisher übernommen",
+            color=muted, fontSize=12.sp, modifier=Modifier.padding(bottom=9.dp))
+        groups.forEach { (heading, entries) ->
+            Text(heading, color=cyan, fontSize=12.sp, fontWeight=FontWeight.Bold,
+                modifier=Modifier.padding(top=10.dp, bottom=6.dp))
+            entries.forEach { (name, subtitle, symbol) ->
+                Row(Modifier.fillMaxWidth().padding(bottom=7.dp)
+                    .border(1.dp,Color(0xFFACD4DF),RoundedCornerShape(12.dp))
+                    .background(Color(0xFFEAF4F7),RoundedCornerShape(12.dp))
+                    .clickable { onSelect(name); onNavigate() }
+                    .padding(horizontal=14.dp, vertical=14.dp),
+                    verticalAlignment=Alignment.CenterVertically) {
+                    Text(symbol,color=Color(0xFF176D84),fontSize=24.sp,
+                        modifier=Modifier.width(38.dp))
+                    Column(Modifier.weight(1f)) {
+                        Text(name,color=Color(0xFF16333D),fontSize=16.sp,
+                            fontWeight=FontWeight.Bold)
+                        Text(subtitle,color=Color(0xFF3E5A65),fontSize=12.sp)
+                    }
+                    Text("›",color=Color(0xFF176D84),fontSize=25.sp)
                 }
-                Text("›",color=white,fontSize=26.sp)
             }
         }
     } else {

@@ -390,3 +390,9 @@ Die Kennzeichnung **R01–R07, O01–O08 und A01–A05** können wir künftig al
 - E567-01: GitHub-TEST-Compile und JUnit durchführen.
 - E567-02: Integrierten Android-Self-Test und Geräte-Exit-Matrix durchführen.
 - E567-03: MON-JSON-Persistenz bei Weiterlaufen/Stoppen und Rolling-Datenkontinuität nachweisen.
+
+## v0.5.70 – offene UI-Fortsetzung
+
+- UI570-01: Bestehende neun Unterseiten auf die gewünschten sieben logisch zusammengefassten Panels überführen, ohne Parameter- oder Funktionsverlust. MON-Livebedienung und JSON-Bindung kontrollieren.
+- UI570-02: Innenbereiche der Settings optisch vereinheitlichen (helle Kontraste), ohne Controller- oder Speicherlogik zu verändern.
+- UI570-03: Device-/Self-Test der v0.5.70-Übersicht, Setup-MRU, Panelrückkehr und MON-RUN-Verhalten.

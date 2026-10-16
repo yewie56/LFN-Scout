@@ -1,3 +1,7 @@
+# v0.5.70 – Analyzer-Einstellungen (Quellkandidat)
+
+Die Einstellungsübersicht ist heller und in vier Aufgabenbereiche gegliedert. Alle neun bisherigen Unterseiten bleiben vollständig erhalten. Audio-/Rolling-/MON-/JSON-Kernlogik unverändert. Vgl. `ANALYZER_SETTINGS_NAVIGATION_V0570.md`. Android-Build, integrierter Self-Test und Gerätetest offen.
+
 # v0.5.68 – MON-Anzeige bei Setupwechsel
 
 Korrektur der periodischen MON-Wertanzeige nach benanntem JSON-Setupwechsel (Center/Gain). Keine Änderung am Rolling oder an der Persistenz. Android-Build und A→B→A-Gerätetest weiterhin erforderlich. Details: `MON_SETUP_SYNC_V0568.md`.

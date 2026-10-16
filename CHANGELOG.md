@@ -1,3 +1,10 @@
+# v0.5.70 / versionCode 228 – gruppierte, helle Analyzer-Einstellungsübersicht
+
+- Einstellungsnavigation optisch heller und in vier logische Gruppen geordnet; neun vorhandene Unterpanels bleiben samt Bedienelementen und Controller-Aufrufen vollständig erhalten.
+- Keine Änderung an Audio, Rolling, FFT, MON-Controller oder JSON-Setup-Persistenz. Weitergehende Vereinheitlichung der Panelinhalte ausdrücklich noch offen.
+- Statik-Regression: `tools/verify_v0570_settings_navigation.py`; Android-Build, Self-Test und Gerätetest noch offen.
+- Details: `docs/project/ANALYZER_SETTINGS_NAVIGATION_V0570.md`.
+
 # v0.5.69 / versionCode 227 – Setupstatus, RUN-Sperre, FFT-Warm-up (16.10.2026)
 
 - Die obere Analyzer-Setup-Anzeige verfolgt die aktive JSON-Zuordnung während einer geöffneten Analyzer-Oberfläche und aktualisiert den Namen nach erfolgreichem Wechsel.
