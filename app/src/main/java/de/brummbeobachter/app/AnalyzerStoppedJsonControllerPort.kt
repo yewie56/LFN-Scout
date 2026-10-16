@@ -13,8 +13,7 @@ internal class AnalyzerStoppedJsonControllerPort(private val requested: JSONObje
         val state = LiveAnalyzerController.snapshot()
         return AnalyzerSetupSwitchTransaction.Status(
             running = state.running,
-            scoutRecording = AnalyzerSetupAudioOwnerGate.observe().rollingRunning ||
-                AnalyzerSetupAudioOwnerGate.observe().directCapturing,
+            scoutRecording = AnalyzerSetupAudioOwnerGate.observe().directCapturing,
             monRecording = AnalyzerMonitorRecording.isActive(),
             monEnabled = AnalyzerMonitor.enabled,
             displayPreviewActive = AnalyzerDisplayPreviewSession.activeSetupId != null
@@ -49,8 +48,15 @@ internal class AnalyzerStoppedJsonControllerPort(private val requested: JSONObje
     fun applyCombinedDraft(legacy: JSONObject, monitor: JSONObject): AnalyzerSetupSwitchTransaction.Outcome {
         synchronized(LiveAnalyzerController.setupTransitionLock) {
             val safety = AnalyzerSetupAudioOwnerGate.observe()
+            // A running shared rolling recorder is expected here. A foreign owner is not.
+            val expectedOwner = if (safety.rollingRunning) "rolling" else null
+            if (safety.microphoneOwner != expectedOwner) {
+                return AnalyzerSetupSwitchTransaction.Outcome.Rejected(
+                    "Audio-Ressourcenkonflikt: Mikrofon belegt durch ${safety.microphoneOwner}"
+                )
+            }
             if (LiveAnalyzerController.snapshot().running || AnalyzerMonitor.enabled ||
-                AnalyzerMonitorRecording.isActive() || safety.rollingRunning || safety.directCapturing ||
+                AnalyzerMonitorRecording.isActive() || safety.directCapturing ||
                 AnalyzerDisplayPreviewSession.activeSetupId != null) {
                 return AnalyzerSetupSwitchTransaction.Outcome.Rejected("STOP erforderlich; Aufnahme/MON/Vorschau beenden")
             }

@@ -43,8 +43,9 @@ internal fun AnalyzerSimpleSetupPanel(context: Context) {
     fun refresh() { listing = runCatching { repo.listing() }.getOrNull(); selectedId = listing?.activeId }
     fun saveCurrent(): Boolean {
         val result = AnalyzerActiveSetupPersistence.saveOnAnalyzerExit(context)
-        if (result.isFailure) notice = "Vorheriges Setup konnte nicht gespeichert werden: ${result.exceptionOrNull()?.message}"
-        return result.isSuccess
+        if (result.getOrNull() != true)
+            notice = "Vorheriges Setup konnte nicht gespeichert werden: ${result.exceptionOrNull()?.message ?: "kein aktives JSON-Setup"}"
+        return result.getOrNull() == true
     }
     fun selectDraft(id: String) {
         if (id == repo.listing().activeId) {
@@ -66,10 +67,10 @@ internal fun AnalyzerSimpleSetupPanel(context: Context) {
             when (outcome) {
                 AnalyzerSetupSwitchTransaction.Outcome.Applied,
                 AnalyzerSetupSwitchTransaction.Outcome.Unchanged -> {
-                    // Do not claim durable activation: START still uses legacy preferences.
+                    // Commit active ID / MRU only after the complete STOP draft verifies.
                     repo.select(id)
                     refresh()
-                    notice = "Setup-Werte im STOP-Zustand übernommen. Bitte FFT-Größe prüfen. Der nächste Messstart lädt derzeit noch ältere Voreinstellungen."
+                    notice = "Setup im STOP-Zustand übernommen. Beim nächsten RUN wird das benannte JSON-Setup geprüft geladen."
                 }
                 is AnalyzerSetupSwitchTransaction.Outcome.Rejected -> error(outcome.reason)
                 is AnalyzerSetupSwitchTransaction.Outcome.Failed -> error("${outcome.reason} (Rücknahme: ${outcome.rollbackSucceeded})")
@@ -114,7 +115,9 @@ internal fun AnalyzerSimpleSetupPanel(context: Context) {
         Button(onClick = {
             runCatching {
                 require(createName.isNotBlank()) { "Name fehlt" }
-                require(saveCurrent()) { "Vorheriges Setup nicht gespeichert" }
+                if (repo.listing().activeId != null) {
+                    require(saveCurrent()) { "Vorheriges Setup nicht gespeichert" }
+                }
                 val groups = JSONObject()
                     .put("legacy", AnalyzerRuntimeSetupSnapshot.capture(LiveAnalyzerController.snapshot()))
                     .put("monitor", AnalyzerMonitor.snapshotSetupParameters())
@@ -131,7 +134,7 @@ internal fun AnalyzerSimpleSetupPanel(context: Context) {
             else if (saveCurrent()) notice = "Aktives JSON-Setup gespeichert"
         }) { Text("Jetzt sichern") }
         Text("Änderungen werden beim Verlassen des Analyzers im aktiven JSON-Setup gespeichert.", color = ink)
-        Text("Hinweis: Messstart-Übernahme wird noch geprüft. Die Auswahl allein beweist nicht, dass alle Audio-Parameter geladen sind.", color = Color(0xFF835623))
+        Text("Rolling-Aufnahme und rückwirkender Puffer bleiben beim Analyzer-Setupwechsel aktiv.", color = Color(0xFF835623))
         if (notice.isNotBlank()) Text(notice, color = ink)
     }
 }

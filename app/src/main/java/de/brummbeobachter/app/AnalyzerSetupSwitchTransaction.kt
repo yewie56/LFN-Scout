@@ -46,8 +46,20 @@ internal object AnalyzerSetupSwitchTransaction {
         val safety = AnalyzerSetupTransitionCoordinator.diagnoseSafety {
             AnalyzerSetupAudioOwnerGate.observe()
         }
-        if (safety.blockers.isNotEmpty())
-            return@synchronized Outcome.Rejected(safety.blockers.joinToString("; "))
+        // Shared 8-kHz rolling capture is not an Analyzer STOP violation.
+        // Direct capture, MON, unrelated owners and unsafe lifecycle states remain blockers.
+        val owner = AnalyzerSetupAudioOwnerGate.observe()
+        val rollingOnly = owner.rollingRunning &&
+            owner.microphoneOwner == "rolling" &&
+            !owner.directCapturing && !owner.monRecording
+        val blockers = if (rollingOnly) safety.blockers.filterNot {
+            it == "Rolling-Audiostream aktiv" ||
+                it == "Mikrofon belegt: rolling" ||
+                it == "service_in_flight:rolling" ||
+                it == "capture_cleanup_pending:rolling"
+        } else safety.blockers
+        if (blockers.isNotEmpty())
+            return@synchronized Outcome.Rejected(blockers.joinToString("; "))
         val state = try { port.status() } catch (t: Exception) {
             return@synchronized Outcome.Rejected("Analyzer-Status nicht lesbar: ${t.message}")
         }

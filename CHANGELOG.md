@@ -1,3 +1,14 @@
+# v0.5.66 / versionCode 224 – Analyzer-Setupwechsel bei Rolling (16.10.2026)
+
+- 8-kHz-Rolling-Aufnahme ist bei STOP kein pauschaler Sperrgrund für die Analyzer-JSON-Entwurfsübernahme mehr; die erwartete Mikrofon-Eigentümerschaft `rolling` wird ausdrücklich geprüft. Fremde Besitzer, Direct-Audio, MON-Aufnahme, aktive MON-Ausgabe und Preview bleiben gesperrt. Sicherheitsmarker für Rolling werden nur bei nachgewiesenem Rolling-Eigentümer selektiv ausgeklammert.
+- STOP des Analyzers gibt dessen PCM-Subscription frei, ohne Rolling-Engine/Ringpuffer zu stoppen (bestehendes Verhalten). 8-kHz-RUN wendet das aktive benannte JSON erneut an und startet über den vorhandenen präferenzfreien STOP-Konfigurations-Checkpoint. Andere Modi behalten den Legacy-Start.
+- Vor dem Wechsel wird das vorige JSON per bestehendem AtomicFile-Verfahren gesichert. `Result.success(false)` zählt nicht mehr als erfolgreicher Save. MRU/aktive ID wird erst nach positiver STOP-Übernahme geändert.
+- Termux-Skript `LFN_GITHUB_TERMUX_v11.sh` unverändert übernommen; ältere separat hochgeladene Versionen nicht aufgenommen. Keine Neugestaltung der Setup-Panels.
+- Lokaler Quelltext-Vertragstest `tools/verify_v0566_setup_switch.py`: zunächst 17/17 PASS; nach abschließender Änderung erneut prüfen. **Gradle/JUnit, integrierter Android-Self-Test, APK-Build, Hardware-/Rolling-Kontinuitätstests nicht durchgeführt.** Dies ist ein **nicht gerätevalidierter Quellkandidat**, keine bestätigte APK-Freigabe.
+- Rest-Risiken: Audio-Service-Lifecycle und Mic-Arbiter sind nicht auf demselben Lock wie Controller-STOP serialisiert; Hardwarekontinuität sowie persistenter MRU-/JSON-Rollback bei Index-Schreibfehler müssen in Android-Integrationstests nachgewiesen werden.
+
+---
+
 # v0.5.65 / versionCode 223 – Setup-Auswahl und Status sichtbar (16.10.2026)
 
 - Analyzer zeigt die **zugeordnete** benannte JSON-Setup-Datei dauerhaft oberhalb der eigentlichen Anzeige; Status ist bewusst nicht als bestätigter Messstart gekennzeichnet.

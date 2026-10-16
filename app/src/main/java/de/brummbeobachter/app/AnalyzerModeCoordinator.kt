@@ -97,7 +97,7 @@ internal object AnalyzerModeCoordinator {
                         AnalyzerInspectionExport.exportSetups(context)
                     } }.onFailure { AnalyzerAudioTrace.write(context, "SETUP_EXPORT_FAILED", "type=${it.javaClass.simpleName}") }
                 }
-                LiveAnalyzerController.start(context)
+                if (chosen == Mode.ROLLING_8K) AnalyzerNamedSetupStart.start(context) else LiveAnalyzerController.start(context)
                 AnalyzerAudioTrace.write(context, "BEGIN_SUCCESS", "chosen=$chosen owner=${MicCaptureArbiter.owner} rolling=${RollingAudioEngine.isRunning} direct=${AnalyzerDirectAudioService.isCapturing} subscribers=${AnalyzerSessionGateway.rawPcm.activeSubscribers}")
                 true
             }
@@ -163,7 +163,7 @@ internal object AnalyzerModeCoordinator {
                 return false
             }
         }
-        LiveAnalyzerController.start(context)
+        if (mode == Mode.ROLLING_8K) AnalyzerNamedSetupStart.start(context) else LiveAnalyzerController.start(context)
         AnalyzerAudioTrace.write(context, "RESTART_DONE", "mode=$mode owner=${MicCaptureArbiter.owner} subscribers=${AnalyzerSessionGateway.rawPcm.activeSubscribers}")
         return true
     }
