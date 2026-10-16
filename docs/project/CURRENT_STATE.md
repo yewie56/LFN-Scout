@@ -1,3 +1,14 @@
+# v0.5.64 / versionCode 222 – Helles JSON-Setup-Panel und Speicherung bei Analyzer-Exit (16.10.2026)
+
+- Neue vereinfachte, hell hinterlegte Setup-Ansicht mit Dropdown, MRU-Schnellwahl und Anlegen benannter JSON-Setups (`AnalyzerSimpleSetupPanel.kt`). Die sichtbare zweite Slot-Verwaltung und die bisherige lange Experten-Ansicht wurden aus der normalen Einstellungen-/Setups-Ansicht ausgeblendet; Altcode und JSON-Repository bleiben erhalten.
+- Neues `AnalyzerActiveSetupPersistence`: Beim Verlassen des gesamten Analyzer-Screens (Compose Disposal) wird das bereits aktiv gewählte JSON-Setup mittels `AtomicFile` mit aktuellen Analyzer- und MON-Parametern überschrieben. Beim Panelwechsel findet KEIN JSON-Schreibvorgang statt. Falls kein aktives JSON-Setup existiert, wird keines automatisch angelegt. Fehler gehen ins Android-Log und hinterlassen das vorherige Setup-Dokument erhalten.
+- Beim Anlegen eines benannten Setups wird dieses aktiv und in die MRU aufgenommen; STOP-Entwurf-Umschaltung basiert auf dem bisherigen kombinierten und kontrollierten Port. Die normale `start()`-Routine liest weiterhin Legacy-Preferences: die volle dauerhafte Anwender-Setupaktivierung ist NICHT umgesetzt. Das UI kennzeichnet dies ausdrücklich. Bei laufendem Analyzer wird nicht unterbrochen; Wechsel gesperrt.
+- Alte Slots/Code werden technisch zur Migration vorgehalten, erscheinen aber nicht mehr als reguläre Bedienfläche. Bestehende Aufnahme-, Audio-, Cloud- und REGULAR-Pfade unverändert.
+- Prüfstand: Quell-/ZIP-Integritätsprüfung durchgeführt; **Android-Gradle-Kompilierung, Unit-Tests und Xiaomi-Gerätetest offen**. Keine Freigabe als hardwareverifiziertes Release.
+- Offene Aufgaben: vollständige konsistente START-Lade- und Persistenzanbindung (inkl. Audio-Gerät/Fallback, MON, Anzeige); Restore und Wiederanlauf; SAF-Import/Export in der vereinfachten UI; Auto-Apply beim Panelverlassen bei bisher explizit bestätigungspflichtigen Feldern; heller Gesamt-Einstellungsbereich.
+
+---
+
 # v0.5.63 / versionCode 221 – Kotlin FFT-Hop-Typprüfung repariert (15.10.2026)
 
 - Ausgangspunkt: vollständiges v0.5.62-Projekt-ZIP. Ausgewerteter GitHub TEST-Run 38749515984 (15.10.2026): `:app:compileDebugKotlin` scheitert ausschließlich an `LiveAnalyzerController.kt:1318`.

@@ -263,51 +263,9 @@ internal fun LiveAnalyzerSettingsPanel(
             prefs.getInt("setup_${slot}_autorange_margin",5).coerceIn(0,30))
         onRefresh();message="Setup $slot geladen"
     }
-    // Active setup selector is always located above category content.
-    Column(Modifier.fillMaxWidth().border(1.dp,stroke,RoundedCornerShape(10.dp))
-        .background(surface,RoundedCornerShape(10.dp)).padding(10.dp)) {
-        Text("Analyzer · Setup-Verwaltung",fontSize=17.sp,fontWeight=FontWeight.Bold,color=amber)
-        Text("Bestehende Setup-Plätze · keine automatische Überschreibung",fontSize=11.sp,color=muted)
-        val slotSaved = prefs.contains("setup_${slot}_range")
-        val slotLabel = prefs.getString("setup_${slot}_name", "")?.trim().orEmpty()
-        Text("Ausgewählt: Platz $slot · " +
-            (if (slotSaved) (slotLabel.ifBlank { "Ohne Namen" }) else "Noch nicht gespeichert"),
-            fontSize=13.sp,color=white)
-        Text("Auswählen ändert nur den Platz; Laden übernimmt Werte, Speichern überschreibt den gewählten Platz.",
-            fontSize=11.sp,color=muted)
-        Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically,
-            horizontalArrangement=Arrangement.spacedBy(6.dp)) {
-            Text("Setup:",fontSize=12.sp,color=white)
-            (if (state.direct48k) 4..4 else 1..3).forEach { id ->
-                OutlinedButton(onClick={slot=id;prefs.edit().putInt("last_setup_slot",slot).apply();message=""},
-                    modifier=Modifier.weight(1f),
-                    border=BorderStroke(1.dp,if(slot==id) amber else stroke),
-                    contentPadding=androidx.compose.foundation.layout.PaddingValues(horizontal=2.dp,vertical=0.dp)) {
-                    Text((if(slot==id) "● $id" else "$id") + " " +
-                        (prefs.getString("setup_${id}_name", "") ?: "").take(10),fontSize=10.sp,color=white)
-                }
-            }
-        }
-        Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(5.dp)) {
-            OutlinedButton(onClick={loadSetup()},modifier=Modifier.weight(1f)) { Text("Laden",fontSize=11.sp,color=white) }
-            OutlinedButton(onClick={saveSetup()},modifier=Modifier.weight(1f)) { Text("Speichern",fontSize=11.sp,color=white) }
-            OutlinedButton(onClick={
-                val free=(if (state.direct48k) 4..4 else 1..3).firstOrNull{ !prefs.contains("setup_${it}_range") }
-                if(free == null) message=if(state.direct48k) "Direkt-Setup ist bereits angelegt" else "Alle 3 Plätze belegt; bitte einen Platz auswählen"
-                else {slot=free;prefs.edit().putInt("last_setup_slot",slot).apply();message="Leerer Platz $slot gewählt – Speichern zum Anlegen"}
-            },modifier=Modifier.weight(1f)) { Text("+ Neu",fontSize=11.sp,color=white) }
-        }
-        if (selected != "Setups") {
-            OutlinedButton(onClick={ onSelect("Setups"); onNavigate() },modifier=Modifier.fillMaxWidth()) {
-                Text("Setup-Namen, Beschreibung und JSON-Übersicht öffnen ›",color=white,fontSize=12.sp)
-            }
-        }
-        if(message.isNotBlank())Text(message,color=cyan,fontSize=11.sp)
-    }
-    Spacer(Modifier.height(9.dp))
     if(selected == null) {
         listOf(
-            Triple("Setups","Plätze, Namen, Export und JSON-Übersicht","▤"),
+            Triple("Setups","Benannte JSON-Setups und Schnellzugriff","▤"),
             Triple("Spektrum","Frequenzbereich, FFT, Kurven","⌁"),
             Triple("Audio","Eingang, Quelle, Gain","♩"),
             Triple("Anzeige","dBFS, Wasserfall, Farben","▣"),
@@ -953,31 +911,7 @@ internal fun LiveAnalyzerSettingsPanel(
                     SettingNote("Mikrofonprofile, Frequenzgangkorrektur und absolute Referenzkalibrierung sind geplant, im Live-Analyzer aber noch nicht implementiert.")
                 }
                 "Setups" -> {
-                    SettingNote("JSON-Setups können angelegt, importiert, exportiert, umbenannt und mit Backup gelöscht werden. Vollständiges Analyzer-Laden bleibt aus Sicherheitsgründen gesperrt; oben gelten weiterhin die alten Slots.")
-                    AnalyzerJsonSetupBrowser(context)
-                    Spacer(Modifier.height(12.dp))
-                    SettingNote("Oben: lokalen Platz 1–3 wählen. Name und Beschreibung gehören zum Platz und werden beim Speichern übernommen.")
-                    OutlinedTextField(value=setupName,onValueChange={if(it.length<=80)setupName=it},
-                        label={Text("Setup-Name (bis 80 Zeichen)")},singleLine=true,
-                        textStyle=TextStyle(color=white),modifier=Modifier.fillMaxWidth())
-                    OutlinedTextField(value=setupDescription,onValueChange={if(it.length<=1000)setupDescription=it},
-                        label={Text("Beschreibung (bis 1000 Zeichen)")},
-                        minLines=3,maxLines=6,textStyle=TextStyle(color=white),modifier=Modifier.fillMaxWidth())
-                    SettingNote("Nach Eingabe oben auf Speichern tippen. Alte namenlose Setups bleiben ladbar.")
-                    SettingNote("Gespeichert: Decimation, FFT, Frequenz, Statistik, Wasserfall, dBFS, Gain, Kurven, Autorange, PNG/JPG; Direkt zusätzlich Eingangsrate/-quelle, Glättungsfaktor, Peakmarker, DC, Stay Awake und beide Testtöne.")
-                    SettingNote("Die internen Slots bleiben maßgeblich. JSON v2 ist eine lesbare Exportkopie, KEIN allgemeiner Import. Bei Migrationskonflikten bleiben alte JSON-Dateien erhalten; aktuelle Setups werden getrennt als CURRENT_v2 exportiert.")
-                    OutlinedButton(onClick={
-                        exportScope.launch {
-                            message = "Exportiere vorhandene Setups …"
-                            runCatching { withContext(Dispatchers.IO) { AnalyzerInspectionExport.exportSetups(context) } }
-                                .onSuccess {
-                                    val pending = AnalyzerLegacySetupMigration.pendingSlots(context)
-                                    val suffix = if (pending.isEmpty()) "" else " · Altdatei(en) Slot ${pending.joinToString()} behalten; aktuelle Kopien als CURRENT_v2. Details in Diagnose."
-                                    message="$it Setup-Datei(en) unter ${PublicDataDirectory.relativePath}Setups/ exportiert$suffix"
-                                }
-                                .onFailure { message="Export fehlgeschlagen: ${it.javaClass.simpleName}: ${it.message ?: "ohne Details"}" }
-                        }
-                    }) { Text("Setups als JSON exportieren", color=white) }
+                    AnalyzerSimpleSetupPanel(context)
                 }
                 "Diagnose" -> {
                     val d=state.diagnostics

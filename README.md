@@ -1,3 +1,15 @@
+# LFN-Scout v0.5.64
+
+## Neu in v0.5.64
+
+- Helles, vereinfachtes Panel für benannte JSON-Analyzer-Setups mit MRU-Anzeige.
+- Automatisches atomisches Speichern der aktuell ausgewählten Analyzer- und MON-JSON-Daten beim Verlassen des gesamten Analyzer-Screens, nicht beim Panelwechsel.
+- Legacy-Setup-Leiste aus der normalen UI entfernt, intern vorerst erhalten.
+- **Grenze:** Vollständig persistenter Setupwechsel beim Messstart und automatische Übernahme aller bisher bestätigungspflichtigen Parameter noch ausstehend. Keine Android-Gradle-/Xiaomi-Testfreigabe.
+- Verbindlicher Stand: `docs/project/CURRENT_STATE.md`.
+
+---
+
 **Aktueller Quellkandidat: v0.5.37 (Cloud-Halbstunden-Gesamtstatistik). Build- und Gerätetest ausstehend.** Siehe `ANLEITUNG_BUILD_TEST_v0.5.37.md`.
 
 **Aktueller Quellkandidat: v0.5.37 (Cloud-Halbstunden-Gesamtstatistik). Build- und Gerätetest ausstehend.** Siehe `ANLEITUNG_BUILD_TEST_v0.5.37.md`.

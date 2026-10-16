@@ -207,7 +207,13 @@ internal fun LiveAnalyzerScreen(
         confirmButton={TextButton(onClick={keyTestOpen=false},enabled=!keyTestBusy) {Text("Schließen")} })
     DisposableEffect(Unit) {
         AnalyzerRouteTracker.start()
-        onDispose { AnalyzerMonitor.stop();AnalyzerRouteTracker.stop() }
+        onDispose {
+            AnalyzerActiveSetupPersistence.saveOnAnalyzerExit(context).onFailure {
+                android.util.Log.e("LFN-Setup", "Aktives JSON-Setup beim Analyzer-Verlassen nicht gespeichert", it)
+            }
+            AnalyzerMonitor.stop()
+            AnalyzerRouteTracker.stop()
+        }
     }
     val bg = Color(0xFF081113)
     val edge = Color(0xFF34444A)
