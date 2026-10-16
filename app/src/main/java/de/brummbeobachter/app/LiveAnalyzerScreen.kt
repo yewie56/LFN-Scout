@@ -278,6 +278,13 @@ internal fun LiveAnalyzerScreen(
             state = LiveAnalyzerController.snapshot()
             monitoring=AnalyzerMonitor.enabled
             monitoringShift=AnalyzerMonitor.shifted
+            // Named JSON setup changes may occur while this screen remains composed.
+            // Keep the visible MON handles in sync with the verified runtime draft.
+            // Do not overwrite an active finger drag from the refresh coroutine.
+            if (!monitoringTouch) {
+                monitorCenter=AnalyzerMonitor.centerHz
+                monitorLevel=AnalyzerMonitor.levelDb
+            }
             monitorOutputLevel=AnalyzerMonitor.outputPeakDbfs
             if(monRecRunning) AnalyzerMonitorRecording.noteParameters()
             // Display refresh is independent from FFT computation and waterfall decimation.

@@ -1,3 +1,8 @@
+# v0.5.68 / versionCode 226 – MON-Anzeige nach benanntem Setupwechsel (16.10.2026)
+
+- Im Analyzer-Refresh werden MON-Center und MON-Gain jetzt aus dem aktuellen MON-Controller synchronisiert; unter aktivem Touch-Drag bleibt die lokale Bedienung vorrangig.
+- Bestehende JSON- und Legacy-Speicherlogik unverändert. Regression `tools/verify_v0568_mon_setup.py`; Hardware- und Kotlin-Build offen. Siehe `docs/project/MON_SETUP_SYNC_V0568.md`.
+
 # v0.5.67 / versionCode 225 – Analyzer-Verlassen und MON-Persistenz (16.10.2026)
 
 - Beide Analyzer-Verlassen-Aktionen sichern aktuelle Analyzer- und MON-Werte vor Audio-Teardown und Navigation in die aktive benannte JSON-Datei. Bei Schreibfehler Warn-Popup mit Wiederholen, Trotzdem verlassen und Abbrechen; eine ausdrückliche Entscheidung kann den Verlassen-Vorgang fortsetzen.

@@ -1,3 +1,7 @@
+# v0.5.68 – MON-Anzeige bei Setupwechsel
+
+Korrektur der periodischen MON-Wertanzeige nach benanntem JSON-Setupwechsel (Center/Gain). Keine Änderung am Rolling oder an der Persistenz. Android-Build und A→B→A-Gerätetest weiterhin erforderlich. Details: `MON_SETUP_SYNC_V0568.md`.
+
 # v0.5.67 – Quellkandidat / offene Abnahme
 
 Gezielte Korrektur MON-Persistenz bei Analyzer-Verlassen sowie Stoppen/Weiterlaufen einschließlich ursprünglicher Rolling-Herkunft. Fehlerhafte JSON-Speicherung zeigt ein Warn-Popup (erneut speichern/trotzdem fortfahren/abbrechen); unveränderte Setups erzeugen keine Schreiboperation. Statische Tests bestanden, Android-Gradle-Build und Gerätetest offen. Siehe `EXIT_FIX_V0567_IMPLEMENTATION.md`.
