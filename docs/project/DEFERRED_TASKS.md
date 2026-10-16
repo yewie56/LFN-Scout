@@ -384,3 +384,9 @@ Die Kennzeichnung **R01–R07, O01–O08 und A01–A05** können wir künftig al
 - [ ] Falls Installation scheitert: genaue Android-Paketinstallationsmeldung sammeln, insbesondere Paketkennung und Signaturkonflikt; keine produktiven Setups löschen.
 
 - AP27: Hardwareprüfung des neuen Mikrofon-/Standortberechtigungsdialogs (Neustart bei bereits erteilten Berechtigungen, Ablehnung/„Später“, ungefähre Ortung) steht aus. Keine erneute Promptanzeige bei bereits erteilten Rechten.
+
+## Offene Abnahme v0.5.67
+
+- E567-01: GitHub-TEST-Compile und JUnit durchführen.
+- E567-02: Integrierten Android-Self-Test und Geräte-Exit-Matrix durchführen.
+- E567-03: MON-JSON-Persistenz bei Weiterlaufen/Stoppen und Rolling-Datenkontinuität nachweisen.

@@ -133,6 +133,9 @@ internal fun LiveAnalyzerScreen(
     var keyTestBusy by remember { mutableStateOf(false) }
     var keyTestResult by remember { mutableStateOf("Noch kein Test durchgeführt") }
     var exitConfirmOpen by remember { mutableStateOf(false) }
+    var exitSaveFailure by remember { mutableStateOf(false) }
+    var exitAfterFailureKeepRunning by remember { mutableStateOf(false) }
+    var exitSaveFailureText by remember { mutableStateOf("") }
     var monRecRunning by remember { mutableStateOf(false) }
     var monRecStatus by remember { mutableStateOf("") }
     var monLocalOnly by remember { mutableStateOf(context.getSharedPreferences("mon_rec_053",Context.MODE_PRIVATE).getBoolean("only_local",true)) }
@@ -170,34 +173,84 @@ internal fun LiveAnalyzerScreen(
     var modeBusy by remember { mutableStateOf(false) }
     var modeError by remember { mutableStateOf("") }
     val modeScope = rememberCoroutineScope()
-    fun finishLeavePanel() {
-        if (state.running) { onBack(); return } // Panel change while running NEVER changes the source.
+    // Save live DSP/MON values before exiting. A failed save requires explicit user choice.
+    fun persistBeforeExit(): Boolean {
+        val result = AnalyzerActiveSetupPersistence.saveOnAnalyzerExit(context)
+        if (result.isFailure) {
+            exitSaveFailureText = "Analyzer-Setup konnte nicht gespeichert werden: " +
+                (result.exceptionOrNull()?.message ?: "unbekannter Fehler")
+            exitSaveFailure = true
+            return false
+        }
+        return true
+    }
+    fun stopAndLeave() {
+        exitConfirmOpen = false
         modeScope.launch {
+            if (monRecRunning) {
+                monRecRunning = false
+                val archived = AnalyzerMonitorRecording.stop(context)
+                if (archived != null && !monLocalOnly)
+                    runCatching { onAnalyzerAudioArchived(archived) }
+            }
+            AnalyzerMonitor.stop()
+            AnalyzerModeCoordinator.stopMeasurement(context)
+            state = LiveAnalyzerController.snapshot()
             val left = AnalyzerModeCoordinator.finishStopped(context)
-            if (left) { onAudioModeChanged(); onBack() }
-            else modeError = "Analyzer muss vor dem Beenden gestoppt sein"
+            if (left) {
+                onAudioModeChanged()
+                onBack()
+            } else modeError = AnalyzerModeCoordinator.error.ifBlank {
+                "Analyzer-/Rolling-Stopp nicht abgeschlossen"
+            }
         }
     }
     fun leavePanel() { exitConfirmOpen = true }
+    if (exitSaveFailure) AlertDialog(
+        onDismissRequest = { exitSaveFailure = false },
+        title = { Text("Speichern fehlgeschlagen") },
+        text = { Text("$exitSaveFailureText\n\nBeim Verlassen ohne Speichern können Änderungen verloren gehen.") },
+        confirmButton = { TextButton(onClick = {
+            exitSaveFailure = false
+            if (persistBeforeExit()) {
+                if (exitAfterFailureKeepRunning) { exitConfirmOpen = false; onBack() }
+                else stopAndLeave()
+            }
+        }) { Text("Erneut speichern") } },
+        dismissButton = { Row {
+            TextButton(onClick = {
+                exitSaveFailure = false
+                if (exitAfterFailureKeepRunning) { exitConfirmOpen = false; onBack() }
+                else stopAndLeave()
+            }) { Text("Trotzdem verlassen") }
+            TextButton(onClick = { exitSaveFailure = false; exitConfirmOpen = false }) { Text("Abbrechen") }
+        } }
+    )
     BackHandler(enabled = !settings) { leavePanel() }
-    if(exitConfirmOpen) AlertDialog(onDismissRequest={exitConfirmOpen=false},
-        title={Text("Analyzer verlassen?")},
-        text={Text("Soll der Analyzer im Hintergrund weiterlaufen? Standard: Nein")},
-        confirmButton={TextButton(onClick={exitConfirmOpen=false;finishLeavePanel()}) {Text("Ja – weiterlaufen")} },
-        dismissButton={Row {
-            TextButton(onClick={exitConfirmOpen=false;modeScope.launch {
-                if(monRecRunning) {
-                    monRecRunning=false
-                    val archived=AnalyzerMonitorRecording.stop(context)
-                    if(archived!=null && !monLocalOnly) runCatching { onAnalyzerAudioArchived(archived) }
+    if (exitConfirmOpen && !exitSaveFailure) AlertDialog(
+        onDismissRequest = { exitConfirmOpen = false },
+        title = { Text("Analyzer verlassen?") },
+        text = { Text("Soll der Analyzer im Hintergrund weiterlaufen? Standard: Nein") },
+        confirmButton = {
+            TextButton(onClick = {
+                exitAfterFailureKeepRunning = true
+                if (persistBeforeExit()) {
+                    exitConfirmOpen = false
+                    // Only the visible route changes; PCM subscription and Rolling live on.
+                    onBack()
                 }
-                AnalyzerMonitor.stop()
-                LiveAnalyzerController.stop()
-                state=LiveAnalyzerController.snapshot()
-                finishLeavePanel()
-            }}) {Text("Nein – stoppen")}
-            TextButton(onClick={exitConfirmOpen=false}) {Text("Abbrechen")}
-        }})
+            }) { Text("Ja – weiterlaufen") }
+        },
+        dismissButton = {
+            Row {
+                TextButton(onClick = {
+                    exitAfterFailureKeepRunning = false
+                    if (persistBeforeExit()) stopAndLeave()
+                }) { Text("Nein – stoppen") }
+                TextButton(onClick = { exitConfirmOpen = false }) { Text("Abbrechen") }
+            }
+        }
+    )
     if(keyTestOpen) AlertDialog(onDismissRequest={if(!keyTestBusy)keyTestOpen=false},
         title={Text("Supabase-Schlüsseltest")},
         text={Column {
@@ -208,10 +261,7 @@ internal fun LiveAnalyzerScreen(
     DisposableEffect(Unit) {
         AnalyzerRouteTracker.start()
         onDispose {
-            AnalyzerActiveSetupPersistence.saveOnAnalyzerExit(context).onFailure {
-                android.util.Log.e("LFN-Setup", "Aktives JSON-Setup beim Analyzer-Verlassen nicht gespeichert", it)
-            }
-            AnalyzerMonitor.stop()
+            // Navigation to Scout is not an analyzer STOP command.
             AnalyzerRouteTracker.stop()
         }
     }

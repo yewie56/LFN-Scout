@@ -35,7 +35,7 @@ internal object AnalyzerModeCoordinator {
             return false
         }
         val store = ReminderSettingsStore(context.applicationContext)
-        originalRolling = store.settingsFlow.first().rollingBufferEnabled
+        originalRolling = RollingAudioEngine.isRunning
         AnalyzerAudioTrace.write(context, "ORIGINAL_SAVED", "originalRolling=$originalRolling chosen=$chosen")
         // Save state before either temporary change, including for crash recovery.
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
@@ -185,11 +185,15 @@ internal object AnalyzerModeCoordinator {
         // Reconcile the stale wideband controller configuration synchronously even
         // if starting Rolling is still asynchronous. The UI can recompose immediately.
         LiveAnalyzerController.configureMode(context, false)
-        if (originalRolling) {
-            for (i in 0 until 120) {
-                if (RollingAudioEngine.isRunning && MicCaptureArbiter.owner == "rolling") break
-                delay(50)
-            }
+        // Both start and stop requests are asynchronous. Confirm the final resource
+        // state before returning; otherwise the first exit falsely fails and a second
+        // back-arrow press succeeds only after the stop request catches up.
+        for (i in 0 until 120) {
+            val ready = if (originalRolling)
+                RollingAudioEngine.isRunning && MicCaptureArbiter.owner == "rolling"
+            else !RollingAudioEngine.isRunning && MicCaptureArbiter.owner == null
+            if (ready) break
+            delay(50)
         }
         val restored = if (originalRolling) RollingAudioEngine.isRunning && MicCaptureArbiter.owner == "rolling"
             else MicCaptureArbiter.owner == null && !RollingAudioEngine.isRunning

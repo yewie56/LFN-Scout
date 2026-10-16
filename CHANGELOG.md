@@ -1,3 +1,12 @@
+# v0.5.67 / versionCode 225 – Analyzer-Verlassen und MON-Persistenz (16.10.2026)
+
+- Beide Analyzer-Verlassen-Aktionen sichern aktuelle Analyzer- und MON-Werte vor Audio-Teardown und Navigation in die aktive benannte JSON-Datei. Bei Schreibfehler Warn-Popup mit Wiederholen, Trotzdem verlassen und Abbrechen; eine ausdrückliche Entscheidung kann den Verlassen-Vorgang fortsetzen.
+- Weiterlaufen: Analyzer, MON und Rolling im Hintergrund weiter aktiv; nur die Scout-Oberfläche wird angezeigt.
+- Stoppen: einmaliger, geordneter Ablauf ohne verschachtelte Exit-Coroutine. Rolling wird ausschließlich beendet, wenn es vor Analyzer-Start nicht aktiv war; beide asynchronen Wiederherstellungsrichtungen werden bestätigt.
+- Setupwechsel: JSON wird nur bei Änderungen geschrieben; bei Fehlschlag Warn-Popup mit Erneut speichern, Trotzdem wechseln (Änderungen verwerfen), Abbrechen (beibehalten).
+- Regression: 17/17 statische Verträge PASS. Gradle/JUnit und Android-Gerät-Self-Test noch offen; keine REGULAR-Freigabe.
+- Details: `docs/project/EXIT_FIX_V0567_IMPLEMENTATION.md`.
+
 - Build-Korrektur nach GitHub Actions Run 38922482903: Companion-Object-Funktion `AnalyzerStoppedJsonControllerPort.applyCombinedDraft` korrekt statisch aufgerufen; vorher unerreichbarer Instanz-Aufruf verursachte `Unresolved reference`. Android-Neubuild noch ausstehend.
 
 # v0.5.66 / versionCode 224 – Analyzer-Setupwechsel bei Rolling (16.10.2026)

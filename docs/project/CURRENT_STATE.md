@@ -1,3 +1,7 @@
+# v0.5.67 – Quellkandidat / offene Abnahme
+
+Gezielte Korrektur MON-Persistenz bei Analyzer-Verlassen sowie Stoppen/Weiterlaufen einschließlich ursprünglicher Rolling-Herkunft. Fehlerhafte JSON-Speicherung zeigt ein Warn-Popup (erneut speichern/trotzdem fortfahren/abbrechen); unveränderte Setups erzeugen keine Schreiboperation. Statische Tests bestanden, Android-Gradle-Build und Gerätetest offen. Siehe `EXIT_FIX_V0567_IMPLEMENTATION.md`.
+
 # v0.5.66 / versionCode 224 – Analyzer-Setupwechsel bei Rolling (16.10.2026)
 
 - 8-kHz-Rolling-Aufnahme ist bei STOP kein pauschaler Sperrgrund für die Analyzer-JSON-Entwurfsübernahme mehr; die erwartete Mikrofon-Eigentümerschaft `rolling` wird ausdrücklich geprüft. Fremde Besitzer, Direct-Audio, MON-Aufnahme, aktive MON-Ausgabe und Preview bleiben gesperrt. Sicherheitsmarker für Rolling werden nur bei nachgewiesenem Rolling-Eigentümer selektiv ausgeklammert.

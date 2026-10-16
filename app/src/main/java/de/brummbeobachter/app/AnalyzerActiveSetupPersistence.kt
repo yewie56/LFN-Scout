@@ -15,6 +15,13 @@ internal object AnalyzerActiveSetupPersistence {
         val analyzer = AnalyzerRuntimeSetupSnapshot.capture(LiveAnalyzerController.snapshot())
         val monitor = AnalyzerMonitor.snapshotSetupParameters()
         val groups = JSONObject(doc.getJSONObject("parameters").toString())
+        val previousAnalyzer = groups.optJSONObject("legacy")
+        val previousMonitor = groups.optJSONObject("monitor")
+        if (previousAnalyzer != null && previousMonitor != null &&
+            previousAnalyzer.toString() == analyzer.toString() &&
+            previousMonitor.toString() == monitor.toString()) {
+            return@runCatching false // No changes: avoid unnecessary flash writes.
+        }
         groups.put("legacy", analyzer)
         groups.put("monitor", monitor)
         doc.put("parameters", groups)

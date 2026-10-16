@@ -17,6 +17,8 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -38,16 +40,18 @@ internal fun AnalyzerSimpleSetupPanel(context: Context) {
     var menuOpen by remember { mutableStateOf(false) }
     var createName by remember { mutableStateOf("") }
     var notice by remember { mutableStateOf("") }
+    var failedSwitchId by remember { mutableStateOf<String?>(null) }
+    var failedSwitchReason by remember { mutableStateOf("") }
     val ink = Color(0xFF25384C)
     val sky = Color(0xFFF0F5FA)
     fun refresh() { listing = runCatching { repo.listing() }.getOrNull(); selectedId = listing?.activeId }
     fun saveCurrent(): Boolean {
         val result = AnalyzerActiveSetupPersistence.saveOnAnalyzerExit(context)
-        if (result.getOrNull() != true)
-            notice = "Vorheriges Setup konnte nicht gespeichert werden: ${result.exceptionOrNull()?.message ?: "kein aktives JSON-Setup"}"
-        return result.getOrNull() == true
+        if (result.isFailure)
+            notice = "Vorheriges Setup konnte nicht gespeichert werden: ${result.exceptionOrNull()?.message ?: "unbekannter Fehler"}"
+        return result.isSuccess
     }
-    fun selectDraft(id: String) {
+    fun selectDraft(id: String, discardUnsaved: Boolean = false) {
         if (id == repo.listing().activeId) {
             selectedId = id
             notice = "Dieses Setup ist bereits zugeordnet."
@@ -58,7 +62,11 @@ internal fun AnalyzerSimpleSetupPanel(context: Context) {
             notice = "Setupwechsel nur bei STOP und ausgeschaltetem MON möglich"
             return
         }
-        if (!saveCurrent()) return
+        if (!discardUnsaved && !saveCurrent()) {
+            failedSwitchId = id
+            failedSwitchReason = notice
+            return
+        }
         runCatching {
             val groups = repo.load(id).getJSONObject("parameters")
             val analyzer = groups.optJSONObject("legacy") ?: error("Analyzer-Daten fehlen")
@@ -76,6 +84,33 @@ internal fun AnalyzerSimpleSetupPanel(context: Context) {
                 is AnalyzerSetupSwitchTransaction.Outcome.Failed -> error("${outcome.reason} (Rücknahme: ${outcome.rollbackSucceeded})")
             }
         }.onFailure { notice = "Setup nicht übernommen: ${it.message}" }
+    }
+    if (failedSwitchId != null) {
+        AlertDialog(
+            onDismissRequest = { failedSwitchId = null },
+            title = { Text("Speichern fehlgeschlagen") },
+            text = { Text("$failedSwitchReason\n\nWenn du das Setup trotzdem wechselst, gehen die nicht gespeicherten Änderungen verloren.") },
+            confirmButton = {
+                TextButton(onClick = {
+                    val id = failedSwitchId ?: return@TextButton
+                    failedSwitchId = null
+                    if (!saveCurrent()) {
+                        failedSwitchId = id
+                        failedSwitchReason = notice
+                    } else selectDraft(id, discardUnsaved = true)
+                }) { Text("Erneut speichern") }
+            },
+            dismissButton = {
+                Row {
+                    TextButton(onClick = {
+                        val id = failedSwitchId ?: return@TextButton
+                        failedSwitchId = null
+                        selectDraft(id, discardUnsaved = true)
+                    }) { Text("Trotzdem wechseln") }
+                    TextButton(onClick = { failedSwitchId = null }) { Text("Abbrechen") }
+                }
+            }
+        )
     }
     val data = listing
     Column(

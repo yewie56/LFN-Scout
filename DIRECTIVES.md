@@ -1,3 +1,7 @@
+# Ergänzung v0.5.67 – Release-Gates
+
+Alle neuen und geänderten Dateien vor ZIP-Auslieferung auf Git-Whitespace-Konformität prüfen; nach einem fehlgeschlagenen Build neuen Build erst nach Ursachenbehebung anfordern. Statische Prüfungen niemals als erfolgreiche Android-Kompilierung deklarieren.
+
 # Übergabestatus v0.5.40 – 11.10.2026 (Dokumentationsnachtrag, Android unverändert)
 
 **Aktueller Quellstand:** v0.5.40 / versionCode 187. **Letzter nachgewiesener Android-Windows-Build:** v0.5.39 PASS. **v0.5.40 Android-Build offen.** Offline-Python-Filterbankreport unter Windows 330/330 PASS (Nutzerbericht 11.10.2026 23:48:52). Python-Startfehler und Quoting-Fehler des BAT-Starters sind in dieser Übergabekopie korrigiert. 24-h-Cloud-Queue/Neustart unter v0.5.37/.38 geräteseitig teilweise bestätigt, tatsächliche fristgerechte Löschung und Cloud-Datenbankabgleich offen. **v0.5.41 mit Legacy-/Butterworth-/FFT-Vergleich geplant, noch nicht implementiert.** Vollständige Übergabe: `docs/project/HANDOVER_v0.5.40_2026-10-11.md`.

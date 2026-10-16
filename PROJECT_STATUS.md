@@ -1,3 +1,7 @@
+# v0.5.67 – Quellkandidat
+
+Analyzer-Exit und MON-JSON-Sicherung korrigiert. Lokale statische Regression bestanden; GitHub TEST/Kotlin-Compile, integrierter Self-Test und Hardwareabnahme stehen aus.
+
 # v0.5.65 / versionCode 223 – Setup-Auswahl und Status sichtbar (16.10.2026)
 
 - Analyzer zeigt die **zugeordnete** benannte JSON-Setup-Datei dauerhaft oberhalb der eigentlichen Anzeige; Status ist bewusst nicht als bestätigter Messstart gekennzeichnet.
