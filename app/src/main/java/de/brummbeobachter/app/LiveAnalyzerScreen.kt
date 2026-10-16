@@ -115,26 +115,39 @@ internal fun LiveAnalyzerScreen(
     // Never invoke mode restore/begin here: both may stop or reset Rolling.
     var resumeAfterNamedSetups by remember { mutableStateOf(false) }
     var restorePauseAfterNamedSetups by remember { mutableStateOf(false) }
+    // An intentional short analyzer-only STOP must never be mistaken for final STOP.
+    var transientAnalyzerStop by remember { mutableStateOf(false) }
     var setupTransitionBusy by remember { mutableStateOf(false) }
     var setupTransitionMessage by remember { mutableStateOf("") }
     val setupTransitionScope = rememberCoroutineScope()
     fun selectSettingsSection(target: String?) {
         if (setupTransitionBusy || settingsSection == target) return
-        if (target == "Setups" && settingsSection != "Setups") {
+        // Setups require STOP for named JSON changes. Filterbank requires STOP only
+        // for filter configuration; both share this one bounded transition.
+        val requiresAnalyzerStop = target == "Setups" || target == "Filterbank"
+        val leavingStoppedPanel = settingsSection == "Setups" || settingsSection == "Filterbank"
+        if (requiresAnalyzerStop && !leavingStoppedPanel) {
             val previousState = LiveAnalyzerController.snapshot()
             resumeAfterNamedSetups = previousState.running
             restorePauseAfterNamedSetups = previousState.paused
             setupTransitionMessage = ""
             if (resumeAfterNamedSetups) {
+                // Keep the PCM source, rolling buffer and MON subscription alive.
+                transientAnalyzerStop = true
                 AnalyzerModeCoordinator.stopMeasurement(context)
                 state = LiveAnalyzerController.snapshot()
             }
             settingsSection = target
             return
         }
-        val leavingNamedSetups = settingsSection == "Setups" && target != "Setups"
+        // Moving directly between two STOP-required panels must not restart the
+        // analyzer in the middle of an editable setup/filter operation.
+        if (requiresAnalyzerStop && leavingStoppedPanel) {
+            settingsSection = target
+            return
+        }
         settingsSection = target
-        if (leavingNamedSetups && resumeAfterNamedSetups) {
+        if (leavingStoppedPanel && resumeAfterNamedSetups) {
             resumeAfterNamedSetups = false
             setupTransitionBusy = true
             setupTransitionScope.launch {
@@ -149,12 +162,15 @@ internal fun LiveAnalyzerScreen(
                         (ex.message ?: ex.javaClass.simpleName)
                     state = LiveAnalyzerController.snapshot()
                 } finally {
+                    transientAnalyzerStop = false
                     setupTransitionBusy = false
                     restorePauseAfterNamedSetups = false
                 }
             }
-        } else if (leavingNamedSetups) {
+        } else if (leavingStoppedPanel) {
+            transientAnalyzerStop = false
             resumeAfterNamedSetups = false
+            restorePauseAfterNamedSetups = false
         }
     }
     fun backFromSettings() {
@@ -339,7 +355,9 @@ internal fun LiveAnalyzerScreen(
         }
     }
     LaunchedEffect(state.running) {
-        if(!state.running && AnalyzerMonitor.enabled) {
+        // The setup/filter STOP is temporary. MON keeps its current live
+        // subscription and EIN/AUS state while rolling continues to capture PCM.
+        if(!state.running && !transientAnalyzerStop && AnalyzerMonitor.enabled) {
             if(monRecRunning) { modeScope.launch { AnalyzerMonitorRecording.stop(context) }; monRecRunning=false }
             AnalyzerMonitor.stop()
             monitoring=false;monitoringShift=false
@@ -572,8 +590,8 @@ internal fun LiveAnalyzerScreen(
             if (setupTransitionMessage.isNotBlank()) {
                 Text(setupTransitionMessage, color=Color(0xFFFF6655), fontSize=12.sp)
             }
-            if (settingsSection == "Setups") {
-                Text("Analyzer für Setupwechsel angehalten; laufendes Rolling bleibt aktiv. " +
+            if (settingsSection == "Setups" || settingsSection == "Filterbank") {
+                Text("Analyzer für Setup-/Filteränderung angehalten; laufendes Rolling bleibt aktiv. " +
                     "Die Analyzer-Statistik erhält in dieser Zeit keine neuen Werte. " +
                     "Bei Rückkehr erfolgt der Neustart nur, wenn RUN zuvor aktiv war.",
                     color=cyan, fontSize=12.sp)

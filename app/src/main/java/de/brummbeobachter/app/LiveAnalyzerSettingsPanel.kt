@@ -354,8 +354,10 @@ internal fun LiveAnalyzerSettingsPanel(
                         OutlinedTextField(value=count,onValueChange={count=it},label={Text("Anzahl Filter 2–40 (Standard 10)")},
                             singleLine=true,keyboardOptions=KeyboardOptions(keyboardType=KeyboardType.Number),
                             textStyle=TextStyle(color=white))
-                        if(state.running) SettingNote("Filtergrenzen und Anzahl ändern: zuerst STOP. ORIGINAL/FILTER bleiben während Messung umschaltbar.")
-                        else Button(onClick={
+                        // Analyzer is automatically stopped when this panel opens.
+                        // The controller still guards against unexpected RUN races.
+                        if(state.running) SettingNote("Analyzer wird für Filterkonfiguration angehalten.")
+                        Button(onClick={
                             val low=minimum.toDoubleOrNull();val high=maximum.toDoubleOrNull();val n=count.toIntOrNull()
                             if(low==null||high==null||n==null || runCatching { FastFilterBank.Config(low,high,n) }.isFailure)
                                 filterError="Gültig: 0 ≤ MIN < MAX ≤ 200 Hz; 2–40 Filter"

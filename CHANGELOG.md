@@ -1,3 +1,10 @@
+# v0.5.72 / versionCode 230 – MON-Erhalt bei Setup-STOP und Filterbank-Automatik (Quellkandidat)
+
+- F71-01: Der bisherige MON-Auto-STOP bei `state.running=false` wird ausschließlich während des kontrollierten, vorübergehenden Analyzer-STOP für Setups/Filterbank ausgesetzt. MON-EIN/AUS und aktuelle MON-Parameter bleiben erhalten; der normale finale Analyzer-STOP behält die bisherige MON-Abschaltung. Kein Eingriff in Rolling-Erfassung oder PCM-Puffer.
+- F71-02: Beim Öffnen der Filterbank aus RUN Analyzer-Auswertung einmalig STOP, mehrere Filterwerte bei STOP übernehmen, beim Verlassen nur falls zuvor RUN automatisch RUN. Direkter Wechsel zwischen Setups und Filterbank benötigt keinen unnötigen Zwischen-Neustart; vorheriges STOP/PAUSE-Verhalten bleibt berücksichtigt.
+- Längere Analyzer-Pausen führen weiterhin zu Analyzer-Statistiklücken. Statistik-Abdeckungs-CSV, sichere Audioquellenwechsel und andere STOP-pflichtige Parameter sind nicht Bestandteil dieser gezielten Fehlerkorrektur.
+- Android-Build und Gerätetests noch nicht bestätigt; die Tests dieses Kandidaten sind gesondert dokumentiert.
+
 # v0.5.71 / versionCode 229 – MON-Bereich und automatische Setup-Pause (Quellkandidat)
 
 - Eigenständige MON-&-Audio-Navigationskarte; bisherige MON-Bedienelemente werden in diesem Bereich eingeblendet, die bisherigen Steueraufrufe bleiben unverändert.
