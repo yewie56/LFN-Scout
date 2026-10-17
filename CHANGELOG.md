@@ -1,3 +1,10 @@
+# v0.5.73 / versionCode 231 – Recovery des Analyzer-Wiederanlaufs (Quellkandidat)
+
+- F72-02: Reproduzierter Crash vom 17.10.2026, 10:09:47, `IllegalStateException` bei `AnalyzerNamedSetupStart.start()` nach temporärem Filterbank-STOP mit aktivem MON. Der Wiederanlauf in ROLLING_8K lädt deshalb nicht nochmals das aktive benannte JSON, sondern startet per unmittelbar aufgenommenem STOP-Konfigurationscheckpoint (`startFromStoppedConfiguration`). Dadurch bleibt auch die zuvor übernommene Filterbankkonfiguration unverändert; Rolling-Audioerfassung und MON werden dabei nicht gezielt angehalten.
+- Für automatische UND manuelle RUN-Aufrufe über `AnalyzerModeCoordinator.restartMeasurement()` werden synchrone Start-Exceptions protokolliert und als Fehlerstatus zurückgegeben, nicht mehr ungefangen in die Compose-Coroutine geworfen. Direkt-/Testmodus-Aufrufe bleiben funktional weitgehend unverändert.
+- Fehler bei tatsächlicher Setup-Aktivierung bleiben strikt gesperrt; bestehende Sicherheitsprüfung für neues JSON nicht abgeschwächt.
+- Offen: Reproduzierter Geräte-Test mit MON + Rolling, Filterbank-Persistenz, normaler Setupwechsel, Kotlin/Android-GitHub-Build sowie expliziter Test für den unwahrscheinlichen Start-Fehler nach teilweiser Ressourcenbelegung. Dies ist KEINE freigegebene stabile Version.
+
 # v0.5.72 / versionCode 230 – MON-Erhalt bei Setup-STOP und Filterbank-Automatik (Quellkandidat)
 
 - F71-01: Der bisherige MON-Auto-STOP bei `state.running=false` wird ausschließlich während des kontrollierten, vorübergehenden Analyzer-STOP für Setups/Filterbank ausgesetzt. MON-EIN/AUS und aktuelle MON-Parameter bleiben erhalten; der normale finale Analyzer-STOP behält die bisherige MON-Abschaltung. Kein Eingriff in Rolling-Erfassung oder PCM-Puffer.

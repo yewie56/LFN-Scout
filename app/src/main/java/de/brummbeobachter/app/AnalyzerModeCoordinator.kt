@@ -132,40 +132,70 @@ internal object AnalyzerModeCoordinator {
         AnalyzerAudioTrace.write(context, "STOP_DONE", "mode=$mode owner=${MicCaptureArbiter.owner} rolling=${RollingAudioEngine.isRunning}")
     }
 
+    /** Resume an existing analyzer session. Never reload the active named JSON on resume:
+     * it is already applied, and its strict STOP/MON guards are only valid for a
+     * genuine setup activation. This path does NOT stop or recreate Rolling PCM.
+     * Errors must be returned, never escape from a Compose coroutine.
+     */
     suspend fun restartMeasurement(context: Context): Boolean {
         AnalyzerAudioTrace.write(context, "RESTART_REQUEST", "mode=$mode owner=${MicCaptureArbiter.owner} rolling=${RollingAudioEngine.isRunning}")
-        if (mode == null) { error = "Keine Analyzer-Betriebsart"; return false }
-        if (mode in listOf(Mode.TEST_8K,Mode.TEST_48K)) {
-            if (!AnalyzerTestSignal.start(context, if (mode == Mode.TEST_48K)
-                context.getSharedPreferences("lfn_scout_live_analyzer", Context.MODE_PRIVATE)
-                    .getInt("mode_48_direct_sample_rate",48000) else 8000, mode == Mode.TEST_48K)) {
-                error = "Ungültiges digitales Testsignal für die gewählte Abtastrate"
-                return false
-            }
+        error = ""
+        val chosen = mode ?: run { error = "Keine Analyzer-Betriebsart"; return false }
+        if (LiveAnalyzerController.snapshot().running) {
+            AnalyzerAudioTrace.write(context, "RESTART_ALREADY_RUNNING", "mode=$chosen")
+            return true
         }
-        if (mode == Mode.DIRECT_48K) {
-            // STOP is asynchronous; never accept a still-closing microphone as a new start.
-            for (i in 0 until 120) {
-                if (MicCaptureArbiter.owner != "analyzer_48k") break
-                delay(50)
+        return try {
+            if (chosen in listOf(Mode.TEST_8K, Mode.TEST_48K)) {
+                val rate = if (chosen == Mode.TEST_48K)
+                    context.getSharedPreferences("lfn_scout_live_analyzer", Context.MODE_PRIVATE)
+                        .getInt("mode_48_direct_sample_rate", 48000) else 8000
+                if (!AnalyzerTestSignal.start(context, rate, chosen == Mode.TEST_48K)) {
+                    error = "Ungültiges digitales Testsignal für die gewählte Abtastrate"
+                    return false
+                }
             }
-            if (MicCaptureArbiter.owner == "analyzer_48k") {
-                error = "Direkteingang noch belegt"; return false
+            if (chosen == Mode.DIRECT_48K) {
+                for (i in 0 until 120) {
+                    if (MicCaptureArbiter.owner != "analyzer_48k") break
+                    delay(50)
+                }
+                if (MicCaptureArbiter.owner == "analyzer_48k") {
+                    error = "Direkteingang noch belegt"
+                    return false
+                }
+                if (!AnalyzerDirectAudioService.requestStart(context)) {
+                    error = AnalyzerDirectAudioService.lastError
+                    return false
+                }
+                for (i in 0 until 120) {
+                    if (AnalyzerDirectAudioService.isCapturing || AnalyzerDirectAudioService.lastError.isNotBlank()) break
+                    delay(50)
+                }
+                AnalyzerAudioTrace.write(context, "RESTART_DIRECT_RESULT", "capturing=${AnalyzerDirectAudioService.isCapturing} owner=${MicCaptureArbiter.owner} error=${AnalyzerDirectAudioService.lastError}")
+                if (!AnalyzerDirectAudioService.isCapturing) {
+                    error = AnalyzerDirectAudioService.lastError.ifBlank { "Direkt-Neustart Timeout" }
+                    return false
+                }
             }
-            if (!AnalyzerDirectAudioService.requestStart(context)) { error = AnalyzerDirectAudioService.lastError; return false }
-            for (i in 0 until 120) {
-                if (AnalyzerDirectAudioService.isCapturing || AnalyzerDirectAudioService.lastError.isNotBlank()) break
-                delay(50)
+            if (chosen == Mode.ROLLING_8K) {
+                // Do not reload named setups or old SharedPreferences here.
+                // Preserve the exact DSP/filterbank draft edited during STOP.
+                val checkpoint = LiveAnalyzerController.captureStoppedAnalyzerConfigCheckpoint()
+                LiveAnalyzerController.startFromStoppedConfiguration(context, checkpoint)
+            } else {
+                LiveAnalyzerController.start(context)
             }
-            AnalyzerAudioTrace.write(context, "RESTART_DIRECT_RESULT", "capturing=${AnalyzerDirectAudioService.isCapturing} owner=${MicCaptureArbiter.owner} error=${AnalyzerDirectAudioService.lastError}")
-            if (!AnalyzerDirectAudioService.isCapturing) {
-                error = AnalyzerDirectAudioService.lastError.ifBlank { "Direkt-Neustart Timeout" }
-                return false
-            }
+            AnalyzerAudioTrace.write(context, "RESTART_DONE", "mode=$chosen owner=${MicCaptureArbiter.owner} subscribers=${AnalyzerSessionGateway.rawPcm.activeSubscribers}")
+            true
+        } catch (failure: kotlinx.coroutines.CancellationException) {
+            // Lifecycle cancellation is not a recoverable restart failure.
+            throw failure
+        } catch (failure: Exception) {
+            error = failure.message ?: failure.javaClass.simpleName
+            AnalyzerAudioTrace.write(context, "RESTART_EXCEPTION", "mode=$chosen type=${failure.javaClass.simpleName} message=$error")
+            false
         }
-        if (mode == Mode.ROLLING_8K) AnalyzerNamedSetupStart.start(context) else LiveAnalyzerController.start(context)
-        AnalyzerAudioTrace.write(context, "RESTART_DONE", "mode=$mode owner=${MicCaptureArbiter.owner} subscribers=${AnalyzerSessionGateway.rawPcm.activeSubscribers}")
-        return true
     }
 
     private suspend fun restore(context: Context): Boolean {
