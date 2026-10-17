@@ -1,3 +1,10 @@
+# v0.5.74 / versionCode 232 – benannter Setupwechsel bei MON EIN (Quellkandidat)
+
+- F73-01: Der STOP-Panel-Setupwechsel speichert zunächst das aktive benannte JSON samt seinen unveränderten MON-Parametern; erst danach wird die laufende MON-Wiedergabe für die streng gesicherte Setup-Transaktion kurz angehalten und nach Erfolg oder Fehler mit dem zuvor gewählten EIN/AUS- und SHIFT-Zustand wieder aufgenommen. Bei Erfolg stammen MON-Parameter aus dem neuen Setup, bei Fehlern werden alte Analyzer-/MON-Parameter soweit möglich zurückgenommen.
+- Die Sicherheitsprüfung im STOP-Adapter ist **nicht** abgeschwächt; Rolling-PCM wird weder gestoppt noch neu initialisiert. Aktive MON-WAV-Aufzeichnungen bleiben aus Datensicherheitsgründen für Setupwechsel gesperrt, statt implizit beendet zu werden.
+- Setupwechsel bei bereits laufendem Analyzer bleibt weiterhin gesperrt; Öffnen der Setupseite stoppt die Analyzer-Auswertung automatisch. Bei fehlgeschlagener Speicherung gelten weiterhin Wiederholen/Trotzdem wechseln/Abbrechen.
+- Offene Prüfungen: vollständiger Android/Kotlin-Build, echtes MON+Rolling+Setupwechsel-Geräteszenario und Fehlerfall-/Rollback-Tests. Keine stabile Freigabe.
+
 # v0.5.73 / versionCode 231 – Recovery des Analyzer-Wiederanlaufs (Quellkandidat)
 
 - F72-02: Reproduzierter Crash vom 17.10.2026, 10:09:47, `IllegalStateException` bei `AnalyzerNamedSetupStart.start()` nach temporärem Filterbank-STOP mit aktivem MON. Der Wiederanlauf in ROLLING_8K lädt deshalb nicht nochmals das aktive benannte JSON, sondern startet per unmittelbar aufgenommenem STOP-Konfigurationscheckpoint (`startFromStoppedConfiguration`). Dadurch bleibt auch die zuvor übernommene Filterbankkonfiguration unverändert; Rolling-Audioerfassung und MON werden dabei nicht gezielt angehalten.

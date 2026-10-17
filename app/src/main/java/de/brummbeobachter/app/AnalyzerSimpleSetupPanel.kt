@@ -58,37 +58,65 @@ internal fun AnalyzerSimpleSetupPanel(context: Context) {
             notice = "Dieses Setup ist bereits zugeordnet."
             return
         }
-        // No implicit interruption of measurement/recording or MON.
         if (LiveAnalyzerController.snapshot().running) {
             runSwitchWarning = true
             return
         }
-        if (AnalyzerMonitor.enabled || AnalyzerMonitorRecording.isActive()) {
-            notice = "Setupwechsel nur bei ausgeschaltetem MON möglich"
+        // A MON WAV recording cannot safely be paused by this synchronous setup UI.
+        // Never close a recording or discard its data implicitly.
+        if (AnalyzerMonitorRecording.isActive()) {
+            notice = "MON-Aufnahme zuerst beenden; Rolling läuft weiter"
             return
         }
+        // Save the old JSON BEFORE temporarily switching off live MON. The JSON
+        // contains MON parameters; stopping playback must not rewrite them.
         if (!discardUnsaved && !saveCurrent()) {
             failedSwitchId = id
             failedSwitchReason = notice
             return
         }
-        runCatching {
+        val monWasEnabled = AnalyzerMonitor.enabled
+        val monWasShifted = AnalyzerMonitor.shifted
+        val oldAnalyzer = AnalyzerRuntimeSetupSnapshot.capture(LiveAnalyzerController.snapshot())
+        val oldMonitor = AnalyzerMonitor.snapshotSetupParameters()
+        try {
             val groups = repo.load(id).getJSONObject("parameters")
             val analyzer = groups.optJSONObject("legacy") ?: error("Analyzer-Daten fehlen")
             val monitor = groups.optJSONObject("monitor") ?: error("MON-Daten fehlen")
+            // STOP only the MON playback subscription while the strict setup
+            // transaction is in flight. The shared rolling PCM source is untouched.
+            if (monWasEnabled) AnalyzerMonitor.stop()
             val outcome = AnalyzerStoppedJsonControllerPort.applyCombinedDraft(analyzer, monitor)
             when (outcome) {
                 AnalyzerSetupSwitchTransaction.Outcome.Applied,
                 AnalyzerSetupSwitchTransaction.Outcome.Unchanged -> {
-                    // Commit active ID / MRU only after the complete STOP draft verifies.
                     repo.select(id)
                     refresh()
-                    notice = "Setup im STOP-Zustand übernommen. Beim nächsten RUN wird das benannte JSON-Setup geprüft geladen."
+                    notice = "Setup übernommen; MON und Rolling bleiben im bisherigen Betriebszustand."
                 }
                 is AnalyzerSetupSwitchTransaction.Outcome.Rejected -> error(outcome.reason)
                 is AnalyzerSetupSwitchTransaction.Outcome.Failed -> error("${outcome.reason} (Rücknahme: ${outcome.rollbackSucceeded})")
             }
-        }.onFailure { notice = "Setup nicht übernommen: ${it.message}" }
+        } catch (failure: Exception) {
+            // Restore both parameter sets if activation or commit fails.
+            val rollback = runCatching {
+                LiveAnalyzerController.applyStoppedJsonDraft(oldAnalyzer)
+                AnalyzerMonitor.applySetupDraft(oldMonitor)
+            }
+            notice = "Setup nicht übernommen: ${failure.message}" +
+                (if (rollback.isFailure) "; Rücknahme fehlgeschlagen: ${rollback.exceptionOrNull()?.message}" else "")
+        } finally {
+            // Preserve the user's explicit MON EIN/AUS and shift selection.
+            // New setup's MON parameter values apply on success; the previous
+            // values apply on failure. No start/stop of Rolling occurs here.
+            if (monWasEnabled) {
+                val restored = runCatching {
+                    check(AnalyzerMonitor.start(context)) { "MON-Neustart nicht möglich" }
+                    if (monWasShifted) AnalyzerMonitor.toggleShift()
+                }
+                if (restored.isFailure) notice += "; MON-Wiederanlauf fehlgeschlagen: ${restored.exceptionOrNull()?.message}"
+            }
+        }
     }
     if (runSwitchWarning) {
         AlertDialog(
