@@ -1,3 +1,7 @@
+## v0.5.83 – MON-Endzustand strenger abgesichert (Testkandidat, Android-Test offen)
+- `live_mon_state_restored` setzt nun zusätzlich finalen Analyzer-RUN-Zustand und intakte Rolling-Servicegeneration sowie unveränderte Start-/Stop-Zähler voraus. Keine SKIP→PASS-Umetikettierung.
+- Android-Laufzeittest und 10 SKIP offen.
+
 ## v0.5.79 – größerer Systemtest-Ausbau (QUELLKANDIDAT, kein freigegebenes Release)
 - Bestehender autonomer STOP/RUN- und Rolling-Kontinuitätstest aus 0.5.77 bleibt erhalten.
 - Erweiterte isolierte Repository-End-to-End-Prüfungen: A/B-Setup-Erstellung, MRU-Wechsel, MON-Unterscheidung, Filterbank 10/20, ungültiger Import; zusätzlich atomarer B-Save mit Repository-Neuöffnung, A-Isolation, MRU-Erhalt, Ablehnung ungültiger Schreibvorgänge ohne Beschädigung sowie Ablehnung fehlender Setup-ID ohne Indexänderung.

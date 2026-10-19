@@ -149,7 +149,15 @@ internal object PersistentSystemTest {
         val rollingIntegrity = if (logScopeAvailable && live.any { it.id == "live_scout_rolling_guard" && it.status == "PASS" }) {
             listOf(Result("live_no_rolling_lifecycle_change", if (unauthorizedRollingStop) "FAIL" else "PASS", "No Rolling stop, cleanup or restart events permitted during test; observed=$unauthorizedRollingStop"))
         } else listOf(Result("live_no_rolling_lifecycle_change", "SKIP", "Live Rolling prerequisite or complete run-scoped log unavailable"))
-        val report = Report(fixtures + wavResults + statistics + live + listOf(scopeResult) + rollingIntegrity + historical.results, scoped.size, System.currentTimeMillis(), "SAFE_LIVE_CYCLES_PLUS_RUN_SCOPED_LOG", runId, BuildConfig.VERSION_NAME)
+        // A run-scoped log may begin long after Rolling and Analyzer were started.
+        // Replace only those historical SKIPs with independently observed real live
+        // lifecycle evidence, never with the mere absence of an error message.
+        val reconciled = LiveEvidenceReconciliation.reconcile(
+            historical.results.map { LiveEvidenceReconciliation.Verdict(it.id, it.status, it.detail) },
+            (live + rollingIntegrity).map { LiveEvidenceReconciliation.Verdict(it.id, it.status, it.detail) },
+            logScopeAvailable
+        ).map { Result(it.id, it.status, it.detail) }
+        val report = Report(fixtures + wavResults + statistics + live + listOf(scopeResult) + rollingIntegrity + reconciled, scoped.size, System.currentTimeMillis(), "SAFE_LIVE_CYCLES_PLUS_RUN_SCOPED_LOG", runId, BuildConfig.VERSION_NAME)
         SystemTestArtifactStore.save(context, report)
         DebugLogger.log(context, "SYSTEMTEST_RESULT", "run_id=$runId pass=${report.passed} fail=${report.failed} skip=${report.skipped} mode=live_safe_plus_scoped_log")
         return report

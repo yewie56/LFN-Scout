@@ -134,14 +134,101 @@ internal object AutonomousRollingSystemTest {
             beforeAnalyzer.showFilterWaterfall == afterAnalyzer.showFilterWaterfall
         record("live_filterbank_survives_restart", if (!filterOk || filterMismatchDuringCycle) "FAIL" else if (failed) "SKIP" else "PASS",
             "Filterbank before=${beforeAnalyzer.filterMinHz}..${beforeAnalyzer.filterMaxHz} bands=${beforeAnalyzer.filterBandCount}; after=${afterAnalyzer.filterMinHz}..${afterAnalyzer.filterMaxHz} bands=${afterAnalyzer.filterBandCount}; mismatchDuringCycle=$filterMismatchDuringCycle")
-        val monOk = AnalyzerMonitor.enabled == beforeMon && AnalyzerMonitor.snapshotSetupParameters().toString() == beforeConfig
-        record("live_mon_state_restored", if (!monOk || monMismatchDuringCycle) "FAIL" else if (failed) "SKIP" else "PASS", "MON enabled before=$beforeMon after=${AnalyzerMonitor.enabled}; parameters ${if (monOk) "unchanged" else "changed"}")
-        record("live_mon_enabled_stop_restart", when {
-            !monOk || monMismatchDuringCycle -> "FAIL"
-            !beforeMon -> "SKIP"
+        // MON restoration is evaluated only AFTER the active MON probe and its finally block.
+        // Recording PASS here would miss failures in the later active probe teardown.
+        // A dedicated active MON probe is needed when MON was originally OFF.
+        // The normal three cycles above intentionally preserve the user's initial state.
+        // This phase uses real MON and Analyzer controllers, with guaranteed restoration.
+        var monProbeError: String? = null
+        var monProbeCompleted = false
+        if (!failed && !beforeMon) {
+            isTemporaryStopActive = true
+            try {
+                check(AnalyzerMonitor.start(context, preserveCurrentParameters = true)) { "MON start returned false" }
+                check(AnalyzerMonitor.enabled) { "MON did not enter enabled state" }
+                check(AnalyzerMonitor.snapshotSetupParameters().toString() == beforeConfig) {
+                    "MON start unexpectedly changed user parameters"
+                }
+                LiveAnalyzerController.stop()
+                delay(1200)
+                check(AnalyzerMonitor.enabled &&
+                    AnalyzerMonitor.snapshotSetupParameters().toString() == beforeConfig) {
+                    "MON state or parameters changed while Analyzer was STOP"
+                }
+                check(RollingAudioEngine.isRunning && MicCaptureArbiter.owner == "rolling") {
+                    "Rolling stopped during active MON test"
+                }
+                val stoppedRolling = RollingAudioEngine.continuity()
+                check(stoppedRolling.generation == beforeContinuity.generation &&
+                    stoppedRolling.starts == beforeContinuity.starts &&
+                    stoppedRolling.stops == beforeContinuity.stops) {
+                    "Rolling service restarted during MON-enabled Analyzer STOP"
+                }
+                check(AnalyzerModeCoordinator.restartMeasurement(context)) {
+                    "Analyzer restart failed during active MON test: ${AnalyzerModeCoordinator.error}"
+                }
+                delay(1700)
+                check(LiveAnalyzerController.snapshot().running && AnalyzerMonitor.enabled) {
+                    "Analyzer RUN / MON ON not restored after active MON test"
+                }
+                check(AnalyzerMonitor.snapshotSetupParameters().toString() == beforeConfig) {
+                    "MON parameters changed during active STOP/RUN probe"
+                }
+                check(RollingAudioEngine.isRunning && MicCaptureArbiter.owner == "rolling") {
+                    "Rolling interrupted after active MON test"
+                }
+                monProbeCompleted = true
+            } catch (c: CancellationException) {
+                monProbeError = "Cancelled during active MON probe"
+                throw c
+            } catch (t: Exception) {
+                monProbeError = "${t.javaClass.simpleName}: ${t.message}"
+            } finally {
+                withContext(NonCancellable) {
+                    try {
+                        runCatching { AnalyzerMonitor.stop() }
+                            .onFailure { monProbeError = "MON stop failed: ${it.message}" }
+                        if (!LiveAnalyzerController.snapshot().running &&
+                            AnalyzerModeCoordinator.mode == AnalyzerModeCoordinator.Mode.ROLLING_8K) {
+                            runCatching { AnalyzerModeCoordinator.restartMeasurement(context) }
+                                .onFailure { monProbeError = "Analyzer restore failed: ${it.message}" }
+                        }
+                    } finally {
+                        isTemporaryStopActive = false
+                    }
+                }
+            }
+        }
+        // The MON probe runs AFTER the original three-cycle analyzer snapshot.
+        // Validate the final live state, not the earlier snapshot, and require
+        // the unchanged Rolling service generation after MON teardown.
+        val finalAnalyzer = LiveAnalyzerController.snapshot()
+        val finalRolling = RollingAudioEngine.continuity()
+        val monProbeRollingIntact = RollingAudioEngine.isRunning &&
+            MicCaptureArbiter.owner == "rolling" &&
+            finalRolling.generation == beforeContinuity.generation &&
+            finalRolling.starts == beforeContinuity.starts &&
+            finalRolling.stops == beforeContinuity.stops
+        val monProbeRestored = AnalyzerMonitor.enabled == beforeMon &&
+            AnalyzerMonitor.snapshotSetupParameters().toString() == beforeConfig &&
+            finalAnalyzer.running && monProbeRollingIntact
+        // Restoration includes the productive Analyzer and Rolling ownership, not
+        // only the MON toggle. A teardown that leaves acquisition stopped is FAIL.
+        val monFinallyOk = AnalyzerMonitor.enabled == beforeMon &&
+            AnalyzerMonitor.snapshotSetupParameters().toString() == beforeConfig &&
+            finalAnalyzer.running && monProbeRollingIntact
+        record("live_mon_state_restored", when {
+            !monFinallyOk || monMismatchDuringCycle || monProbeError != null -> "FAIL"
             failed -> "SKIP"
             else -> "PASS"
-        }, if (!beforeMon) "MON was OFF at test start; STOP/RUN with MON enabled not exercised" else "MON was ON; STOP/RUN completed=$completed/3; state/parameters restored=$monOk")
+        }, "MON enabled before=$beforeMon after=${AnalyzerMonitor.enabled}; parametersRestored=$monFinallyOk; activeProbe=$monProbeCompleted; probeError=$monProbeError")
+        record("live_mon_enabled_stop_restart", when {
+            !monProbeRestored || monProbeError != null || monMismatchDuringCycle -> "FAIL"
+            failed -> "SKIP"
+            beforeMon && completed == 3 -> "PASS"
+            monProbeCompleted -> "PASS"
+            else -> "FAIL"
+        }, "Originally MON=$beforeMon; activeProbe=$monProbeCompleted; restored=$monProbeRestored; rollingIntact=$monProbeRollingIntact; error=$monProbeError")
         val afterContinuity = RollingAudioEngine.continuity()
         val afterReads = RollingAudioService.readAccounting.snapshot()
         val readEpochUnchanged = beforeReads.epoch != 0L && beforeReads.epoch == afterReads.epoch
@@ -161,8 +248,8 @@ internal object AutonomousRollingSystemTest {
         val rollingOk = !rollingInterrupted && RollingAudioEngine.isRunning && MicCaptureArbiter.owner == "rolling" &&
             beforeContinuity.starts == afterContinuity.starts && beforeContinuity.stops == afterContinuity.stops &&
             beforeContinuity.generation == afterContinuity.generation && afterContinuity.appended > beforeContinuity.appended
-        record("live_analyzer_run_restored", if (afterAnalyzer.running) "PASS" else "FAIL",
-            "Analyzer originally RUN=$wasRunning; after test RUN=${afterAnalyzer.running}; completed=$completed/3")
+        record("live_analyzer_run_restored", if (finalAnalyzer.running) "PASS" else "FAIL",
+            "Analyzer originally RUN=$wasRunning; FINAL RUN=${finalAnalyzer.running}; completed=$completed/3; MON probe=$monProbeCompleted")
         record("live_rolling_survives_analyzer", if (!rollingOk) "FAIL" else if (failed) "SKIP" else "PASS",
             "rolling=$rollingOk start_delta=${afterContinuity.starts - beforeContinuity.starts} stop_delta=${afterContinuity.stops - beforeContinuity.stops} generation_delta=${afterContinuity.generation - beforeContinuity.generation} appended_delta=${afterContinuity.appended - beforeContinuity.appended} buffer_before=${beforeBuffered}s buffer_after=${RollingAudioEngine.bufferedSeconds()}s")
         return out

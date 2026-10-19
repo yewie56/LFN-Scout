@@ -178,9 +178,9 @@ internal object AnalyzerMonitor {
             .putFloat("limit_ceiling",limiterCeilingDb.toFloat()).putFloat("limit_attack",limiterAttackMs.toFloat())
             .putFloat("limit_release",limiterReleaseMs.toFloat()).putFloat("fade",fadeSeconds.toFloat()).apply()
     }
-    fun start(context:Context):Boolean = synchronized(lock) {
+    fun start(context:Context, preserveCurrentParameters:Boolean = false):Boolean = synchronized(lock) {
         if(enabled)return true
-        if (!setupDraftActive) load(context)
+        if (!setupDraftActive && !preserveCurrentParameters) load(context)
         val engine = AnalyzerSessionGateway.rawPcm
         ramp=0.0;phase=0.0;rate=0;initialized=false
         compressorEnvelope=0.0;compressorGain=1.0;limiterEnvelope=0.0;limiterGain=1.0
