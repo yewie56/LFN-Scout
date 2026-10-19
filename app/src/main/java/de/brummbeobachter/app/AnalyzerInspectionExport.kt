@@ -190,7 +190,7 @@ internal object AnalyzerInspectionExport {
                 zip.write(content.toByteArray(Charsets.UTF_8))
                 zip.closeEntry()
             }
-            add("README.txt", "LFN-Scout v0.5.75 system test\nRead-only log replay, not a live automated UI test.\nSKIP means not validated.\n")
+            add("README.txt", "LFN-Scout v0.5.76 system test\nRead-only log replay, not a live automated UI test.\nSKIP means not validated.\n")
             add("systemtest_results.json", report.json())
             add("systemtest_results.csv", report.csv())
             add("systemtest.log", "${report.summary()}\n")

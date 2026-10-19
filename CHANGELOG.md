@@ -1,3 +1,12 @@
+# v0.5.76 / versionCode 234 – Systemtest: Rolling-Sitzungen sauber trennen (Quellkandidat)
+
+- F75-01: `rolling_counter_monotonic` wertet nur die letzte explizit protokollierte `AUDIO_DIAG_ROLLING_RECORDING_STARTED`-Sitzung aus. Reguläre Samplezähler-Neustarts einer neuen Rolling-Sitzung sind kein FAIL mehr.
+- Andere Log-Replay-Prüfungen ebenfalls auf diese jüngste Sitzung begrenzt, um historische Fehler nicht dem aktuellen Test zuzuordnen.
+- Sitzungsanzahl und Startposition werden in Ergebnisdetails ausgewiesen; `checkedLogLines` entspricht der ausgewerteten Teilmenge.
+- JVM-Regressionstests: unabhängige Sitzungen, echter Rücksprung innerhalb der letzten Sitzung, historische Neustartfehler.
+- Test bleibt read-only; keine automatische Bedienung, keine zusätzliche Audio- oder Setup-Manipulation. SKIP-Regeln bleiben erhalten.
+- Eine echte abgeschlossene Testlauf-Grenze sowie PCM-Blocksequenz-/Schreiblückenprüfung sind weiterhin offen.
+
 # v0.5.75 / versionCode 233 – permanentes Systemtest-Framework (erste Stufe, Quellkandidat)
 - Read-only Ereignislog-Auswertung in `PersistentSystemTest.kt` mit 12 PASS/FAIL/SKIP-Prüfungen, CSV/JSON.
 - Im Analyzer-Diagnosepanel dauerhaft verfügbare Schaltflächen für Start und ZIP-Export.

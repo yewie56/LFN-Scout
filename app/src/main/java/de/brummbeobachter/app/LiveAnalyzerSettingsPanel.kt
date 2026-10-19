@@ -961,7 +961,7 @@ internal fun LiveAnalyzerSettingsPanel(
                         }
                     }) { Text("Diagnose-ZIP exportieren", color=white) }
                     if (message.isNotBlank()) SettingNote(message)
-                    SettingNote("Automatischer Systemtest · dauerhaftes Testregister (v0.5.75). Prüft das interne Ereignislog ohne Einfluss auf Rolling, Setups oder Aufnahmen. Nicht belegbare Fälle bleiben SKIP.")
+                    SettingNote("Automatischer Systemtest · dauerhaftes Testregister (v0.5.76). Prüft das interne Ereignislog ohne Einfluss auf Rolling, Setups oder Aufnahmen. Nicht belegbare Fälle bleiben SKIP.")
                     OutlinedButton(onClick={
                         exportScope.launch {
                             message="Systemtest läuft …"
