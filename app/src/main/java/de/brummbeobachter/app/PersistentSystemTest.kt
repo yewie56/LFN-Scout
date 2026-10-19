@@ -115,6 +115,18 @@ internal object PersistentSystemTest {
             listOf(Result("isolated_wav_filesystem_roundtrip", "FAIL",
                 "Unhandled WAV fixture error: ${t.javaClass.simpleName}: ${t.message}"))
         }
+        val statistics = try {
+            kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) {
+                IsolatedStatisticsSystemTest.execute().map {
+                    Result(it.id, if (it.passed) "PASS" else "FAIL", it.detail)
+                }
+            }
+        } catch (c: kotlinx.coroutines.CancellationException) {
+            throw c
+        } catch (t: Exception) {
+            listOf(Result("isolated_statistics_fixture_error", "FAIL",
+                "Statistics fixture error: ${t.javaClass.simpleName}: ${t.message}"))
+        }
         val live = try {
             AutonomousRollingSystemTest.run(context, runId)
         } catch (c: kotlinx.coroutines.CancellationException) {
@@ -137,7 +149,7 @@ internal object PersistentSystemTest {
         val rollingIntegrity = if (logScopeAvailable && live.any { it.id == "live_scout_rolling_guard" && it.status == "PASS" }) {
             listOf(Result("live_no_rolling_lifecycle_change", if (unauthorizedRollingStop) "FAIL" else "PASS", "No Rolling stop, cleanup or restart events permitted during test; observed=$unauthorizedRollingStop"))
         } else listOf(Result("live_no_rolling_lifecycle_change", "SKIP", "Live Rolling prerequisite or complete run-scoped log unavailable"))
-        val report = Report(fixtures + wavResults + live + listOf(scopeResult) + rollingIntegrity + historical.results, scoped.size, System.currentTimeMillis(), "SAFE_LIVE_CYCLES_PLUS_RUN_SCOPED_LOG", runId)
+        val report = Report(fixtures + wavResults + statistics + live + listOf(scopeResult) + rollingIntegrity + historical.results, scoped.size, System.currentTimeMillis(), "SAFE_LIVE_CYCLES_PLUS_RUN_SCOPED_LOG", runId)
         SystemTestArtifactStore.save(context, report)
         DebugLogger.log(context, "SYSTEMTEST_RESULT", "run_id=$runId pass=${report.passed} fail=${report.failed} skip=${report.skipped} mode=live_safe_plus_scoped_log")
         return report
