@@ -32,9 +32,38 @@ internal object IsolatedSetupSystemTest {
             val list = repository.listing()
             record("isolated_setup_creation", list.entries.size == 2 && list.activeId == null,
                 "Two real versioned JSON setup files created in disposable cache; production repository not opened")
+            // Exercise the actual production index rollback API, including the
+            // previously unsupported null-active state; do not touch live MON.
+            val noSelection = repository.listing()
+            repository.select(a.id)
+            repository.restoreSelection(noSelection.activeId, noSelection.recent)
+            val noSelectionAgain = AnalyzerJsonSetupRepository(isolated).listing()
+            record("isolated_rollback_to_no_active_setup",
+                noSelectionAgain.activeId == null && noSelectionAgain.recent == noSelection.recent,
+                "Real repository index restored to no active setup after failed selection")
+            repository.select(a.id)
+            repository.select(b.id)
+            val beforeRollback = AnalyzerJsonSetupRepository(isolated).listing()
+            repository.select(a.id)
+            repository.restoreSelection(beforeRollback.activeId, beforeRollback.recent)
+            val afterRollback = AnalyzerJsonSetupRepository(isolated).listing()
+            record("isolated_rollback_restores_mru",
+                afterRollback.activeId == beforeRollback.activeId &&
+                afterRollback.recent == beforeRollback.recent,
+                "Real repository restores previous active ID and MRU ordering")
             repository.select(a.id)
             repository.select(b.id)
             repository.select(a.id)
+            val indexBeforeInvalidRestore = repository.listing()
+            val malformedRestoreRejected = runCatching {
+                repository.restoreSelection(a.id, listOf(a.id, a.id))
+            }.isFailure
+            val indexAfterInvalidRestore = AnalyzerJsonSetupRepository(isolated).listing()
+            record("isolated_invalid_rollback_keeps_index",
+                malformedRestoreRejected &&
+                    indexAfterInvalidRestore.activeId == indexBeforeInvalidRestore.activeId &&
+                    indexAfterInvalidRestore.recent == indexBeforeInvalidRestore.recent,
+                "Invalid duplicate MRU rollback rejected without changing committed index")
             val active = repository.listing()
             record("isolated_setup_mru_switch", active.activeId == a.id && active.recent.take(2) == listOf(a.id, b.id),
                 "A→B→A selection; active and MRU persisted to isolated repository index")
@@ -112,6 +141,29 @@ internal object IsolatedSetupSystemTest {
                 afterRejectedSave.listing().activeId == a.id &&
                 afterRejectedSave.exportCopy(a.id) == unchangedActiveBytes,
                 "Invalid active save rejected; B not selected; A bytes and active index preserved")
+
+            // Verify the actual persistent A/B/A repository path with a fresh
+            // repository instance at *each* selection.  Do not confuse this
+            // isolated persistence test with a live controller/MON test.
+            val verifiedA = AnalyzerJsonSetupRepository(isolated)
+            verifiedA.select(a.id)
+            val aMonitorLevel = AnalyzerJsonSetupRepository(isolated).load(a.id)
+                .getJSONObject("parameters").getJSONObject("monitor").getDouble("level")
+            val bSelection = AnalyzerJsonSetupRepository(isolated)
+            bSelection.select(b.id)
+            val bMonitorLevel = AnalyzerJsonSetupRepository(isolated).load(b.id)
+                .getJSONObject("parameters").getJSONObject("monitor").getDouble("level")
+            val finalSelection = AnalyzerJsonSetupRepository(isolated)
+            finalSelection.select(a.id)
+            val finalRepository = AnalyzerJsonSetupRepository(isolated)
+            val finalMonitorLevel = finalRepository.load(a.id)
+                .getJSONObject("parameters").getJSONObject("monitor").getDouble("level")
+            record("isolated_setup_ab_a_reopen_roundtrip",
+                finalRepository.listing().activeId == a.id &&
+                finalRepository.listing().recent.take(2) == listOf(a.id, b.id) &&
+                aMonitorLevel == changedLevel && finalMonitorLevel == changedLevel &&
+                bMonitorLevel != changedLevel,
+                "A→B→A selected using fresh repository instances, distinct persisted MON values checked, index/MRU recovered; no live controller changes")
 
             // Invalid edits must fail before the existing, valid JSON is replaced.
             val validBytes = reopened.exportCopy(b.id)

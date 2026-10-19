@@ -1,3 +1,8 @@
+## v0.5.87 / versionCode 245 – Setup-Repository-Rollback und Testintegrität (unfreigegebener Android-Testkandidat)
+- Integrierte Änderungen aus sechs Entwicklungsrunden: Validierungsanpassung des Statistik-Leerfenster-Tests, isolierte Repository-A/B/A-Tests mit Wiedereinlesen, Schreib-/Index-Rollback auch aus null-aktiver Auswahl, Schutz der produktiven Setup-Dateien mit SHA-256-Integritätsprüfung und Absicherung des MON-Setupwechsels.
+- **Noch nicht implementiert/verifiziert:** vollständiger aktiver Controller-/MON-Setup-A/B/A-Systemtest sowie produktive PCM-/WAV-Lücken- und Statistik-End-to-End-Prüfung.
+- Letzter Gerätestand v0.5.86: 43 PASS, 1 FAIL, 5 SKIP. Dieser neue Quellstand wurde nicht auf Android getestet.
+
 ## v0.5.83 – MON-Endzustand strenger abgesichert (Testkandidat, Android-Test offen)
 - `live_mon_state_restored` setzt nun zusätzlich finalen Analyzer-RUN-Zustand und intakte Rolling-Servicegeneration sowie unveränderte Start-/Stop-Zähler voraus. Keine SKIP→PASS-Umetikettierung.
 - Android-Laufzeittest und 10 SKIP offen.

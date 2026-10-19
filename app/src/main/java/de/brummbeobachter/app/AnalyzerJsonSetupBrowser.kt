@@ -115,27 +115,62 @@ internal fun AnalyzerJsonSetupBrowser(context: Context) {
         refresh()
     }.onFailure { warning = "Speichern fehlgeschlagen: ${it.message}" }.isSuccess
     fun activate(id: String) {
+        // An isolated MON draft switch is transactional: a failed index commit
+        // must not leave a different live MON draft active in memory.
+        val previousMonitor = AnalyzerMonitor.snapshotSetupParameters()
+        val previousDraftId = monDraftId
+        val previousBaseline = monBaseline
+        val previousSessionId = AnalyzerMonDraftSession.setupId
+        val previousSessionBaseline = AnalyzerMonDraftSession.baseline
+        val previousSelection = repository.listing()
+        val previousActiveId = previousSelection.activeId
         runCatching {
             check(AnalyzerDisplayPreviewSession.activeSetupId == null) {
                 "Anzeige-Vorschau zuerst speichern oder verwerfen"
             }
             check(!AnalyzerMonitorRecording.isActive()) { "MON-Aufnahme zuerst beenden" }
-            // No switching while the MON DSP is operating; prevents unexpected live jumps.
             check(!AnalyzerMonitor.enabled) { "MON vor dem Setupwechsel stoppen" }
             val doc = repository.load(id)
             val mon = doc.getJSONObject("parameters").optJSONObject("monitor")
                 ?: error("Dieses Setup enthält keine MON-Parameter")
-            // Reject partial MON payload, nulls and out-of-range values BEFORE changing runtime.
+            // Validate and apply through the actual production MON draft path.
             AnalyzerMonitor.applySetupDraft(mon)
-            monDraftId = id
-            monBaseline = AnalyzerMonitor.snapshotSetupParameters().toString()
-            AnalyzerMonDraftSession.setupId = id
-            AnalyzerMonDraftSession.baseline = monBaseline
-            warning = "MON-Entwurf geladen (nur MON; übriger Analyzer unverändert)."
-            // Track last selected MON draft only after successful application.
+            // Commit selection before publishing draft identity and success status.
             repository.select(id)
+            check(repository.listing().activeId == id) { "Setup-Index nicht bestätigt" }
+            val newBaseline = AnalyzerMonitor.snapshotSetupParameters().toString()
+            monDraftId = id
+            monBaseline = newBaseline
+            AnalyzerMonDraftSession.setupId = id
+            AnalyzerMonDraftSession.baseline = newBaseline
+            warning = "MON-Entwurf geladen (nur MON; übriger Analyzer unverändert)."
             refresh()
-        }.onFailure { warning = "MON-Entwurf nicht aktiviert: ${it.message}" }
+        }.onFailure { cause ->
+            val monitorRollback = runCatching {
+                AnalyzerMonitor.applySetupDraft(previousMonitor)
+                check(AnalyzerMonitor.snapshotSetupParameters().toString() == previousMonitor.toString()) {
+                    "MON-Rücknahme nicht bestätigt"
+                }
+            }
+            val indexRollback = runCatching {
+                if (repository.listing().activeId != previousActiveId ||
+                    repository.listing().recent != previousSelection.recent) {
+                    repository.restoreSelection(previousActiveId, previousSelection.recent)
+                }
+                check(repository.listing().activeId == previousActiveId &&
+                    repository.listing().recent == previousSelection.recent) {
+                    "Setup-Index-/MRU-Rücknahme fehlgeschlagen"
+                }
+            }
+            monDraftId = previousDraftId
+            monBaseline = previousBaseline
+            AnalyzerMonDraftSession.setupId = previousSessionId
+            AnalyzerMonDraftSession.baseline = previousSessionBaseline
+            refresh()
+            warning = "MON-Entwurf nicht aktiviert: ${cause.message}" +
+                (if (monitorRollback.isFailure) "; MON-Rücknahme FEHLGESCHLAGEN: ${monitorRollback.exceptionOrNull()?.message}" else "") +
+                (if (indexRollback.isFailure) "; Index-Rücknahme FEHLGESCHLAGEN: ${indexRollback.exceptionOrNull()?.message}" else "")
+        }
     }
     fun requestActivate(id: String) {
         if (AnalyzerDisplayPreviewSession.activeSetupId != null) {

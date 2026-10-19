@@ -66,13 +66,21 @@ internal object IsolatedStatisticsSystemTest {
             stats.stop()
             done.size == 1 && done.single().validEpochs == 1 && done.single().qualityStatus == "PARTIAL"
         }
-        check("isolated_statistics_empty_bucket", "Invalid-only bucket reports NO_DATA and no Leq") {
+        check("isolated_statistics_empty_bucket", "Invalid-only FFT input creates no bucket or fictitious statistics") {
             val done = mutableListOf<RollingHalfHourStatistics.HalfHourResult>()
             val stats = RollingHalfHourStatistics(onCompleted = { done.add(it) })
             stats.acceptFftEpoch(start, Double.NaN)
             stats.stop()
-            done.size == 1 && done.single().validEpochs == 0 &&
-                done.single().qualityStatus == "NO_DATA" && done.single().leqDbfs == null
+            done.isEmpty()
+        }
+        check("isolated_statistics_invalid_future_preserves_bucket", "Invalid future FFT must not prematurely close current valid bucket") {
+            val done = mutableListOf<RollingHalfHourStatistics.HalfHourResult>()
+            val stats = RollingHalfHourStatistics(onCompleted = { done.add(it) })
+            stats.acceptFftEpoch(start, -40.0)
+            stats.acceptFftEpoch(start + 1_800_000L, Double.NaN)
+            stats.acceptFftEpoch(start + 1000L, -41.0)
+            stats.stop()
+            done.size == 1 && done.single().validEpochs == 2 && done.single().qualityStatus == "PARTIAL"
         }
         check("isolated_statistics_reuse_after_stop", "A new half-hour session after stop starts with fresh epoch accounting") {
             val done = mutableListOf<RollingHalfHourStatistics.HalfHourResult>()

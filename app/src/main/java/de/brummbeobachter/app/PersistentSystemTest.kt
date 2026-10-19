@@ -95,13 +95,27 @@ internal object PersistentSystemTest {
         // whole report and hiding later independent checks. Preserve cancellation.
         val fixtures = try {
             kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
-                IsolatedSetupSystemTest.run(context)
+                // Compare productive setup files before and after the disposable fixture.
+                // Run both inventories even if the fixture throws; never silently assume isolation.
+                val before = SetupProductionIntegrity.inventory(context.filesDir)
+                val checks = try {
+                    IsolatedSetupSystemTest.run(context)
+                } catch (c: kotlinx.coroutines.CancellationException) {
+                    throw c
+                } catch (t: Exception) {
+                    listOf(Result("isolated_fixture_execution", "FAIL",
+                        "Unhandled fixture error: ${t.javaClass.simpleName}: ${t.message}"))
+                }
+                val after = SetupProductionIntegrity.inventory(context.filesDir)
+                checks + Result("isolated_productive_setups_unchanged",
+                    if (before == after) "PASS" else "FAIL",
+                    "SHA-256 inventory before=${before.size} after=${after.size}; production JSON/index/backups must not change")
             }
         } catch (c: kotlinx.coroutines.CancellationException) {
             throw c
         } catch (t: Exception) {
-            listOf(Result("isolated_fixture_execution", "FAIL",
-                "Unhandled fixture error: ${t.javaClass.simpleName}: ${t.message}"))
+            listOf(Result("isolated_productive_setups_unchanged", "FAIL",
+                "Cannot certify productive setup isolation: ${t.javaClass.simpleName}: ${t.message}"))
         }
         val wavResults = try {
             val wavFixture = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {

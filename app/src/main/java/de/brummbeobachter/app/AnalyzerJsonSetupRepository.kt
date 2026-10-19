@@ -100,6 +100,24 @@ internal class AnalyzerJsonSetupRepository(context: Context) {
         writeAtomic(index, raw)
     }
 
+    /** Restore an exact prior selection, including the legitimate "none selected" state.
+     * Used only by a failed transaction; never invents an active setup.
+     * Reject invalid identifiers before rewriting the index atomically.
+     */
+    @Synchronized fun restoreSelection(activeId: String?, recentIds: List<String>) {
+        val valid = listing().entries.map { it.id }.toSet()
+        require(activeId == null || activeId in valid) { "Rollback active setup no longer exists" }
+        require(recentIds.size <= 3 && recentIds.distinct().size == recentIds.size &&
+            recentIds.all { it in valid }) { "Rollback MRU contains invalid setup identifiers" }
+        writeAtomic(index, JSONObject().put("schemaVersion", 1)
+            .put("activeId", activeId ?: JSONObject.NULL)
+            .put("recent", JSONArray(recentIds)))
+        val restored = listing()
+        check(restored.activeId == activeId && restored.recent == recentIds) {
+            "Rollback index verification failed"
+        }
+    }
+
     @Synchronized fun delete(id: String) {
         val file = fileFor(id)
         require(file.exists()) { "Setup does not exist" }
