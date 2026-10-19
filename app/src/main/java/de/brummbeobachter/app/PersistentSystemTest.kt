@@ -23,7 +23,7 @@ internal object PersistentSystemTest {
             if (runId != null) put("runId", runId)
             put("checkedLogLines", checkedLines)
             put("pass", passed); put("fail", failed); put("skip", skipped)
-            put("limitations", "Isolated real repository A/B fixture tests and optional real Analyzer STOP/RUN cycles. Live named setup switching, filter mutation and sample-perfect continuity remain untested. Missing evidence is SKIP.")
+            put("limitations", "Isolated real repository A/B fixture tests and optional real Analyzer STOP/RUN cycles. Live named setup switching, complete write/PCM gap continuity and independent statistics coverage remain unverified. A separate non-persistent controller filter A/B/A probe exists; its outcome is reported independently. Missing evidence is SKIP.")
             put("results", JSONArray().apply { results.forEach { r -> put(JSONObject().apply {
                 put("id", r.id); put("status", r.status); put("detail", r.detail)
             }) } })

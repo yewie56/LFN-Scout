@@ -202,7 +202,123 @@ internal object AutonomousRollingSystemTest {
         // The MON probe runs AFTER the original three-cycle analyzer snapshot.
         // Validate the final live state, not the earlier snapshot, and require
         // the unchanged Rolling service generation after MON teardown.
-        val finalAnalyzer = LiveAnalyzerController.snapshot()
+        var finalAnalyzer = LiveAnalyzerController.snapshot()
+        // MON is exercised after the initial filterbank comparison. Do not let
+        // a change during the active MON probe escape the final regression verdict.
+        val finalFilterbankOk = finalAnalyzer.filterMinHz == beforeAnalyzer.filterMinHz &&
+            finalAnalyzer.filterMaxHz == beforeAnalyzer.filterMaxHz &&
+            finalAnalyzer.filterBandCount == beforeAnalyzer.filterBandCount &&
+            finalAnalyzer.filterDisplayMinDb == beforeAnalyzer.filterDisplayMinDb &&
+            finalAnalyzer.filterDisplayMaxDb == beforeAnalyzer.filterDisplayMaxDb &&
+            finalAnalyzer.showFilterWaterfall == beforeAnalyzer.showFilterWaterfall
+        record("live_filterbank_after_mon_probe", when {
+            !finalFilterbankOk || filterMismatchDuringCycle -> "FAIL"
+            // If MON failed or restoration was incomplete, the filter probe cannot
+            // certify a healthy post-MON state, even if its numbers still match.
+            monProbeError != null || AnalyzerMonitor.enabled != beforeMon ||
+                AnalyzerMonitor.snapshotSetupParameters().toString() != beforeConfig ||
+                !finalAnalyzer.running || !RollingAudioEngine.isRunning ||
+                MicCaptureArbiter.owner != "rolling" ||
+                RollingAudioEngine.continuity().generation != beforeContinuity.generation -> "FAIL"
+            failed || (!beforeMon && !monProbeCompleted) -> "SKIP"
+            else -> "PASS"
+        }, "Post-MON filterbank unchanged=$finalFilterbankOk; " +
+            "before=${beforeAnalyzer.filterMinHz}..${beforeAnalyzer.filterMaxHz}/${beforeAnalyzer.filterBandCount}; " +
+            "after=${finalAnalyzer.filterMinHz}..${finalAnalyzer.filterMaxHz}/${finalAnalyzer.filterBandCount}; " +
+            "cycleMismatch=$filterMismatchDuringCycle; activeMonProbe=$monProbeCompleted")
+        // Isolated controller A/B/A geometry round-trip. Persist=false is essential:
+        // this must never write a productive named setup or legacy preferences.
+        // No alternate filter geometry is left active when Analyzer is restarted.
+        var geometryProbeError: String? = null
+        var geometryProbeVerified = false
+        // Verify persist=false against the actual SharedPreferences backing store,
+        // not only against the in-memory controller snapshot.
+        val geometryPrefs = context.getSharedPreferences("lfn_scout_live_analyzer", Context.MODE_PRIVATE)
+        val geometryPrefsBefore = geometryPrefs.all.toMap()
+        if (!failed && monProbeError == null && finalAnalyzer.running &&
+            AnalyzerMonitor.enabled == beforeMon && RollingAudioEngine.isRunning) {
+            isTemporaryStopActive = true
+            val alternateBands = if (beforeAnalyzer.filterBandCount == 10) 20 else 10
+            try {
+                LiveAnalyzerController.stop()
+                check(!LiveAnalyzerController.snapshot().running) { "Analyzer STOP for filter geometry probe failed" }
+                LiveAnalyzerController.setFilterConfig(context,
+                    beforeAnalyzer.filterMinHz, beforeAnalyzer.filterMaxHz, alternateBands, persist = false)
+                check(LiveAnalyzerController.snapshot().filterBandCount == alternateBands) {
+                    "Alternate filter geometry was not applied in controller"
+                }
+                // Exercise B in the actual Analyzer RUN path, rather than certifying
+                // only an in-memory STOP-time controller assignment.
+                check(AnalyzerModeCoordinator.restartMeasurement(context)) {
+                    "Analyzer RUN with temporary filter B failed: ${AnalyzerModeCoordinator.error}"
+                }
+                delay(1500)
+                val duringB = LiveAnalyzerController.snapshot()
+                check(duringB.running && duringB.filterBandCount == alternateBands &&
+                    duringB.filterMinHz == beforeAnalyzer.filterMinHz &&
+                    duringB.filterMaxHz == beforeAnalyzer.filterMaxHz) {
+                    "Temporary filter B not retained in Analyzer RUN"
+                }
+                check(RollingAudioEngine.isRunning && MicCaptureArbiter.owner == "rolling" &&
+                    RollingAudioEngine.continuity().generation == beforeContinuity.generation) {
+                    "Rolling interrupted by Analyzer RUN with filter B"
+                }
+                LiveAnalyzerController.stop()
+                check(!LiveAnalyzerController.snapshot().running) {
+                    "Analyzer STOP before restoring filter A failed"
+                }
+                LiveAnalyzerController.setFilterConfig(context,
+                    beforeAnalyzer.filterMinHz, beforeAnalyzer.filterMaxHz,
+                    beforeAnalyzer.filterBandCount, persist = false)
+                check(LiveAnalyzerController.snapshot().filterBandCount == beforeAnalyzer.filterBandCount) {
+                    "Original filter geometry not restored in controller"
+                }
+                geometryProbeVerified = true
+            } catch (c: CancellationException) {
+                geometryProbeError = "Filter geometry probe cancelled"
+                throw c
+            } catch (t: Exception) {
+                geometryProbeError = "${t.javaClass.simpleName}: ${t.message}"
+            } finally {
+                withContext(NonCancellable) {
+                    try {
+                        // If B remained RUN after an exception, STOP it first.
+                        // Always attempt A restoration, including cancellation paths.
+                        if (LiveAnalyzerController.snapshot().running) {
+                            runCatching { LiveAnalyzerController.stop() }
+                                .onFailure { geometryProbeError = "Analyzer STOP during filter restore failed: ${it.message}" }
+                        }
+                        if (!LiveAnalyzerController.snapshot().running) {
+                            runCatching {
+                                LiveAnalyzerController.setFilterConfig(context,
+                                    beforeAnalyzer.filterMinHz, beforeAnalyzer.filterMaxHz,
+                                    beforeAnalyzer.filterBandCount, persist = false)
+                            }.onFailure { geometryProbeError = "Filter restore failed: ${it.message}" }
+                        }
+                        if (!LiveAnalyzerController.snapshot().running &&
+                            AnalyzerModeCoordinator.mode == AnalyzerModeCoordinator.Mode.ROLLING_8K) {
+                            runCatching { check(AnalyzerModeCoordinator.restartMeasurement(context)) }
+                                .onFailure { geometryProbeError = "Analyzer restart after filter probe failed: ${it.message}" }
+                        }
+                    } finally { isTemporaryStopActive = false }
+                }
+            }
+        }
+        val postGeometry = LiveAnalyzerController.snapshot()
+        finalAnalyzer = postGeometry
+        val geometryPrefsUnchanged = geometryPrefs.all == geometryPrefsBefore
+        val geometryRestored = geometryPrefsUnchanged && postGeometry.running &&
+            postGeometry.filterMinHz == beforeAnalyzer.filterMinHz &&
+            postGeometry.filterMaxHz == beforeAnalyzer.filterMaxHz &&
+            postGeometry.filterBandCount == beforeAnalyzer.filterBandCount &&
+            RollingAudioEngine.isRunning && MicCaptureArbiter.owner == "rolling" &&
+            RollingAudioEngine.continuity().generation == beforeContinuity.generation
+        record("live_filter_geometry_stop_ab_a", when {
+            geometryProbeError != null || !geometryRestored -> "FAIL"
+            geometryProbeVerified -> "PASS"
+            else -> "SKIP"
+        }, "Controller A/B/A with actual Analyzer RUN on B and persist=false; applied=$geometryProbeVerified " +
+            "restored=$geometryRestored prefsUnchanged=$geometryPrefsUnchanged error=$geometryProbeError")
         val finalRolling = RollingAudioEngine.continuity()
         val monProbeRollingIntact = RollingAudioEngine.isRunning &&
             MicCaptureArbiter.owner == "rolling" &&

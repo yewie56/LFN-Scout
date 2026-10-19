@@ -52,7 +52,7 @@ internal fun AnalyzerSimpleSetupPanel(context: Context) {
             notice = "Vorheriges Setup konnte nicht gespeichert werden: ${result.exceptionOrNull()?.message ?: "unbekannter Fehler"}"
         return result.isSuccess
     }
-    fun selectDraft(id: String, discardUnsaved: Boolean = false) {
+    fun selectDraft(id: String, savedBeforeSelection: Boolean = false) {
         if (id == repo.listing().activeId) {
             selectedId = id
             notice = "Dieses Setup ist bereits zugeordnet."
@@ -70,7 +70,7 @@ internal fun AnalyzerSimpleSetupPanel(context: Context) {
         }
         // Save the old JSON BEFORE temporarily switching off live MON. The JSON
         // contains MON parameters; stopping playback must not rewrite them.
-        if (!discardUnsaved && !saveCurrent()) {
+        if (!savedBeforeSelection && !saveCurrent()) {
             failedSwitchId = id
             failedSwitchReason = notice
             return
@@ -130,7 +130,7 @@ internal fun AnalyzerSimpleSetupPanel(context: Context) {
         AlertDialog(
             onDismissRequest = { failedSwitchId = null },
             title = { Text("Speichern fehlgeschlagen") },
-            text = { Text("$failedSwitchReason\n\nWenn du das Setup trotzdem wechselst, gehen die nicht gespeicherten Änderungen verloren.") },
+            text = { Text("$failedSwitchReason\n\nEin Wechsel ist erst nach erfolgreichem Speichern möglich.") },
             confirmButton = {
                 TextButton(onClick = {
                     val id = failedSwitchId ?: return@TextButton
@@ -138,16 +138,11 @@ internal fun AnalyzerSimpleSetupPanel(context: Context) {
                     if (!saveCurrent()) {
                         failedSwitchId = id
                         failedSwitchReason = notice
-                    } else selectDraft(id, discardUnsaved = true)
+                    } else selectDraft(id, savedBeforeSelection = true)
                 }) { Text("Erneut speichern") }
             },
             dismissButton = {
                 Row {
-                    TextButton(onClick = {
-                        val id = failedSwitchId ?: return@TextButton
-                        failedSwitchId = null
-                        selectDraft(id, discardUnsaved = true)
-                    }) { Text("Trotzdem wechseln") }
                     TextButton(onClick = { failedSwitchId = null }) { Text("Abbrechen") }
                 }
             }
@@ -191,6 +186,14 @@ internal fun AnalyzerSimpleSetupPanel(context: Context) {
         Button(onClick = {
             runCatching {
                 require(createName.isNotBlank()) { "Name fehlt" }
+                // Creating and selecting a setup is also a setup transition.
+                // Apply the same STOP/recording safeguards as selectDraft().
+                require(!LiveAnalyzerController.snapshot().running) {
+                    "Analyzer zuerst stoppen; Setup wurde nicht angelegt"
+                }
+                require(!AnalyzerMonitorRecording.isActive()) {
+                    "MON-Aufnahme zuerst beenden; Setup wurde nicht angelegt"
+                }
                 if (repo.listing().activeId != null) {
                     require(saveCurrent()) { "Vorheriges Setup nicht gespeichert" }
                 }
