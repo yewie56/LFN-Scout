@@ -324,3 +324,10 @@ Ein jederzeit über die App erreichbarer automatisierter System- und Regressions
 
 ## Permanent self-test automation (v0.5.77)
 The Systemtest menu entry remains required in all future versions. A completed report must be persisted and exported unchanged. Tests must use real application paths where safe; preconditions failing must become SKIP, not PASS. Never end Scout Rolling, overwrite named setups or modify Cloud data for a self-test. On interruption, restore the original Analyzer RUN state best-effort. Extend with isolated fixture-based setup/MON/filterbank tests and sample/write-gap instrumentation before claiming end-to-end validation.
+
+## Größere Entwicklungspakete und Selbsttest (verbindlich, v0.5.78)
+- Keine Mini-Releases für einzelne SKIP-Werte oder kleine Detailprobleme. Änderungen in zusammenhängenden, rückwärtskompatiblen Arbeitspaketen bündeln.
+- Möglichst ein Installieren, ein automatischer Testlauf und ein Export-ZIP pro Release.
+- Echte Repository-Fixtures strikt von den produktiven Setups trennen; niemals produktive Setups, Cloud-Warteschlangen oder Rolling-Aufnahmen für Tests verändern.
+- Ein SKIP ist nicht PASS; insbesondere echte aktive Setupwechsel, exakte PCM-Lückenfreiheit und App-Crash-Erkennung erfordern gesonderte Nachweise.
+- Ohne erfolgreiche Android-/Gradle-Build- und JVM-Testläufe keine Freigabe als build-verifiziertes Release. Quellkandidaten nicht als fertig ausgeben.

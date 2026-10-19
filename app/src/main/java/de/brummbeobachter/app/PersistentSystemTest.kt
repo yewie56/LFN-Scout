@@ -11,18 +11,19 @@ import java.util.Locale
 internal object PersistentSystemTest {
     private val running = java.util.concurrent.atomic.AtomicBoolean(false)
     data class Result(val id: String, val status: String, val detail: String)
-    data class Report(val results: List<Result>, val checkedLines: Int, val timestampMs: Long, val mode: String = "LATEST_ROLLING_SESSION_LOG_REPLAY") {
+    data class Report(val results: List<Result>, val checkedLines: Int, val timestampMs: Long, val mode: String = "LATEST_ROLLING_SESSION_LOG_REPLAY", val runId: String? = null) {
         val passed get() = results.count { it.status == "PASS" }
         val failed get() = results.count { it.status == "FAIL" }
         val skipped get() = results.count { it.status == "SKIP" }
         fun json(): String = JSONObject().apply {
             put("schema", "lfn-scout-systemtest-v1")
-            put("appVersion", "0.5.77")
+            put("appVersion", "0.5.79")
             put("timestampMs", timestampMs)
             put("mode", mode)
+            if (runId != null) put("runId", runId)
             put("checkedLogLines", checkedLines)
             put("pass", passed); put("fail", failed); put("skip", skipped)
-            put("limitations", "Run-scoped event analysis and optional safe real Analyzer STOP/RUN cycles. No live named setup switching or filter mutation. Missing evidence is SKIP; heartbeats are not sample-perfect proof.")
+            put("limitations", "Isolated real repository A/B fixture tests and optional real Analyzer STOP/RUN cycles. Live named setup switching, filter mutation and sample-perfect continuity remain untested. Missing evidence is SKIP.")
             put("results", JSONArray().apply { results.forEach { r -> put(JSONObject().apply {
                 put("id", r.id); put("status", r.status); put("detail", r.detail)
             }) } })
@@ -89,18 +90,54 @@ internal object PersistentSystemTest {
         check(running.compareAndSet(false, true)) { "Ein Systemtest läuft bereits" }
         try {
         val runId = System.currentTimeMillis().toString(36)
-        DebugLogger.log(context, "SYSTEMTEST_BEGIN", "id=$runId version=0.5.77")
-        val live = AutonomousRollingSystemTest.run(context, runId)
+        DebugLogger.log(context, "SYSTEMTEST_BEGIN", "id=$runId version=0.5.79")
+        // A failed fixture must remain visible as FAIL, rather than aborting the
+        // whole report and hiding later independent checks. Preserve cancellation.
+        val fixtures = try {
+            kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                IsolatedSetupSystemTest.run(context)
+            }
+        } catch (c: kotlinx.coroutines.CancellationException) {
+            throw c
+        } catch (t: Exception) {
+            listOf(Result("isolated_fixture_execution", "FAIL",
+                "Unhandled fixture error: ${t.javaClass.simpleName}: ${t.message}"))
+        }
+        val wavResults = try {
+            val wavFixture = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                IsolatedWavIntegrityTest.execute(context.cacheDir)
+            }
+            listOf(Result("isolated_wav_filesystem_roundtrip",
+                if (wavFixture.ok) "PASS" else "FAIL", wavFixture.detail))
+        } catch (c: kotlinx.coroutines.CancellationException) {
+            throw c
+        } catch (t: Exception) {
+            listOf(Result("isolated_wav_filesystem_roundtrip", "FAIL",
+                "Unhandled WAV fixture error: ${t.javaClass.simpleName}: ${t.message}"))
+        }
+        val live = try {
+            AutonomousRollingSystemTest.run(context, runId)
+        } catch (c: kotlinx.coroutines.CancellationException) {
+            throw c
+        } catch (t: Exception) {
+            listOf(Result("live_controller_unhandled_error", "FAIL",
+                "Live phase threw: ${t.javaClass.simpleName}: ${t.message}; restoration cannot be certified"))
+        }
         DebugLogger.log(context, "SYSTEMTEST_END", "id=$runId live_pass=${live.count { it.status == "PASS" }} live_fail=${live.count { it.status == "FAIL" }}")
         val recent = DebugLogger.readLines(context)
         val first = recent.indexOfLast { "SYSTEMTEST_BEGIN id=$runId" in it }
         val scoped = if (first >= 0) recent.drop(first) else emptyList()
+        // DebugLogger keeps only the latest 2000 lines. If BEGIN was truncated or
+        // logging failed, absence of lifecycle events is NOT evidence of safety.
+        val logScopeAvailable = first >= 0 && scoped.any { "SYSTEMTEST_END id=$runId" in it }
         val historical = evaluate(scoped)
+        val scopeResult = Result("live_run_log_scope_complete", if (logScopeAvailable) "PASS" else "FAIL",
+            "BEGIN and END markers found for run_id=$runId; beginIndex=$first; availableLines=${recent.size}")
         val unauthorizedRollingStop = scoped.any { "AUDIO_DIAG_ROLLING_STOP_REQUEST" in it || "AUDIO_DIAG_ROLLING_CLEANUP_ENTER" in it || "AUDIO_DIAG_ROLLING_RECORDING_STARTED" in it }
-        val rollingIntegrity = if (live.any { it.id == "live_scout_rolling_guard" && it.status == "PASS" }) {
+        val rollingIntegrity = if (logScopeAvailable && live.any { it.id == "live_scout_rolling_guard" && it.status == "PASS" }) {
             listOf(Result("live_no_rolling_lifecycle_change", if (unauthorizedRollingStop) "FAIL" else "PASS", "No Rolling stop, cleanup or restart events permitted during test; observed=$unauthorizedRollingStop"))
-        } else listOf(Result("live_no_rolling_lifecycle_change", "SKIP", "Live Scout-owned Rolling precondition not met"))
-        val report = Report(live + rollingIntegrity + historical.results, scoped.size, System.currentTimeMillis(), "SAFE_LIVE_CYCLES_PLUS_RUN_SCOPED_LOG")
+        } else listOf(Result("live_no_rolling_lifecycle_change", "SKIP", "Live Rolling prerequisite or complete run-scoped log unavailable"))
+        val report = Report(fixtures + wavResults + live + listOf(scopeResult) + rollingIntegrity + historical.results, scoped.size, System.currentTimeMillis(), "SAFE_LIVE_CYCLES_PLUS_RUN_SCOPED_LOG", runId)
         SystemTestArtifactStore.save(context, report)
         DebugLogger.log(context, "SYSTEMTEST_RESULT", "run_id=$runId pass=${report.passed} fail=${report.failed} skip=${report.skipped} mode=live_safe_plus_scoped_log")
         return report

@@ -27,6 +27,7 @@ internal class RollingHalfHourStatistics(
     private var energy = 0.0
     private var samples = 0
     private val epochLevels = ArrayList<Double>(1800)
+    private var lastFftEpochMs = -1L
 
     data class HalfHourResult(
         val startEpochMs: Long, val endEpochMs: Long,
@@ -60,9 +61,15 @@ internal class RollingHalfHourStatistics(
     fun acceptFftEpoch(timeEpochMs: Long, db: Double) {
         val bucket = Math.floorDiv(timeEpochMs, 1_800_000L) * 1_800_000L
         if (bucketStart < 0) bucketStart = bucket
-        if (bucket != bucketStart) { completeBucket(); bucketStart = bucket }
+        // A half-hour is COMPLETE only with 1800 distinct seconds. Duplicate,
+        // stale or out-of-order FFT callbacks must never inflate validEpochs.
+        if (bucket < bucketStart) return
+        if (bucket != bucketStart) { completeBucket(); bucketStart = bucket; lastFftEpochMs = -1L }
+        val second = Math.floorDiv(timeEpochMs, 1000L) * 1000L
+        if (second <= lastFftEpochMs || !db.isFinite()) return
+        lastFftEpochMs = second
         epochLevels.add(db)
-        onEpoch(Math.floorDiv(timeEpochMs, 1000L) * 1000L, db)
+        onEpoch(second, db)
     }
 
     private fun finishEpoch() {
@@ -92,7 +99,7 @@ internal class RollingHalfHourStatistics(
     }
 
     /** Called at controlled stop; incomplete seconds do not count as valid epochs. */
-    fun stop() { finishEpoch(); completeBucket(); bucketStart = -1L; epochStart = -1L }
+    fun stop() { finishEpoch(); completeBucket(); bucketStart = -1L; epochStart = -1L; lastFftEpochMs = -1L }
 }
 
 internal object RollingStatisticsSettings {

@@ -1,3 +1,19 @@
+## v0.5.79 – größerer Systemtest-Ausbau (QUELLKANDIDAT, kein freigegebenes Release)
+- Bestehender autonomer STOP/RUN- und Rolling-Kontinuitätstest aus 0.5.77 bleibt erhalten.
+- Erweiterte isolierte Repository-End-to-End-Prüfungen: A/B-Setup-Erstellung, MRU-Wechsel, MON-Unterscheidung, Filterbank 10/20, ungültiger Import; zusätzlich atomarer B-Save mit Repository-Neuöffnung, A-Isolation, MRU-Erhalt, Ablehnung ungültiger Schreibvorgänge ohne Beschädigung sowie Ablehnung fehlender Setup-ID ohne Indexänderung.
+- Alle Fixture-Vorgänge finden nur in einem zufälligen Cache-Testverzeichnis statt, nicht in produktiven Setup-Dateien.
+- KEINE Behauptung einer vollständig automatischen produktiven Setup-/Filterbank-UI-Umschaltung. Diese sowie PCM-Blocklücken- und Aufzeichnungsbelege bleiben offen und werden SKIP.
+- Buildblocker: Hier kein Android-SDK und keine Gradle-8.13-Distribution; Android-Compile/Gradle-JVM-Tests **nicht** ausgeführt. Kein Smartphone-Release ohne Build-Nachweis.
+
+# v0.5.78 / versionCode 236 – isolierte Mehrgruppen-Systemtests (Quellkandidat; Android-Build offen)
+
+- Neues `IsolatedSetupSystemTest`: A/B-Anlage in getrenntem Cache-Repository, echter A→B→A-Wechsel mit MRU/Active-ID-Prüfung, Repository-Neuöffnung, MON-Parameter- und Filterbank-JSON-Roundtrips, ungültiger Import, vollständige Fixture-Bereinigung.
+- Keinerlei Zugriff auf produktive Setup-Dateien für diese Fixture-Tests. Keine Live-Veränderung von MON oder Filterbank für die Roundtrip-Prüfungen.
+- Der bestehende automatische Live-Test prüft zusätzlich die Filterbank-Konfiguration vor und nach drei echten Analyzer-STOP/RUN-Zyklen.
+- Ergebnisbericht führt die isolierten Tests und Live-/Log-Tests zusammen; unveränderter ZIP-Export.
+- Kritische Restlücken dokumentiert in `docs/project/SYSTEMTEST_SCOPE_v0.5.78.md`.
+- Android-/Gradle-Build und JUnit-Tests konnten hier nicht ausgeführt werden (Gradle-8.13-Download ohne Netzwerk). **Keine Build-Freigabe**.
+
 ## v0.5.77 (versionCode 235) — safe automated live regression (candidate)
 
 - **AutonomousRollingSystemTest**: from the Diagnostics screen, execute three real STOP/RUN cycles using the existing controller, but only if Analyzer is RUN in ROLLING_8K and Rolling was started earlier in Scout. Never stop/restart/clear Scout Rolling or modify user setups.

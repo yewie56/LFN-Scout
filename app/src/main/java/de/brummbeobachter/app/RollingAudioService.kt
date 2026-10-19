@@ -239,6 +239,7 @@ class RollingAudioService : Service() {
             val analyzerBlock = ShortArray(256)
             var analyzerCount = 0
             var samplesRead = 0L
+            readAccounting.begin(System.nanoTime())
             var lastHeartbeatNs = System.nanoTime()
             var lastLimitCheckElapsedMs = 0L
             var currentLimitHours = settings.rollingMaxOperationHours
@@ -258,6 +259,9 @@ class RollingAudioService : Service() {
                     break
                 }
                 val count = active.read(input, 0, input.size, AudioRecord.READ_BLOCKING)
+                // Account for negative AudioRecord return codes BEFORE throwing;
+                // otherwise a failed read vanishes from the continuity diagnostics.
+                readAccounting.onRead(count, System.nanoTime())
                 if (count < 0) error("Audio-Lesefehler: $count")
                 if (count > 0) samplesRead += count
                 val nowNs = System.nanoTime()
@@ -382,6 +386,7 @@ class RollingAudioService : Service() {
     }
 
     companion object {
+        internal val readAccounting = RollingPcmReadAccounting()
         private const val CHANNEL_ID = "rolling_audio"
         private const val NOTIFICATION_ID = 4101
         private const val RESTART_NOTIFICATION_ID = 4102

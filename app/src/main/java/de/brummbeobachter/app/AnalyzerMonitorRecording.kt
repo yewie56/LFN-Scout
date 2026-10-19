@@ -22,6 +22,7 @@ internal object AnalyzerMonitorRecording {
     private var thread: Thread? = null
     private val blocks = java.util.concurrent.LinkedBlockingQueue<ByteArray>(512)
     private var samples: Long = 0
+    private var writeAccounting = MonPcmWriteAccounting()
     private var failed = false
     private var startTime = OffsetDateTime.now()
     private data class Params(val center: Double, val width: Double, val gain: Double)
@@ -50,6 +51,7 @@ internal object AnalyzerMonitorRecording {
             outputFile = f
             writer = stream
             samples = 0L
+            writeAccounting = MonPcmWriteAccounting()
             failed = false
             startTime=OffsetDateTime.now()
             firstParams=currentParams()
@@ -60,7 +62,7 @@ internal object AnalyzerMonitorRecording {
             thread = Thread({
                 while (active || blocks.isNotEmpty()) {
                     val bytes = blocks.poll(150, java.util.concurrent.TimeUnit.MILLISECONDS) ?: continue
-                    try { stream.write(bytes); samples += bytes.size / 2L }
+                    try { stream.write(bytes); writeAccounting.written(bytes.size); samples += bytes.size / 2L }
                     catch (_: Exception) { failed = true; active = false }
                 }
                 try { stream.flush();stream.close() } catch (_: Exception) { failed = true }
@@ -78,7 +80,11 @@ internal object AnalyzerMonitorRecording {
             bytes[index*2]=(v.toInt() and 255).toByte()
             bytes[index*2+1]=((v.toInt() ushr 8) and 255).toByte()
         }
-        if (!blocks.offer(bytes)) { failed=true; active=false }
+        synchronized(mutex) {
+            if (!active) return
+            if (blocks.offer(bytes)) { writeAccounting.accepted(bytes.size) }
+            else { writeAccounting.rejected(); failed=true; active=false }
+        }
     }
 
     /** Stop and publish the local WAV to the normal LFN-Scout audio archive.
@@ -94,9 +100,17 @@ internal object AnalyzerMonitorRecording {
             t=thread
         }
         t?.join(10000L)
-        if (t?.isAlive == true || failed || samples<=0L) {
+        if (t?.isAlive == true) {
+            // Never delete a file while its writer still owns the stream. Keep the
+            // reference so a later stop can join and safely clean up the failed take.
+            failed = true
+            return@withContext null
+        }
+        val accounting = writeAccounting.snapshot()
+        if (failed || samples <= 0L || !accounting.complete(f.length()) ||
+            accounting.writtenBytes != samples * 2L) {
             f.delete()
-            synchronized(mutex) { outputFile=null;thread=null }
+            synchronized(mutex) { outputFile=null;writer=null;thread=null }
             return@withContext null
         }
         val count=samples

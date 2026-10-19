@@ -29,13 +29,19 @@ internal object AutonomousRollingSystemTest {
             record("live_scout_rolling_guard", "SKIP", reason)
             record("live_analyzer_stop_restart_cycles", "SKIP", reason)
             record("live_mon_state_restored", "SKIP", reason)
+            record("live_mon_enabled_stop_restart", "SKIP", reason)
+            record("live_filterbank_survives_restart", "SKIP", reason)
             record("live_rolling_survives_analyzer", "SKIP", reason)
+            record("live_analyzer_run_restored", "SKIP", reason)
+            record("live_pcm_read_callback_continuity", "SKIP", reason)
             return out
         }
         val beforeMon = AnalyzerMonitor.enabled
         val beforeConfig = AnalyzerMonitor.snapshotSetupParameters().toString()
+        val beforeAnalyzer = LiveAnalyzerController.snapshot()
         val beforeBuffered = RollingAudioEngine.bufferedSeconds()
         val beforeContinuity = RollingAudioEngine.continuity()
+        val beforeReads = RollingAudioService.readAccounting.snapshot()
         record("live_scout_rolling_guard", "PASS", "Rolling already started in Scout; buffer=${beforeBuffered}s")
         var failed = false
         var completed = 0
@@ -63,6 +69,11 @@ internal object AutonomousRollingSystemTest {
                     rollingInterrupted = true
                     failed = true
                     throw IllegalStateException("Rolling stopped/lost microphone during analyzer RUN cycle=${index + 1}")
+                }
+                if (AnalyzerMonitor.enabled != beforeMon ||
+                    AnalyzerMonitor.snapshotSetupParameters().toString() != beforeConfig) {
+                    failed = true
+                    throw IllegalStateException("MON state/parameters changed in STOP/RUN cycle=${index + 1}")
                 }
                 completed++
                 DebugLogger.log(context, "SYSTEMTEST_CYCLE", "run_id=$runId index=$completed rolling=true mon=${AnalyzerMonitor.enabled}")
@@ -94,13 +105,45 @@ internal object AutonomousRollingSystemTest {
             DebugLogger.log(context, "SYSTEMTEST_WAIT_PCM", "run_id=$runId duration_ms=33000")
             delay(33000)
         }
+        val afterAnalyzer = LiveAnalyzerController.snapshot()
+        val filterOk = beforeAnalyzer.filterMinHz == afterAnalyzer.filterMinHz &&
+            beforeAnalyzer.filterMaxHz == afterAnalyzer.filterMaxHz &&
+            beforeAnalyzer.filterBandCount == afterAnalyzer.filterBandCount &&
+            beforeAnalyzer.filterDisplayMinDb == afterAnalyzer.filterDisplayMinDb &&
+            beforeAnalyzer.filterDisplayMaxDb == afterAnalyzer.filterDisplayMaxDb &&
+            beforeAnalyzer.showFilterWaterfall == afterAnalyzer.showFilterWaterfall
+        record("live_filterbank_survives_restart", if (failed) "SKIP" else if (filterOk) "PASS" else "FAIL",
+            "Filterbank before=${beforeAnalyzer.filterMinHz}..${beforeAnalyzer.filterMaxHz} bands=${beforeAnalyzer.filterBandCount}; after=${afterAnalyzer.filterMinHz}..${afterAnalyzer.filterMaxHz} bands=${afterAnalyzer.filterBandCount}")
         val monOk = AnalyzerMonitor.enabled == beforeMon && AnalyzerMonitor.snapshotSetupParameters().toString() == beforeConfig
-        record("live_mon_state_restored", if (monOk) "PASS" else "FAIL", "MON enabled before=$beforeMon after=${AnalyzerMonitor.enabled}; parameters ${if (monOk) "unchanged" else "changed"}")
+        record("live_mon_state_restored", if (!monOk) "FAIL" else if (failed) "SKIP" else "PASS", "MON enabled before=$beforeMon after=${AnalyzerMonitor.enabled}; parameters ${if (monOk) "unchanged" else "changed"}")
+        record("live_mon_enabled_stop_restart", when {
+            !beforeMon -> "SKIP"
+            !monOk -> "FAIL"
+            failed -> "SKIP"
+            else -> "PASS"
+        }, if (!beforeMon) "MON was OFF at test start; STOP/RUN with MON enabled not exercised" else "MON was ON; STOP/RUN completed=$completed/3; state/parameters restored=$monOk")
         val afterContinuity = RollingAudioEngine.continuity()
+        val afterReads = RollingAudioService.readAccounting.snapshot()
+        val readEpochUnchanged = beforeReads.epoch != 0L && beforeReads.epoch == afterReads.epoch
+        val readsContinued = afterReads.blocks > beforeReads.blocks && afterReads.samples > beforeReads.samples
+        val readErrorsUnchanged = afterReads.readErrors == beforeReads.readErrors &&
+            afterReads.sequenceErrors == beforeReads.sequenceErrors &&
+            afterReads.timestampRegressions == beforeReads.timestampRegressions &&
+            afterReads.zeroReads == beforeReads.zeroReads
+        // Do not mistake callback progress for Rolling ring-buffer ingestion.
+        // The existing appended-delta check below independently verifies delivery
+        // into the Rolling engine (after decimation).
+        record("live_pcm_read_callback_continuity", when {
+            !readEpochUnchanged || !readsContinued || !readErrorsUnchanged -> "FAIL"
+            failed -> "SKIP"
+            else -> "PASS"
+        }, "AudioRecord callback counters, NOT physical losslessness: epoch=${beforeReads.epoch}->${afterReads.epoch} blocks=${beforeReads.blocks}->${afterReads.blocks} samples=${beforeReads.samples}->${afterReads.samples} errors=${beforeReads.readErrors}->${afterReads.readErrors} zeroReads=${beforeReads.zeroReads}->${afterReads.zeroReads} sequenceErrors=${beforeReads.sequenceErrors}->${afterReads.sequenceErrors} timestampRegressions=${beforeReads.timestampRegressions}->${afterReads.timestampRegressions}")
         val rollingOk = !rollingInterrupted && RollingAudioEngine.isRunning && MicCaptureArbiter.owner == "rolling" &&
             beforeContinuity.starts == afterContinuity.starts && beforeContinuity.stops == afterContinuity.stops &&
             beforeContinuity.generation == afterContinuity.generation && afterContinuity.appended > beforeContinuity.appended
-        record("live_rolling_survives_analyzer", if (rollingOk) "PASS" else "FAIL",
+        record("live_analyzer_run_restored", if (afterAnalyzer.running) "PASS" else "FAIL",
+            "Analyzer originally RUN=$wasRunning; after test RUN=${afterAnalyzer.running}; completed=$completed/3")
+        record("live_rolling_survives_analyzer", if (!rollingOk) "FAIL" else if (failed) "SKIP" else "PASS",
             "rolling=$rollingOk start_delta=${afterContinuity.starts - beforeContinuity.starts} stop_delta=${afterContinuity.stops - beforeContinuity.stops} generation_delta=${afterContinuity.generation - beforeContinuity.generation} appended_delta=${afterContinuity.appended - beforeContinuity.appended} buffer_before=${beforeBuffered}s buffer_after=${RollingAudioEngine.bufferedSeconds()}s")
         return out
     }

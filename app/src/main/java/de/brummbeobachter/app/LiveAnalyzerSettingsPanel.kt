@@ -962,7 +962,7 @@ internal fun LiveAnalyzerSettingsPanel(
                         }
                     }) { Text("Diagnose-ZIP exportieren", color=white) }
                     if (message.isNotBlank()) SettingNote(message)
-                    SettingNote("Automatischer Systemtest · dauerhafter Systemtest (v0.5.77). Führt bei laufendem Scout-Rolling drei echte Analyzer-STOP/RUN-Zyklen aus und wertet das neue Testfenster aus. Nutzersetups und Rolling werden nicht verändert; unsichere Testfälle bleiben SKIP.")
+                    SettingNote("Automatischer Systemtest · dauerhafter Systemtest (v0.5.79). Prüft selbstständig isolierte A/B-JSON-Setups, MON- und Filterbank-Roundtrip. Bei laufendem Scout-Rolling folgen drei echte Analyzer-STOP/RUN-Zyklen und Live-Zustandsprüfungen. Nutzersetups und Rolling werden nicht verändert; unsichere Testfälle bleiben SKIP.")
                     OutlinedButton(onClick={
                         exportScope.launch {
                             systemTestBusy = true

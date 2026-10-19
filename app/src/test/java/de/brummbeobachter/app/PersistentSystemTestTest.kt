@@ -5,6 +5,13 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class PersistentSystemTestTest {
+    @Test fun runIdIsPresentOnlyWhenSupplied() {
+        val replay = PersistentSystemTest.evaluate(emptyList()).json()
+        assertTrue(!replay.contains("\"runId\""))
+        val live = PersistentSystemTest.Report(emptyList(), 0, 123L, "LIVE", "test-123").json()
+        assertTrue(live.contains("\"runId\": \"test-123\""))
+    }
+
     @Test fun detectsCompletedRollingAnalyzerCycles() {
         val log = listOf(
             "AUDIO_DIAG_ROLLING_RECORDING_STARTED",
