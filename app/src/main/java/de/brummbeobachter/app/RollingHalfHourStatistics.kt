@@ -66,6 +66,10 @@ internal class RollingHalfHourStatistics(
 
     /** FFT-backed rolling epoch; independent old PCM filter remains in source but is no longer called by service. */
     fun acceptFftEpoch(timeEpochMs: Long, db: Double) {
+        // Invalid measurements must not advance the active half-hour window.
+        // Otherwise a NaN/Infinity timestamp from a future bucket could flush
+        // valid statistics early and cause a spurious NO_DATA/PARTIAL export.
+        if (!db.isFinite()) return
         val bucket = Math.floorDiv(timeEpochMs, 1_800_000L) * 1_800_000L
         if (bucketStart < 0) bucketStart = bucket
         // A half-hour is COMPLETE only with 1800 distinct seconds. Duplicate,

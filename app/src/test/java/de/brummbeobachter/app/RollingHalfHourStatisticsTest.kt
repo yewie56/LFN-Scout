@@ -26,4 +26,19 @@ class RollingHalfHourStatisticsTest {
     }
     @Test(expected = IllegalArgumentException::class)
     fun rejectsInvalidBand() { RollingHalfHourStatistics(minimumHz = 20, maximumHz = 2) }
+    @Test fun invalidFutureEpochCannotFlushActiveBucket() {
+        val results = mutableListOf<RollingHalfHourStatistics.HalfHourResult>()
+        val start = 1_800_000L * 100L
+        val stats = RollingHalfHourStatistics(onCompleted = { results.add(it) })
+        stats.acceptFftEpoch(start, -30.0)
+        stats.acceptFftEpoch(start + 1_800_000L, Double.NaN)
+        stats.acceptFftEpoch(start + 1_800_001L, Double.POSITIVE_INFINITY)
+        assertTrue("Invalid FFT values must not close the current bucket", results.isEmpty())
+        stats.acceptFftEpoch(start + 1_000L, -31.0)
+        stats.acceptFftEpoch(start + 1_800_000L, -32.0)
+        assertEquals(1, results.size)
+        assertEquals(2, results.single().validEpochs)
+        assertEquals(2, results.single().fftSecondsObserved)
+        assertEquals("PARTIAL", results.single().qualityStatus)
+    }
 }

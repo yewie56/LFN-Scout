@@ -192,7 +192,7 @@ internal object AnalyzerInspectionExport {
                 zip.write(content.toByteArray(Charsets.UTF_8))
                 zip.closeEntry()
             }
-            add("README.txt", "LFN-Scout v0.5.79 system test\nIsolated A/B JSON repository tests, real stop/restart cycles when safe; remaining checks run-scoped log replay.\nPASS requires evidence; SKIP means not validated.\n")
+            add("README.txt", "LFN-Scout v${BuildConfig.VERSION_NAME} (versionCode ${BuildConfig.VERSION_CODE}) system test\nIsolated setup, WAV I/O and statistics checks; active rolling/analyzer, MON and filterbank probes when safe.\nPASS requires evidence; FAIL indicates a detected error; SKIP means not validated. A passing isolated test does not establish full end-to-end recording continuity.\n")
             add("systemtest_results.json", savedJson)
             add("systemtest_results.csv", savedCsv)
             add("systemtest.log", savedJson)

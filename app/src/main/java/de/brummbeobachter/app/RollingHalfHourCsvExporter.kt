@@ -14,6 +14,17 @@ import java.util.Locale
 internal object RollingHalfHourCsvExporter {
     fun write(context: Context, result: RollingHalfHourStatistics.HalfHourResult, diagnostic: RollingImpulseDiagnostics.Result? = null) {
         try {
+            // Distinct FFT seconds are counted independently from accepted epochs.
+            // Refuse to publish internally contradictory statistics instead of
+            // silently writing a misleading COMPLETE/coverage record.
+            if (result.fftSecondsObserved !in 0..1800 ||
+                result.fftSecondsMissing != 1800 - result.fftSecondsObserved ||
+                result.validEpochs != result.fftSecondsObserved ||
+                (result.qualityStatus == "COMPLETE" && result.fftSecondsMissing != 0)) {
+                DebugLogger.log(context, "ROLLING_HALF_HOUR_CSV_ERROR",
+                    "coverage_invariant_failed epochs=${result.validEpochs} observed=${result.fftSecondsObserved} missing=${result.fftSecondsMissing} quality=${result.qualityStatus}")
+                return
+            }
             if (Build.VERSION.SDK_INT < 29) {
                 DebugLogger.log(context, "ROLLING_HALF_HOUR_CSV_ERROR", "API below 29 not supported")
                 return
@@ -37,7 +48,7 @@ internal object RollingHalfHourCsvExporter {
                     put(MediaStore.MediaColumns.IS_PENDING, 1)
                 }) ?: error("MediaStore insert returned null")
             val observations = LocalHalfHourObservations.forBucket(context, result.startEpochMs, result.endEpochMs)
-            val header = "bucket_start_ms;bucket_end_ms;min_hz;max_hz;valid_epochs;coverage_seconds;leq_dbfs;l50_dbfs;l90_dbfs;quality_status;reference;peak_second_dbfs;top_1s_energy_pct;top_10s_energy_pct;leq_minus_l50_db;observation_mean;observation_count;observation_min;observation_max;observation_unavailable_count\n"
+            val header = "bucket_start_ms;bucket_end_ms;min_hz;max_hz;valid_epochs;coverage_seconds;leq_dbfs;l50_dbfs;l90_dbfs;quality_status;reference;peak_second_dbfs;top_1s_energy_pct;top_10s_energy_pct;leq_minus_l50_db;observation_mean;observation_count;observation_min;observation_max;observation_unavailable_count;fft_seconds_observed;fft_seconds_missing\n"
             fun number(value: Double?) = value?.let { String.format(Locale.ROOT, "%.5f", it) } ?: ""
             val row = "${result.startEpochMs};${result.endEpochMs};${result.minimumHz};${result.maximumHz};" +
                 "${result.validEpochs};${result.validEpochs};${number(result.leqDbfs)};" +
@@ -45,7 +56,7 @@ internal object RollingHalfHourCsvExporter {
                 "${number(diagnostic?.peakSecondDbfs)};${number(diagnostic?.topOneEnergyPercent)};" +
                 "${number(diagnostic?.topTenEnergyPercent)};${number(diagnostic?.leqMinusL50Db)};" +
                 "${number(observations.mean)};${observations.count};${observations.minimum ?: ""};" +
-                "${observations.maximum ?: ""};${observations.unavailable}\n"
+                "${observations.maximum ?: ""};${observations.unavailable};${result.fftSecondsObserved};${result.fftSecondsMissing}\n"
             resolver.openOutputStream(uri, "wt")?.bufferedWriter(Charsets.UTF_8)?.use {
                 it.write(header); it.write(row)
             } ?: error("Cannot write $uri")

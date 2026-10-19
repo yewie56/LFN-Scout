@@ -962,7 +962,7 @@ internal fun LiveAnalyzerSettingsPanel(
                         }
                     }) { Text("Diagnose-ZIP exportieren", color=white) }
                     if (message.isNotBlank()) SettingNote(message)
-                    SettingNote("Automatischer Systemtest · dauerhafter Systemtest (v0.5.79). Prüft selbstständig isolierte A/B-JSON-Setups, MON- und Filterbank-Roundtrip. Bei laufendem Scout-Rolling folgen drei echte Analyzer-STOP/RUN-Zyklen und Live-Zustandsprüfungen. Nutzersetups und Rolling werden nicht verändert; unsichere Testfälle bleiben SKIP.")
+                    SettingNote("Automatischer Systemtest · LFN-Scout v${BuildConfig.VERSION_NAME} (Build ${BuildConfig.VERSION_CODE}). Prüft isolierte A/B-JSON-Setups, WAV-Datei-I/O und Statistiklogik sowie bei aktivem Scout-Rolling echte Analyzer-STOP/RUN-Zyklen, MON und Filterbank-A/B/A. Temporäre Teständerungen werden zurückgesetzt; Nutzersetups und Rolling-Aufnahmen müssen geschützt bleiben. PASS bedeutet geprüfter Nachweis, FAIL erkannter Fehler, SKIP fehlender oder nicht sicher ausführbarer Nachweis. Aktive benannte Setupwechsel, durchgängige PCM-/WAV-Schreibkontinuität und Statistik-End-to-End-Abdeckung sind nicht allein durch isolierte Tests bestätigt.")
                     OutlinedButton(onClick={
                         exportScope.launch {
                             systemTestBusy = true
