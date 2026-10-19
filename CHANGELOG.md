@@ -2313,3 +2313,9 @@ Kein PASS für Android-Build, Emulator oder Xiaomi ohne tatsächlichen Lauf. 16:
 - Analyzer und MON lassen sich gemeinsam als nicht persistenter JSON-STOP-Entwurf anwenden.
 - Bei MON-Fehler werden beide Parametergruppen zurückgesetzt und verglichen.
 - Produktive dauerhafte JSON-Aktivierung bleibt ausdrücklich offen.
+
+
+## v0.5.89 / versionCode 247 (Testkandidat)
+- Unabhängiger JSON/CSV-Systemtestexport-Validator mit echtem FAIL/SKIP-Freigabegate.
+- Sechs neue Validator-Regressionstests; bestehender Android-Testpfad unverändert.
+- Noch keine Android-Buildfreigabe; produktive fünf SKIP-Fälle weiterhin offen.
