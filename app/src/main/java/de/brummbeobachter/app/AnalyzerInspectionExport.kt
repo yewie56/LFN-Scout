@@ -182,7 +182,9 @@ internal object AnalyzerInspectionExport {
     /** Explicit manual diagnostic export. Deliberately no raw app-private file dump. */
     /** One-file user export of read-only regression results and the existing, sanitized app log. */
     fun exportSystemTest(context: Context): String {
-        val report = PersistentSystemTest.run(context)
+        val savedJson = SystemTestArtifactStore.read(context, "systemtest_results.json")
+        val savedCsv = SystemTestArtifactStore.read(context, "systemtest_results.csv")
+        require(savedJson != null && savedCsv != null) { "Bitte zuerst den automatischen Systemtest ausführen" }
         val out = ByteArrayOutputStream()
         ZipOutputStream(out).use { zip ->
             fun add(path: String, content: String) {
@@ -190,10 +192,10 @@ internal object AnalyzerInspectionExport {
                 zip.write(content.toByteArray(Charsets.UTF_8))
                 zip.closeEntry()
             }
-            add("README.txt", "LFN-Scout v0.5.76 system test\nRead-only log replay, not a live automated UI test.\nSKIP means not validated.\n")
-            add("systemtest_results.json", report.json())
-            add("systemtest_results.csv", report.csv())
-            add("systemtest.log", "${report.summary()}\n")
+            add("README.txt", "LFN-Scout v0.5.77 system test\nThree real stop/restart cycles when safe; other checks scoped log replay.\nPASS requires evidence; SKIP means not validated.\n")
+            add("systemtest_results.json", savedJson)
+            add("systemtest_results.csv", savedCsv)
+            add("systemtest.log", savedJson)
             add("app_diagnostic.log", DebugLogger.readLines(context).map(DebugLogger::sanitizeForUser).joinToString("\n", postfix="\n"))
         }
         val stamp = SimpleDateFormat("yyyy-MM-dd_HH-mm-ss_SSS", Locale.US).format(Date())

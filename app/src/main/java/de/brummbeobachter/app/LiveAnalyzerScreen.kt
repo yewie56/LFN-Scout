@@ -357,7 +357,7 @@ internal fun LiveAnalyzerScreen(
     LaunchedEffect(state.running) {
         // The setup/filter STOP is temporary. MON keeps its current live
         // subscription and EIN/AUS state while rolling continues to capture PCM.
-        if(!state.running && !transientAnalyzerStop && AnalyzerMonitor.enabled) {
+        if(!state.running && !transientAnalyzerStop && !AutonomousRollingSystemTest.isTemporaryStopActive && AnalyzerMonitor.enabled) {
             if(monRecRunning) { modeScope.launch { AnalyzerMonitorRecording.stop(context) }; monRecRunning=false }
             AnalyzerMonitor.stop()
             monitoring=false;monitoringShift=false

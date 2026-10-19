@@ -32,6 +32,14 @@ object RollingAudioEngine {
     private var totalClipped = 0
     private var capture: FutureCapture? = null
 
+    /** Counters are owned by Scout Rolling, not the Analyzer. Monotonic for this app process. */
+    data class Continuity(val starts: Long, val stops: Long, val generation: Long, val appended: Long, val buffered: Int)
+    private var starts = 0L
+    private var stops = 0L
+    private var generation = 0L
+    private var appended = 0L
+    fun continuity(): Continuity = synchronized(lock) { Continuity(starts, stops, generation, appended, size) }
+
     @Volatile var isRunning: Boolean = false
         private set
     @Volatile var sourceLabel: String = ""
@@ -41,6 +49,9 @@ object RollingAudioEngine {
 
     fun start(source: String, device: String) {
         synchronized(lock) {
+            starts++
+            generation++
+            appended = 0L
             writeIndex = 0
             size = 0
             totalClipped = 0
@@ -59,6 +70,7 @@ object RollingAudioEngine {
 
     fun stop() {
         synchronized(lock) {
+            stops++
             isRunning = false
             capture?.completed = true
             capture = null
@@ -68,6 +80,7 @@ object RollingAudioEngine {
     fun append(sample: Short, clipped: Boolean) {
         synchronized(lock) {
             if (!isRunning) return
+            appended++
             if (size == ring.size && clippedRing.get(writeIndex)) {
                 totalClipped--
             }

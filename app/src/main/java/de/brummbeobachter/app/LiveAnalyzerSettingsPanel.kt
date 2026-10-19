@@ -71,6 +71,7 @@ internal fun LiveAnalyzerSettingsPanel(
     var slot by remember(state.direct48k) { mutableStateOf(if (state.direct48k) 4 else prefs.getInt("last_setup_slot",1).coerceIn(1,3)) }
     var message by remember { mutableStateOf("") }
     var selfTestSummary by remember { mutableStateOf("") }
+    var systemTestBusy by remember { mutableStateOf(false) }
     val exportScope = rememberCoroutineScope()
     var setupName by remember(slot) { mutableStateOf(prefs.getString("setup_${slot}_name", "") ?: "") }
     var setupDescription by remember(slot) { mutableStateOf(prefs.getString("setup_${slot}_description", "") ?: "") }
@@ -961,18 +962,20 @@ internal fun LiveAnalyzerSettingsPanel(
                         }
                     }) { Text("Diagnose-ZIP exportieren", color=white) }
                     if (message.isNotBlank()) SettingNote(message)
-                    SettingNote("Automatischer Systemtest · dauerhaftes Testregister (v0.5.76). Prüft das interne Ereignislog ohne Einfluss auf Rolling, Setups oder Aufnahmen. Nicht belegbare Fälle bleiben SKIP.")
+                    SettingNote("Automatischer Systemtest · dauerhafter Systemtest (v0.5.77). Führt bei laufendem Scout-Rolling drei echte Analyzer-STOP/RUN-Zyklen aus und wertet das neue Testfenster aus. Nutzersetups und Rolling werden nicht verändert; unsichere Testfälle bleiben SKIP.")
                     OutlinedButton(onClick={
                         exportScope.launch {
-                            message="Systemtest läuft …"
-                            runCatching { withContext(Dispatchers.Default) { PersistentSystemTest.run(context) } }
+                            systemTestBusy = true
+                            message="Systemtest läuft … (ca. 45 Sekunden, bitte nicht navigieren)"
+                            runCatching { PersistentSystemTest.runAutomated(context) }
                                 .onSuccess { report ->
                                     selfTestSummary=report.summary()
                                     message="Systemtest beendet: $selfTestSummary"
                                 }
                                 .onFailure { message="Systemtest fehlgeschlagen: ${it.javaClass.simpleName}" }
+                            systemTestBusy = false
                         }
-                    }) { Text("Automatischen Systemtest starten",color=white) }
+                    }, enabled = !systemTestBusy) { Text("Automatischen Systemtest starten",color=white) }
                     if(selfTestSummary.isNotBlank()) SettingNote(selfTestSummary)
                     OutlinedButton(onClick={
                         exportScope.launch {

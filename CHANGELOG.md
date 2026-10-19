@@ -1,3 +1,12 @@
+## v0.5.77 (versionCode 235) — safe automated live regression (candidate)
+
+- **AutonomousRollingSystemTest**: from the Diagnostics screen, execute three real STOP/RUN cycles using the existing controller, but only if Analyzer is RUN in ROLLING_8K and Rolling was started earlier in Scout. Never stop/restart/clear Scout Rolling or modify user setups.
+- Assert Rolling still owns the microphone and remains active after every STOP/RUN; assert MON enabled state and parameter snapshot unchanged. Add Scout-owned monotonic Rolling starts/stops/generation/appended counters and compare before/after to catch invisible resets or restarts. Best-effort restore Analyzer RUN also on failure/cancellation.
+- Wait 33 seconds for multiple real PCM heartbeats; evaluate only the current tagged test window, never merge historic sessions.
+- Save completed JSON/CSV report in private app storage; export the *same completed results* rather than re-running tests during export.
+- Unsafe/unimplemented real setup-switch, filter mutation, statistics and block-perfect PCM verification remain SKIP; cannot claim full unattended coverage yet.
+- Android/Gradle compilation and device runs not verified in this environment. Retains existing Termux-v11 script unchanged.
+
 # v0.5.76 / versionCode 234 – Systemtest: Rolling-Sitzungen sauber trennen (Quellkandidat)
 
 - F75-01: `rolling_counter_monotonic` wertet nur die letzte explizit protokollierte `AUDIO_DIAG_ROLLING_RECORDING_STARTED`-Sitzung aus. Reguläre Samplezähler-Neustarts einer neuen Rolling-Sitzung sind kein FAIL mehr.

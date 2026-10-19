@@ -321,3 +321,6 @@ Bei Chat-/Projektwechsel `PROJECT_STATUS.md` und `docs/project/UEBERGABE_v0.5.00
 
 ## Dauerhafte Testdirektive ab v0.5.75
 Ein jederzeit über die App erreichbarer automatisierter System- und Regressionstest ist dauerhafter Projektbestandteil. Neue Features und Fehlerbehebungen erweitern seine Testabdeckung; Tests dürfen nicht stillschweigend entfernt werden. PASS, FAIL und SKIP unterscheiden; keine Schein-PASS für ungeprüfte Hardware-, Audio- oder Steuerpfade. Diagnose- und Exportpaket ohne Nutzdatenänderung. Die v0.5.75-Erststufe ist eine passive Log-Auswertung; vollautomatische echte Bedienabläufe sind noch offen. Details: `docs/project/PERSISTENT_SYSTEMTEST_v0.5.75.md`.
+
+## Permanent self-test automation (v0.5.77)
+The Systemtest menu entry remains required in all future versions. A completed report must be persisted and exported unchanged. Tests must use real application paths where safe; preconditions failing must become SKIP, not PASS. Never end Scout Rolling, overwrite named setups or modify Cloud data for a self-test. On interruption, restore the original Analyzer RUN state best-effort. Extend with isolated fixture-based setup/MON/filterbank tests and sample/write-gap instrumentation before claiming end-to-end validation.

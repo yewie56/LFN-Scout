@@ -7,21 +7,22 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-/** Permanent, non-destructive regression-test registry. Never changes app state. */
+/** Permanent regression-test registry. Live mode temporarily stops/restarts Analyzer only under strict safety preconditions. */
 internal object PersistentSystemTest {
+    private val running = java.util.concurrent.atomic.AtomicBoolean(false)
     data class Result(val id: String, val status: String, val detail: String)
-    data class Report(val results: List<Result>, val checkedLines: Int, val timestampMs: Long) {
+    data class Report(val results: List<Result>, val checkedLines: Int, val timestampMs: Long, val mode: String = "LATEST_ROLLING_SESSION_LOG_REPLAY") {
         val passed get() = results.count { it.status == "PASS" }
         val failed get() = results.count { it.status == "FAIL" }
         val skipped get() = results.count { it.status == "SKIP" }
         fun json(): String = JSONObject().apply {
             put("schema", "lfn-scout-systemtest-v1")
-            put("appVersion", "0.5.76")
+            put("appVersion", "0.5.77")
             put("timestampMs", timestampMs)
-            put("mode", "LATEST_ROLLING_SESSION_LOG_REPLAY")
+            put("mode", mode)
             put("checkedLogLines", checkedLines)
             put("pass", passed); put("fail", failed); put("skip", skipped)
-            put("limitations", "Evaluates only the latest explicit Rolling recording session if present. Historical sessions excluded; no live UI actions. Missing evidence is SKIP. Heartbeats do not prove sample-perfect continuity.")
+            put("limitations", "Run-scoped event analysis and optional safe real Analyzer STOP/RUN cycles. No live named setup switching or filter mutation. Missing evidence is SKIP; heartbeats are not sample-perfect proof.")
             put("results", JSONArray().apply { results.forEach { r -> put(JSONObject().apply {
                 put("id", r.id); put("status", r.status); put("detail", r.detail)
             }) } })
@@ -79,6 +80,31 @@ internal object PersistentSystemTest {
         result("filterbank_roundtrip", "SKIP", "Requires safe isolated filterbank fixture and controller harness")
         result("statistics_coverage", "SKIP", "Requires independent valid-sample and gap accounting")
         return Report(results, scopedLines.size, nowMs)
+    }
+
+    /** Runtime checks execute against a real, already-running Scout Rolling session.
+     * Never creates, stops, or clears that session. No named JSON setup is changed.
+     */
+    suspend fun runAutomated(context: Context): Report {
+        check(running.compareAndSet(false, true)) { "Ein Systemtest läuft bereits" }
+        try {
+        val runId = System.currentTimeMillis().toString(36)
+        DebugLogger.log(context, "SYSTEMTEST_BEGIN", "id=$runId version=0.5.77")
+        val live = AutonomousRollingSystemTest.run(context, runId)
+        DebugLogger.log(context, "SYSTEMTEST_END", "id=$runId live_pass=${live.count { it.status == "PASS" }} live_fail=${live.count { it.status == "FAIL" }}")
+        val recent = DebugLogger.readLines(context)
+        val first = recent.indexOfLast { "SYSTEMTEST_BEGIN id=$runId" in it }
+        val scoped = if (first >= 0) recent.drop(first) else emptyList()
+        val historical = evaluate(scoped)
+        val unauthorizedRollingStop = scoped.any { "AUDIO_DIAG_ROLLING_STOP_REQUEST" in it || "AUDIO_DIAG_ROLLING_CLEANUP_ENTER" in it || "AUDIO_DIAG_ROLLING_RECORDING_STARTED" in it }
+        val rollingIntegrity = if (live.any { it.id == "live_scout_rolling_guard" && it.status == "PASS" }) {
+            listOf(Result("live_no_rolling_lifecycle_change", if (unauthorizedRollingStop) "FAIL" else "PASS", "No Rolling stop, cleanup or restart events permitted during test; observed=$unauthorizedRollingStop"))
+        } else listOf(Result("live_no_rolling_lifecycle_change", "SKIP", "Live Scout-owned Rolling precondition not met"))
+        val report = Report(live + rollingIntegrity + historical.results, scoped.size, System.currentTimeMillis(), "SAFE_LIVE_CYCLES_PLUS_RUN_SCOPED_LOG")
+        SystemTestArtifactStore.save(context, report)
+        DebugLogger.log(context, "SYSTEMTEST_RESULT", "run_id=$runId pass=${report.passed} fail=${report.failed} skip=${report.skipped} mode=live_safe_plus_scoped_log")
+        return report
+        } finally { running.set(false) }
     }
 
     fun run(context: Context): Report {

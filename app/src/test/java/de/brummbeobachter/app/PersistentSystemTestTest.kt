@@ -72,4 +72,27 @@ class PersistentSystemTestTest {
         assertEquals(report.results.size, report.skipped)
         assertTrue(report.json().contains("LATEST_ROLLING_SESSION_LOG_REPLAY"))
     }
+    @Test fun threeAnalyzerCyclesAndHeartbeatsWithinSingleWindowPass() {
+        val report = PersistentSystemTest.evaluate(listOf(
+            "SYSTEMTEST_BEGIN id=z",
+            "AUDIO_DIAG_RESTART_REQUEST",
+            "AUDIO_DIAG_RESTART_DONE",
+            "AUDIO_DIAG_RESTART_REQUEST",
+            "AUDIO_DIAG_RESTART_DONE",
+            "AUDIO_DIAG_RESTART_REQUEST",
+            "AUDIO_DIAG_RESTART_DONE",
+            "AUDIO_DIAG_ROLLING_PCM_HEARTBEAT samples=120832",
+            "AUDIO_DIAG_ROLLING_PCM_HEARTBEAT samples=241664"
+        ))
+        assertEquals("PASS", report.results.first { it.id == "rolling_restart_vs_analyzer" }.status)
+        assertEquals("PASS", report.results.first { it.id == "rolling_counter_monotonic" }.status)
+    }
+    @Test fun missingCompletedRestartFails() {
+        val report = PersistentSystemTest.evaluate(listOf(
+            "AUDIO_DIAG_RESTART_REQUEST",
+            "AUDIO_DIAG_RESTART_DONE",
+            "AUDIO_DIAG_RESTART_REQUEST"
+        ))
+        assertEquals("FAIL", report.results.first { it.id == "rolling_restart_vs_analyzer" }.status)
+    }
 }
