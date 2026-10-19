@@ -75,6 +75,9 @@ internal fun AnalyzerSimpleSetupPanel(context: Context) {
             failedSwitchReason = notice
             return
         }
+        // A controller rollback must also restore the repository selection. A
+        // failed commit must never leave the index pointing at another setup.
+        val previousActiveId = repo.listing().activeId
         val monWasEnabled = AnalyzerMonitor.enabled
         val monWasShifted = AnalyzerMonitor.shifted
         val oldAnalyzer = AnalyzerRuntimeSetupSnapshot.capture(LiveAnalyzerController.snapshot())
@@ -91,6 +94,7 @@ internal fun AnalyzerSimpleSetupPanel(context: Context) {
                 AnalyzerSetupSwitchTransaction.Outcome.Applied,
                 AnalyzerSetupSwitchTransaction.Outcome.Unchanged -> {
                     repo.select(id)
+                    check(repo.listing().activeId == id) { "Setup-Index nach Auswahl nicht bestätigt" }
                     refresh()
                     notice = "Setup übernommen; MON und Rolling bleiben im bisherigen Betriebszustand."
                 }
@@ -98,13 +102,28 @@ internal fun AnalyzerSimpleSetupPanel(context: Context) {
                 is AnalyzerSetupSwitchTransaction.Outcome.Failed -> error("${outcome.reason} (Rücknahme: ${outcome.rollbackSucceeded})")
             }
         } catch (failure: Exception) {
-            // Restore both parameter sets if activation or commit fails.
-            val rollback = runCatching {
+            // Restore controller state AND original repository selection if a
+            // later step failed after the index commit. Do not hide rollback errors.
+            val controllerRollback = runCatching {
                 LiveAnalyzerController.applyStoppedJsonDraft(oldAnalyzer)
                 AnalyzerMonitor.applySetupDraft(oldMonitor)
+                check(AnalyzerSetupExactComparison.sameComplete(oldAnalyzer,
+                    AnalyzerRuntimeSetupSnapshot.capture(LiveAnalyzerController.snapshot())))
+                check(AnalyzerSetupExactComparison.sameComplete(oldMonitor,
+                    AnalyzerMonitor.snapshotSetupParameters()))
+            }
+            val indexRollback = runCatching {
+                if (previousActiveId != null && repo.listing().activeId != previousActiveId) {
+                    repo.select(previousActiveId)
+                }
+                check(repo.listing().activeId == previousActiveId) {
+                    "Alter Setup-Index konnte nicht wiederhergestellt werden"
+                }
+                refresh()
             }
             notice = "Setup nicht übernommen: ${failure.message}" +
-                (if (rollback.isFailure) "; Rücknahme fehlgeschlagen: ${rollback.exceptionOrNull()?.message}" else "")
+                (if (controllerRollback.isFailure) "; Controller-Rücknahme fehlgeschlagen: ${controllerRollback.exceptionOrNull()?.message}" else "") +
+                (if (indexRollback.isFailure) "; Index-Rücknahme fehlgeschlagen: ${indexRollback.exceptionOrNull()?.message}" else "")
         } finally {
             // Preserve the user's explicit MON EIN/AUS and shift selection.
             // New setup's MON parameter values apply on success; the previous

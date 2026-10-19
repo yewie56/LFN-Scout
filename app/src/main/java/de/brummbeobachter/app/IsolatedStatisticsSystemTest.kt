@@ -23,6 +23,17 @@ internal object IsolatedStatisticsSystemTest {
             stats.stop()
             done.size == 1 && done[0].validEpochs == 1800 && done[0].qualityStatus == "COMPLETE"
         }
+        check("isolated_statistics_independent_coverage", "A distinct FFT-second bitmap independently counts present and missing slots") {
+            val done = mutableListOf<RollingHalfHourStatistics.HalfHourResult>()
+            val stats = RollingHalfHourStatistics(onCompleted = { done.add(it) })
+            stats.acceptFftEpoch(start, -40.0)
+            stats.acceptFftEpoch(start, -30.0) // duplicate must not increase bitmap
+            stats.acceptFftEpoch(start + 2000L, -40.0) // slot 1 missing
+            stats.acceptFftEpoch(start + 1_800_000L, -35.0)
+            stats.stop()
+            done.size == 2 && done[0].fftSecondsObserved == 2 && done[0].fftSecondsMissing == 1798 &&
+                done[1].fftSecondsObserved == 1 && done[1].fftSecondsMissing == 1799
+        }
         check("isolated_statistics_duplicates_and_gaps", "Duplicates and a missing second must not fake COMPLETE") {
             val done = mutableListOf<RollingHalfHourStatistics.HalfHourResult>()
             val stats = RollingHalfHourStatistics(onCompleted = { done.add(it) })

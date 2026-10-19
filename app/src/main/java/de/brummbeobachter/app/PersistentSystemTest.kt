@@ -157,6 +157,9 @@ internal object PersistentSystemTest {
             (live + rollingIntegrity).map { LiveEvidenceReconciliation.Verdict(it.id, it.status, it.detail) },
             logScopeAvailable
         ).map { Result(it.id, it.status, it.detail) }
+        // Every unresolved proof remains individually visible; never silently suppress SKIP.
+        val unresolved = reconciled.filter { it.status == "SKIP" }.map { it.id }
+        DebugLogger.log(context, "SYSTEMTEST_UNVERIFIED", "run_id=$runId count=${unresolved.size} cases=${unresolved.joinToString(";")}")
         val report = Report(fixtures + wavResults + statistics + live + listOf(scopeResult) + rollingIntegrity + reconciled, scoped.size, System.currentTimeMillis(), "SAFE_LIVE_CYCLES_PLUS_RUN_SCOPED_LOG", runId, BuildConfig.VERSION_NAME)
         SystemTestArtifactStore.save(context, report)
         DebugLogger.log(context, "SYSTEMTEST_RESULT", "run_id=$runId pass=${report.passed} fail=${report.failed} skip=${report.skipped} mode=live_safe_plus_scoped_log")

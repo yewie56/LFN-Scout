@@ -183,6 +183,7 @@ class RollingAudioService : Service() {
                 if (!halfHourConfig.filterEnabled) queueEpochSnapshot(epochExport?.flush(result.startEpochMs))
                 DebugLogger.log(applicationContext, "ROLLING_HALF_HOUR_RESULT",
                     "start=${result.startEpochMs} epochs=${result.validEpochs} " +
+                    "fft_observed=${result.fftSecondsObserved} fft_missing=${result.fftSecondsMissing} " +
                     "leq=${result.leqDbfs} l50=${result.l50Dbfs} l90=${result.l90Dbfs} " +
                     "quality=${result.qualityStatus}; csv_enabled=${halfHourConfig.exportOverallCsv}")
             }, onEpoch = { epoch, db ->

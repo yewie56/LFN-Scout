@@ -21,6 +21,7 @@ internal object LiveEvidenceReconciliation {
                 "analyzer_start_observed", "rolling_restart_vs_analyzer" ->
                     isFail("live_analyzer_stop_restart_cycles") || isFail("live_analyzer_run_restored")
                 "rolling_counter_monotonic" -> isFail("live_pcm_read_callback_continuity")
+                "filterbank_roundtrip" -> isFail("live_filter_geometry_stop_ab_a") || isFail("live_filterbank_after_mon_probe") || isFail("live_analyzer_run_restored")
                 "rolling_no_reset_observed" -> isFail("live_rolling_survives_analyzer")
                 else -> false
             }
@@ -41,6 +42,11 @@ internal object LiveEvidenceReconciliation {
                     else null
                 "rolling_counter_monotonic" -> if (isPass("live_pcm_read_callback_continuity") && isPass("live_rolling_survives_analyzer"))
                     "Real AudioRecord epoch and monotonically increasing read counts verified; does not prove sample-perfect acquisition"
+                    else null
+                "filterbank_roundtrip" -> if (isPass("live_filter_geometry_stop_ab_a") &&
+                    isPass("live_filterbank_after_mon_probe") && isPass("live_analyzer_run_restored") &&
+                    isPass("live_scout_rolling_guard"))
+                    "Production controller applied filter B in Analyzer RUN, restored A and persisted preferences, with Rolling and post-MON controls verified; no named setup switch claimed"
                     else null
                 "rolling_no_reset_observed" -> if (isPass("live_rolling_survives_analyzer") && isPass("live_no_rolling_lifecycle_change"))
                     "Rolling service generation/start/stop counters unchanged during run; not a physical gap proof"

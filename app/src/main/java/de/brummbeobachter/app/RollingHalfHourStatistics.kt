@@ -28,13 +28,16 @@ internal class RollingHalfHourStatistics(
     private var samples = 0
     private val epochLevels = ArrayList<Double>(1800)
     private var lastFftEpochMs = -1L
+    private val fftSecondPresent = BooleanArray(1800)
+    private var fftSecondsObserved = 0
 
     data class HalfHourResult(
         val startEpochMs: Long, val endEpochMs: Long,
         val minimumHz: Int, val maximumHz: Int,
         val validEpochs: Int, val leqDbfs: Double?,
         val l50Dbfs: Double?, val l90Dbfs: Double?,
-        val qualityStatus: String
+        val qualityStatus: String,
+        val fftSecondsObserved: Int = 0, val fftSecondsMissing: Int = 1800
     )
 
     /** Input sample is 16-bit PCM, already gain-applied by the legacy rolling path. */
@@ -72,6 +75,10 @@ internal class RollingHalfHourStatistics(
         val second = Math.floorDiv(timeEpochMs, 1000L) * 1000L
         if (second <= lastFftEpochMs || !db.isFinite()) return
         lastFftEpochMs = second
+        val slot = ((second - bucketStart) / 1000L).toInt()
+        if (slot !in 0 until 1800 || fftSecondPresent[slot]) return
+        fftSecondPresent[slot] = true
+        fftSecondsObserved++
         epochLevels.add(db)
         onEpoch(second, db)
     }
@@ -98,8 +105,11 @@ internal class RollingHalfHourStatistics(
             minimumHz, maximumHz, n,
             if (n > 0) 10.0 * log10(averageEnergy.coerceAtLeast(1e-20)) else null,
             exceedance(0.50), exceedance(0.90),
-            when (n) { 0 -> "NO_DATA"; 1800 -> "COMPLETE"; else -> "PARTIAL" }))
+            when (n) { 0 -> "NO_DATA"; 1800 -> "COMPLETE"; else -> "PARTIAL" },
+            fftSecondsObserved, 1800 - fftSecondsObserved))
         epochLevels.clear()
+        fftSecondPresent.fill(false)
+        fftSecondsObserved = 0
     }
 
     /** Called at controlled stop; incomplete seconds do not count as valid epochs. */
