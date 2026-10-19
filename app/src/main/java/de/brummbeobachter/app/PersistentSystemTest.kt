@@ -11,13 +11,13 @@ import java.util.Locale
 internal object PersistentSystemTest {
     private val running = java.util.concurrent.atomic.AtomicBoolean(false)
     data class Result(val id: String, val status: String, val detail: String)
-    data class Report(val results: List<Result>, val checkedLines: Int, val timestampMs: Long, val mode: String = "LATEST_ROLLING_SESSION_LOG_REPLAY", val runId: String? = null) {
+    data class Report(val results: List<Result>, val checkedLines: Int, val timestampMs: Long, val mode: String = "LATEST_ROLLING_SESSION_LOG_REPLAY", val runId: String? = null, val appVersion: String = "UNKNOWN") {
         val passed get() = results.count { it.status == "PASS" }
         val failed get() = results.count { it.status == "FAIL" }
         val skipped get() = results.count { it.status == "SKIP" }
         fun json(): String = JSONObject().apply {
             put("schema", "lfn-scout-systemtest-v1")
-            put("appVersion", "0.5.79")
+            put("appVersion", appVersion)
             put("timestampMs", timestampMs)
             put("mode", mode)
             if (runId != null) put("runId", runId)
@@ -90,7 +90,7 @@ internal object PersistentSystemTest {
         check(running.compareAndSet(false, true)) { "Ein Systemtest läuft bereits" }
         try {
         val runId = System.currentTimeMillis().toString(36)
-        DebugLogger.log(context, "SYSTEMTEST_BEGIN", "id=$runId version=0.5.79")
+        DebugLogger.log(context, "SYSTEMTEST_BEGIN", "id=$runId version=${BuildConfig.VERSION_NAME} version_code=${BuildConfig.VERSION_CODE}")
         // A failed fixture must remain visible as FAIL, rather than aborting the
         // whole report and hiding later independent checks. Preserve cancellation.
         val fixtures = try {
@@ -149,7 +149,7 @@ internal object PersistentSystemTest {
         val rollingIntegrity = if (logScopeAvailable && live.any { it.id == "live_scout_rolling_guard" && it.status == "PASS" }) {
             listOf(Result("live_no_rolling_lifecycle_change", if (unauthorizedRollingStop) "FAIL" else "PASS", "No Rolling stop, cleanup or restart events permitted during test; observed=$unauthorizedRollingStop"))
         } else listOf(Result("live_no_rolling_lifecycle_change", "SKIP", "Live Rolling prerequisite or complete run-scoped log unavailable"))
-        val report = Report(fixtures + wavResults + statistics + live + listOf(scopeResult) + rollingIntegrity + historical.results, scoped.size, System.currentTimeMillis(), "SAFE_LIVE_CYCLES_PLUS_RUN_SCOPED_LOG", runId)
+        val report = Report(fixtures + wavResults + statistics + live + listOf(scopeResult) + rollingIntegrity + historical.results, scoped.size, System.currentTimeMillis(), "SAFE_LIVE_CYCLES_PLUS_RUN_SCOPED_LOG", runId, BuildConfig.VERSION_NAME)
         SystemTestArtifactStore.save(context, report)
         DebugLogger.log(context, "SYSTEMTEST_RESULT", "run_id=$runId pass=${report.passed} fail=${report.failed} skip=${report.skipped} mode=live_safe_plus_scoped_log")
         return report
@@ -157,7 +157,7 @@ internal object PersistentSystemTest {
     }
 
     fun run(context: Context): Report {
-        val report = evaluate(DebugLogger.readLines(context))
+        val report = evaluate(DebugLogger.readLines(context)).copy(appVersion = BuildConfig.VERSION_NAME)
         DebugLogger.log(context, "SYSTEMTEST_RESULT", "pass=${report.passed} fail=${report.failed} skip=${report.skipped} mode=log_replay")
         return report
     }

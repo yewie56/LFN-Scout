@@ -137,8 +137,8 @@ internal object AutonomousRollingSystemTest {
         val monOk = AnalyzerMonitor.enabled == beforeMon && AnalyzerMonitor.snapshotSetupParameters().toString() == beforeConfig
         record("live_mon_state_restored", if (!monOk || monMismatchDuringCycle) "FAIL" else if (failed) "SKIP" else "PASS", "MON enabled before=$beforeMon after=${AnalyzerMonitor.enabled}; parameters ${if (monOk) "unchanged" else "changed"}")
         record("live_mon_enabled_stop_restart", when {
-            !beforeMon -> "SKIP"
             !monOk || monMismatchDuringCycle -> "FAIL"
+            !beforeMon -> "SKIP"
             failed -> "SKIP"
             else -> "PASS"
         }, if (!beforeMon) "MON was OFF at test start; STOP/RUN with MON enabled not exercised" else "MON was ON; STOP/RUN completed=$completed/3; state/parameters restored=$monOk")

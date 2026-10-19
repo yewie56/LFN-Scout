@@ -12,6 +12,14 @@ class PersistentSystemTestTest {
         assertTrue(live.contains("\"runId\": \"test-123\""))
     }
 
+    @Test fun reportUsesProvidedAppVersionInsteadOfStaleLiteral() {
+        val report = PersistentSystemTest.Report(
+            emptyList(), 0, 123L, "LIVE", "run-1", "0.5.80"
+        ).json()
+        assertTrue(report.contains("\"appVersion\": \"0.5.80\""))
+        assertTrue(!report.contains("\"appVersion\": \"0.5.79\""))
+    }
+
     @Test fun detectsCompletedRollingAnalyzerCycles() {
         val log = listOf(
             "AUDIO_DIAG_ROLLING_RECORDING_STARTED",
