@@ -317,3 +317,7 @@ Bei Chat-/Projektwechsel `PROJECT_STATUS.md` und `docs/project/UEBERGABE_v0.5.00
 - Eine Version darf nur dann als build-verifiziert/fertig bezeichnet werden, wenn mindestens `:app:testDebugUnitTest` und `assembleDebug` erfolgreich durchgelaufen sind.
 - Ist der reale Gradle-Build in der Erstellungsumgebung nicht möglich, wird das Paket ausdrücklich als **Source Candidate – Build noch nicht verifiziert** gekennzeichnet.
 - Compilerfehler aus einem realen Vortest haben Vorrang vor statischen PASS-Prüfungen und werden vor Funktionsausweitungen behoben.
+
+
+## Dauerhafte Testdirektive ab v0.5.75
+Ein jederzeit über die App erreichbarer automatisierter System- und Regressionstest ist dauerhafter Projektbestandteil. Neue Features und Fehlerbehebungen erweitern seine Testabdeckung; Tests dürfen nicht stillschweigend entfernt werden. PASS, FAIL und SKIP unterscheiden; keine Schein-PASS für ungeprüfte Hardware-, Audio- oder Steuerpfade. Diagnose- und Exportpaket ohne Nutzdatenänderung. Die v0.5.75-Erststufe ist eine passive Log-Auswertung; vollautomatische echte Bedienabläufe sind noch offen. Details: `docs/project/PERSISTENT_SYSTEMTEST_v0.5.75.md`.

@@ -1,3 +1,12 @@
+# v0.5.75 / versionCode 233 – permanentes Systemtest-Framework (erste Stufe, Quellkandidat)
+- Read-only Ereignislog-Auswertung in `PersistentSystemTest.kt` mit 12 PASS/FAIL/SKIP-Prüfungen, CSV/JSON.
+- Im Analyzer-Diagnosepanel dauerhaft verfügbare Schaltflächen für Start und ZIP-Export.
+- Export über bestehenden MediaStore-Diagnosepfad mit bereinigtem App-Log.
+- Drei JVM-Regressionsfälle für Erkennung von Restart, Zählerrückgang und SKIP bei fehlender Evidenz.
+- Keine simulierten UI-Bedienungen oder Controller-STOP/RUN-Sequenzen; diese sind explizit als SKIP ausgewiesen und bleiben als nächste Ausbaustufe offen.
+- Keine Änderungen am Audio-/Rolling-/MON-/Setup-Steuerpfad.
+- Android-Build und Gerätetest müssen noch erfolgen.
+
 # v0.5.74 / versionCode 232 – benannter Setupwechsel bei MON EIN (Quellkandidat)
 
 - F73-01: Der STOP-Panel-Setupwechsel speichert zunächst das aktive benannte JSON samt seinen unveränderten MON-Parametern; erst danach wird die laufende MON-Wiedergabe für die streng gesicherte Setup-Transaktion kurz angehalten und nach Erfolg oder Fehler mit dem zuvor gewählten EIN/AUS- und SHIFT-Zustand wieder aufgenommen. Bei Erfolg stammen MON-Parameter aus dem neuen Setup, bei Fehlern werden alte Analyzer-/MON-Parameter soweit möglich zurückgenommen.

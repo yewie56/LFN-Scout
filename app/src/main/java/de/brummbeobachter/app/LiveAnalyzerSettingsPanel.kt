@@ -70,6 +70,7 @@ internal fun LiveAnalyzerSettingsPanel(
     }
     var slot by remember(state.direct48k) { mutableStateOf(if (state.direct48k) 4 else prefs.getInt("last_setup_slot",1).coerceIn(1,3)) }
     var message by remember { mutableStateOf("") }
+    var selfTestSummary by remember { mutableStateOf("") }
     val exportScope = rememberCoroutineScope()
     var setupName by remember(slot) { mutableStateOf(prefs.getString("setup_${slot}_name", "") ?: "") }
     var setupDescription by remember(slot) { mutableStateOf(prefs.getString("setup_${slot}_description", "") ?: "") }
@@ -960,6 +961,27 @@ internal fun LiveAnalyzerSettingsPanel(
                         }
                     }) { Text("Diagnose-ZIP exportieren", color=white) }
                     if (message.isNotBlank()) SettingNote(message)
+                    SettingNote("Automatischer Systemtest · dauerhaftes Testregister (v0.5.75). Prüft das interne Ereignislog ohne Einfluss auf Rolling, Setups oder Aufnahmen. Nicht belegbare Fälle bleiben SKIP.")
+                    OutlinedButton(onClick={
+                        exportScope.launch {
+                            message="Systemtest läuft …"
+                            runCatching { withContext(Dispatchers.Default) { PersistentSystemTest.run(context) } }
+                                .onSuccess { report ->
+                                    selfTestSummary=report.summary()
+                                    message="Systemtest beendet: $selfTestSummary"
+                                }
+                                .onFailure { message="Systemtest fehlgeschlagen: ${it.javaClass.simpleName}" }
+                        }
+                    }) { Text("Automatischen Systemtest starten",color=white) }
+                    if(selfTestSummary.isNotBlank()) SettingNote(selfTestSummary)
+                    OutlinedButton(onClick={
+                        exportScope.launch {
+                            message="Erzeuge Systemtest-Paket …"
+                            runCatching { withContext(Dispatchers.IO) { AnalyzerInspectionExport.exportSystemTest(context) } }
+                                .onSuccess { message="Systemtest-Paket exportiert: $it" }
+                                .onFailure { message="Export fehlgeschlagen: ${it.javaClass.simpleName}" }
+                        }
+                    }) { Text("Systemtest-Paket exportieren",color=white) }
                     SettingNote("Messung mit STOP in der Analyzer-Kopfzeile beenden; dabei bleibt die Audio-Betriebsart bis zum Verlassen des gestoppten Panels erhalten.")
                 }
             }
