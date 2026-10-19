@@ -46,6 +46,8 @@ internal object AutonomousRollingSystemTest {
         var failed = false
         var completed = 0
         var rollingInterrupted = false
+        var filterMismatchDuringCycle = false
+        var monMismatchDuringCycle = false
         isTemporaryStopActive = true
         try {
             repeat(3) { index ->
@@ -72,11 +74,29 @@ internal object AutonomousRollingSystemTest {
                 }
                 if (AnalyzerMonitor.enabled != beforeMon ||
                     AnalyzerMonitor.snapshotSetupParameters().toString() != beforeConfig) {
+                    monMismatchDuringCycle = true
                     failed = true
                     throw IllegalStateException("MON state/parameters changed in STOP/RUN cycle=${index + 1}")
                 }
+                // Verify the actual running filter configuration on EVERY restart,
+                // not only after the third cycle. A transient wrong configuration
+                // must remain a FAIL even if later restarts recover it.
+                val cycleAnalyzer = LiveAnalyzerController.snapshot()
+                if (cycleAnalyzer.filterMinHz != beforeAnalyzer.filterMinHz ||
+                    cycleAnalyzer.filterMaxHz != beforeAnalyzer.filterMaxHz ||
+                    cycleAnalyzer.filterBandCount != beforeAnalyzer.filterBandCount ||
+                    cycleAnalyzer.filterDisplayMinDb != beforeAnalyzer.filterDisplayMinDb ||
+                    cycleAnalyzer.filterDisplayMaxDb != beforeAnalyzer.filterDisplayMaxDb ||
+                    cycleAnalyzer.showFilterWaterfall != beforeAnalyzer.showFilterWaterfall) {
+                    filterMismatchDuringCycle = true
+                    failed = true
+                    throw IllegalStateException("Filterbank changed in STOP/RUN cycle=${index + 1}: " +
+                        "before=${beforeAnalyzer.filterMinHz}..${beforeAnalyzer.filterMaxHz}/" +
+                        "${beforeAnalyzer.filterBandCount}, after=${cycleAnalyzer.filterMinHz}.." +
+                        "${cycleAnalyzer.filterMaxHz}/${cycleAnalyzer.filterBandCount}")
+                }
                 completed++
-                DebugLogger.log(context, "SYSTEMTEST_CYCLE", "run_id=$runId index=$completed rolling=true mon=${AnalyzerMonitor.enabled}")
+                DebugLogger.log(context, "SYSTEMTEST_CYCLE", "run_id=$runId index=$completed rolling=true mon=${AnalyzerMonitor.enabled} filter_bands=${cycleAnalyzer.filterBandCount}")
             }
         } catch (c: CancellationException) {
             failed = true
@@ -112,13 +132,13 @@ internal object AutonomousRollingSystemTest {
             beforeAnalyzer.filterDisplayMinDb == afterAnalyzer.filterDisplayMinDb &&
             beforeAnalyzer.filterDisplayMaxDb == afterAnalyzer.filterDisplayMaxDb &&
             beforeAnalyzer.showFilterWaterfall == afterAnalyzer.showFilterWaterfall
-        record("live_filterbank_survives_restart", if (failed) "SKIP" else if (filterOk) "PASS" else "FAIL",
-            "Filterbank before=${beforeAnalyzer.filterMinHz}..${beforeAnalyzer.filterMaxHz} bands=${beforeAnalyzer.filterBandCount}; after=${afterAnalyzer.filterMinHz}..${afterAnalyzer.filterMaxHz} bands=${afterAnalyzer.filterBandCount}")
+        record("live_filterbank_survives_restart", if (!filterOk || filterMismatchDuringCycle) "FAIL" else if (failed) "SKIP" else "PASS",
+            "Filterbank before=${beforeAnalyzer.filterMinHz}..${beforeAnalyzer.filterMaxHz} bands=${beforeAnalyzer.filterBandCount}; after=${afterAnalyzer.filterMinHz}..${afterAnalyzer.filterMaxHz} bands=${afterAnalyzer.filterBandCount}; mismatchDuringCycle=$filterMismatchDuringCycle")
         val monOk = AnalyzerMonitor.enabled == beforeMon && AnalyzerMonitor.snapshotSetupParameters().toString() == beforeConfig
-        record("live_mon_state_restored", if (!monOk) "FAIL" else if (failed) "SKIP" else "PASS", "MON enabled before=$beforeMon after=${AnalyzerMonitor.enabled}; parameters ${if (monOk) "unchanged" else "changed"}")
+        record("live_mon_state_restored", if (!monOk || monMismatchDuringCycle) "FAIL" else if (failed) "SKIP" else "PASS", "MON enabled before=$beforeMon after=${AnalyzerMonitor.enabled}; parameters ${if (monOk) "unchanged" else "changed"}")
         record("live_mon_enabled_stop_restart", when {
             !beforeMon -> "SKIP"
-            !monOk -> "FAIL"
+            !monOk || monMismatchDuringCycle -> "FAIL"
             failed -> "SKIP"
             else -> "PASS"
         }, if (!beforeMon) "MON was OFF at test start; STOP/RUN with MON enabled not exercised" else "MON was ON; STOP/RUN completed=$completed/3; state/parameters restored=$monOk")

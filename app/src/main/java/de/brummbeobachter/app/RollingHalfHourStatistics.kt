@@ -41,12 +41,16 @@ internal class RollingHalfHourStatistics(
     fun accept(sample: Short, timeEpochMs: Long) {
         val newBucket = Math.floorDiv(timeEpochMs, 1_800_000L) * 1_800_000L
         if (bucketStart < 0) bucketStart = newBucket
+        // Reject late PCM callbacks rather than mixing prior timestamps into a
+        // newer half-hour or moving the bucket clock backwards.
+        if (newBucket < bucketStart) return
+        val newEpoch = Math.floorDiv(timeEpochMs, 1000L) * 1000L
+        if (epochStart >= 0 && newEpoch < epochStart) return
         if (newBucket != bucketStart) {
             finishEpoch()
             completeBucket()
             bucketStart = newBucket
         }
-        val newEpoch = Math.floorDiv(timeEpochMs, 1000L) * 1000L
         if (epochStart >= 0 && newEpoch != epochStart) finishEpoch()
         epochStart = newEpoch
         val x = sample.toDouble() / 32768.0

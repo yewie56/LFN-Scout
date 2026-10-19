@@ -45,6 +45,52 @@ internal object IsolatedStatisticsSystemTest {
             stats.stop()
             done.size == 2 && done[0].validEpochs == 1 && done[1].validEpochs == 1
         }
+        check("isolated_statistics_nonfinite_ignored", "NaN and infinities do not count as valid FFT seconds") {
+            val done = mutableListOf<RollingHalfHourStatistics.HalfHourResult>()
+            val stats = RollingHalfHourStatistics(onCompleted = { done.add(it) })
+            stats.acceptFftEpoch(start, Double.NaN)
+            stats.acceptFftEpoch(start + 1000L, Double.POSITIVE_INFINITY)
+            stats.acceptFftEpoch(start + 2000L, Double.NEGATIVE_INFINITY)
+            stats.acceptFftEpoch(start + 3000L, -45.0)
+            stats.stop()
+            done.size == 1 && done.single().validEpochs == 1 && done.single().qualityStatus == "PARTIAL"
+        }
+        check("isolated_statistics_empty_bucket", "Invalid-only bucket reports NO_DATA and no Leq") {
+            val done = mutableListOf<RollingHalfHourStatistics.HalfHourResult>()
+            val stats = RollingHalfHourStatistics(onCompleted = { done.add(it) })
+            stats.acceptFftEpoch(start, Double.NaN)
+            stats.stop()
+            done.size == 1 && done.single().validEpochs == 0 &&
+                done.single().qualityStatus == "NO_DATA" && done.single().leqDbfs == null
+        }
+        check("isolated_statistics_reuse_after_stop", "A new half-hour session after stop starts with fresh epoch accounting") {
+            val done = mutableListOf<RollingHalfHourStatistics.HalfHourResult>()
+            val stats = RollingHalfHourStatistics(onCompleted = { done.add(it) })
+            stats.acceptFftEpoch(start, -30.0)
+            stats.stop()
+            stats.acceptFftEpoch(start, -35.0)
+            stats.stop()
+            done.size == 2 && done.all { it.validEpochs == 1 && it.qualityStatus == "PARTIAL" }
+        }
+        check("isolated_statistics_bucket_boundary", "FFT epochs on an exact :00/:30 boundary go to the next bucket") {
+            val done = mutableListOf<RollingHalfHourStatistics.HalfHourResult>()
+            val stats = RollingHalfHourStatistics(onCompleted = { done.add(it) })
+            stats.acceptFftEpoch(start + 1_799_000L, -21.0)
+            stats.acceptFftEpoch(start + 1_800_000L, -44.0)
+            stats.stop()
+            done.size == 2 && done[0].validEpochs == 1 && done[1].validEpochs == 1 &&
+                done[0].startEpochMs + 1_800_000L == done[1].startEpochMs
+        }
+        check("isolated_statistics_stale_pcm_callback", "Late PCM timestamp cannot move a completed bucket backwards") {
+            val done = mutableListOf<RollingHalfHourStatistics.HalfHourResult>()
+            val stats = RollingHalfHourStatistics(onCompleted = { done.add(it) })
+            stats.accept(1000, start + 1_799_000L)
+            stats.accept(1000, start + 1_800_000L)
+            stats.accept(1000, start + 1_799_001L)
+            stats.stop()
+            done.size == 2 && done[0].startEpochMs == start &&
+                done[1].startEpochMs == start + 1_800_000L
+        }
         for (count in listOf(10, 20)) {
             check("isolated_statistics_filterbank_${count}_bands", "Production CSV bank accepts $count bands and preserves independent frequency limits") {
                 val done = mutableListOf<List<RollingFilterHalfHourStatistics.BandResult>>()
