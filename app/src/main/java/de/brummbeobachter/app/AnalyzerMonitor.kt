@@ -105,6 +105,38 @@ internal object AnalyzerMonitor {
         initialized=false
     }
 
+    /** Non-persistent controller A/B/A probe for the autonomous system test.
+     * Preserves the draft/persistence mode as well as all effective MON parameters.
+     * Never starts MON or writes preferences. Refuses to run while MON is enabled.
+     */
+    internal fun probeSetupDraftRoundtrip(a: JSONObject, b: JSONObject, onStage: ((Int) -> Unit)? = null): Boolean = synchronized(lock) {
+        require(!enabled) { "MON must be OFF for the non-persistent A/B/A probe" }
+        val original = snapshotSetupParameters()
+        val originalDraftActive = setupDraftActive
+        val originalInitialized = initialized
+        try {
+            applySetupDraft(a)
+            check(snapshotSetupParameters().toString() == a.toString()) { "MON A not applied" }
+            onStage?.invoke(0)
+            applySetupDraft(b)
+            check(snapshotSetupParameters().toString() == b.toString()) { "MON B not applied" }
+            onStage?.invoke(1)
+            applySetupDraft(a)
+            check(snapshotSetupParameters().toString() == a.toString()) { "MON A not restored after B" }
+            onStage?.invoke(2)
+            true
+        } finally {
+            // Restore parameters even when the probe throws; preserving the exact
+            // prior draft mode avoids turning legacy preference saves off.
+            try {
+                applySetupDraft(original)
+            } finally {
+                setupDraftActive = originalDraftActive
+                initialized = originalInitialized
+            }
+        }
+    }
+
     /** Return to original legacy persistence behavior when the new setup UI is not active. */
     fun releaseSetupDraft(context: Context) = synchronized(lock) {
         require(!enabled) { "Stop MON before releasing the setup draft" }

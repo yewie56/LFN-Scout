@@ -24,4 +24,28 @@ class MonPcmWriteAccountingTest {
         meter.rejected()
         assertFalse(meter.snapshot().complete(556))
     }
+    @Test fun sameLengthDifferentPayloadFails() {
+        val meter = MonPcmWriteAccounting()
+        meter.acceptedBlock(byteArrayOf(1, 2, 3, 4))
+        meter.writtenBlock(byteArrayOf(1, 2, 3, 5))
+        assertFalse(meter.snapshot().complete(48))
+    }
+
+    @Test fun identicalBlocksRequireExactOrderAndLength() {
+        val meter = MonPcmWriteAccounting()
+        val a = byteArrayOf(1, 2)
+        val b = byteArrayOf(3, 4)
+        meter.acceptedBlock(a)
+        meter.acceptedBlock(b)
+        meter.writtenBlock(a)
+        meter.writtenBlock(b)
+        assertTrue(meter.snapshot().complete(48))
+        assertFalse(meter.snapshot().complete(49))
+        val reordered = MonPcmWriteAccounting()
+        reordered.acceptedBlock(a)
+        reordered.acceptedBlock(b)
+        reordered.writtenBlock(b)
+        reordered.writtenBlock(a)
+        assertFalse(reordered.snapshot().complete(48))
+    }
 }

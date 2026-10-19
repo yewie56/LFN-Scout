@@ -1,3 +1,9 @@
+## v0.5.88 / versionCode 246 – Regressionstest-Vertragsabgleich (Android-Testkandidat)
+- Veralteten MON-Setup-Rollback-Vertragstest auf repository.restoreSelection(previousActiveId, previousSelection.recent) umgestellt. Der Test fordert jetzt ausdrücklich MRU-Wiederherstellung.
+- Enthält den bis zur vorherigen Arbeitsrunde vorliegenden MON-Setup-A/B/A-Prüfpfad und die PCM-Schreibprüfsummen-Erweiterung.
+- Lokale Vertrags-Regression: 20/20 PASS. Android-Build und neuer Gerätetest hier nicht bestätigt.
+- Letzter belegter Smartphone-Test v0.5.87: 50 PASS, 0 FAIL, 5 SKIP. Fünf SKIP-Fälle weiterhin nicht als gelöst nachgewiesen.
+
 ## v0.5.87 / versionCode 245 – Setup-Repository-Rollback und Testintegrität (unfreigegebener Android-Testkandidat)
 - Integrierte Änderungen aus sechs Entwicklungsrunden: Validierungsanpassung des Statistik-Leerfenster-Tests, isolierte Repository-A/B/A-Tests mit Wiedereinlesen, Schreib-/Index-Rollback auch aus null-aktiver Auswahl, Schutz der produktiven Setup-Dateien mit SHA-256-Integritätsprüfung und Absicherung des MON-Setupwechsels.
 - **Noch nicht implementiert/verifiziert:** vollständiger aktiver Controller-/MON-Setup-A/B/A-Systemtest sowie produktive PCM-/WAV-Lücken- und Statistik-End-to-End-Prüfung.

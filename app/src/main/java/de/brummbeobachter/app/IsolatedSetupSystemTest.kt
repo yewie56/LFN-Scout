@@ -23,6 +23,52 @@ internal object IsolatedSetupSystemTest {
             val monA = JSONObject(AnalyzerMonitor.snapshotSetupParameters().toString())
             val monB = JSONObject(monA.toString()).put("level",
                 if (monA.getDouble("level") == -35.0) -20.0 else -35.0)
+            // Exercise the real MON controller's failure path without ever enabling MON
+            // or applying a valid draft to productive runtime state. A malformed
+            // fixture must be rejected before any parameter is changed.
+            val beforeRejectedDraft = AnalyzerMonitor.snapshotSetupParameters().toString()
+            val invalidMonDraft = JSONObject(monA.toString()).put("center", -1.0)
+            val invalidDraftRejected = runCatching {
+                AnalyzerMonitor.applySetupDraft(invalidMonDraft)
+            }.isFailure
+            record("isolated_mon_controller_rejects_invalid_draft",
+                invalidDraftRejected &&
+                    AnalyzerMonitor.snapshotSetupParameters().toString() == beforeRejectedDraft,
+                "Real MON controller rejected invalid draft with no runtime parameter change; no valid live A/B/A switch claimed")
+            // Probe additional real controller rejection paths without activating a
+            // valid draft.  Each check must preserve the effective MON state.
+            val incompleteDraft = JSONObject(monA.toString()).apply { remove("fade") }
+            val beforeIncomplete = AnalyzerMonitor.snapshotSetupParameters().toString()
+            val incompleteRejected = runCatching {
+                AnalyzerMonitor.applySetupDraft(incompleteDraft)
+            }.isFailure
+            record("isolated_mon_controller_rejects_incomplete_draft",
+                incompleteRejected &&
+                    AnalyzerMonitor.snapshotSetupParameters().toString() == beforeIncomplete,
+                "Real controller rejects missing MON field without mutating runtime; no live A/B/A claimed")
+            val outOfRangeDraft = JSONObject(monA.toString()).put("comp_ratio", 21.0)
+            val beforeOutOfRange = AnalyzerMonitor.snapshotSetupParameters().toString()
+            val outOfRangeRejected = runCatching {
+                AnalyzerMonitor.applySetupDraft(outOfRangeDraft)
+            }.isFailure
+            record("isolated_mon_controller_rejects_out_of_range_draft",
+                outOfRangeRejected &&
+                    AnalyzerMonitor.snapshotSetupParameters().toString() == beforeOutOfRange,
+                "Real controller rejects out-of-range MON field without mutating runtime; no live A/B/A claimed")
+            // Exercise real MON draft acceptance and A/B/A parameter transitions
+            // without touching named production setups, preferences, or MON output.
+            // The controller guard refuses to run while MON is enabled.
+            val beforeProbe = AnalyzerMonitor.snapshotSetupParameters().toString()
+            if (AnalyzerMonitor.enabled) {
+                results += PersistentSystemTest.Result("isolated_mon_controller_ab_a_probe", "SKIP",
+                    "MON is enabled; non-persistent controller probe must not disturb active output")
+            } else {
+                val probe = runCatching { AnalyzerMonitor.probeSetupDraftRoundtrip(monA, monB) }
+                val restored = AnalyzerMonitor.snapshotSetupParameters().toString() == beforeProbe
+                record("isolated_mon_controller_ab_a_probe", probe.getOrDefault(false) && restored,
+                    "Real MON draft controller accepted A/B/A and original effective parameters restored; " +
+                        (probe.exceptionOrNull()?.message ?: "no controller exception"))
+            }
             val filterA = JSONObject().put("filter_min_hz", 1).put("filter_max_hz", 100)
                 .put("filter_bands", 10)
             val filterB = JSONObject().put("filter_min_hz", 2).put("filter_max_hz", 150)
@@ -164,6 +210,47 @@ internal object IsolatedSetupSystemTest {
                 aMonitorLevel == changedLevel && finalMonitorLevel == changedLevel &&
                 bMonitorLevel != changedLevel,
                 "A→B→A selected using fresh repository instances, distinct persisted MON values checked, index/MRU recovered; no live controller changes")
+
+            // Named A/B/A through the production repository selection API AND
+            // real MON draft controller. Only disposable cache-backed setup files
+            // are selected; runtime draft state is restored by the controller probe.
+            // This is deliberately not a UI navigation or active MON recording test.
+            val namedBefore = AnalyzerJsonSetupRepository(isolated).listing()
+            val monBefore = AnalyzerMonitor.snapshotSetupParameters().toString()
+            if (AnalyzerMonitor.enabled) {
+                results += PersistentSystemTest.Result("isolated_named_mon_controller_ab_a", "SKIP",
+                    "MON output is active; cannot change runtime drafts safely")
+            } else {
+                val namedResult = runCatching {
+                    val stageIds = listOf(a.id, b.id, a.id)
+                    val stageValues = stageIds.map { id ->
+                        AnalyzerJsonSetupRepository(isolated).load(id)
+                            .getJSONObject("parameters").getJSONObject("monitor")
+                    }
+                    // Freshly read versions of the named documents are used,
+                    // including the earlier test's persisted edits.
+                    AnalyzerMonitor.probeSetupDraftRoundtrip(stageValues[0], stageValues[1]) { stage ->
+                        AnalyzerJsonSetupRepository(isolated).select(stageIds[stage])
+                        check(AnalyzerJsonSetupRepository(isolated).listing().activeId == stageIds[stage]) {
+                            "Named setup not selected at stage $stage"
+                        }
+                        check(AnalyzerMonitor.snapshotSetupParameters().toString() == stageValues[stage].toString()) {
+                            "MON draft does not match selected named setup at stage $stage"
+                        }
+                    }
+                }
+                val repoRestored = runCatching {
+                    AnalyzerJsonSetupRepository(isolated).restoreSelection(namedBefore.activeId, namedBefore.recent)
+                    AnalyzerJsonSetupRepository(isolated).listing().let {
+                        it.activeId == namedBefore.activeId && it.recent == namedBefore.recent
+                    }
+                }
+                record("isolated_named_mon_controller_ab_a",
+                    namedResult.getOrDefault(false) && repoRestored.getOrDefault(false) &&
+                        AnalyzerMonitor.snapshotSetupParameters().toString() == monBefore,
+                    "Named cache-only A/B/A selection with real MON draft controller; runtime and isolated index restored; " +
+                        (namedResult.exceptionOrNull()?.message ?: repoRestored.exceptionOrNull()?.message ?: "no exception"))
+            }
 
             // Invalid edits must fail before the existing, valid JSON is replaced.
             val validBytes = reopened.exportCopy(b.id)

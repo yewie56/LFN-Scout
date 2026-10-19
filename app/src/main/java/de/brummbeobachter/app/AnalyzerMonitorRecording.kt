@@ -62,7 +62,7 @@ internal object AnalyzerMonitorRecording {
             thread = Thread({
                 while (active || blocks.isNotEmpty()) {
                     val bytes = blocks.poll(150, java.util.concurrent.TimeUnit.MILLISECONDS) ?: continue
-                    try { stream.write(bytes); writeAccounting.written(bytes.size); samples += bytes.size / 2L }
+                    try { stream.write(bytes); writeAccounting.writtenBlock(bytes); samples += bytes.size / 2L }
                     catch (_: Exception) { failed = true; active = false }
                 }
                 try { stream.flush();stream.close() } catch (_: Exception) { failed = true }
@@ -82,7 +82,7 @@ internal object AnalyzerMonitorRecording {
         }
         synchronized(mutex) {
             if (!active) return
-            if (blocks.offer(bytes)) { writeAccounting.accepted(bytes.size) }
+            if (blocks.offer(bytes)) { writeAccounting.acceptedBlock(bytes) }
             else { writeAccounting.rejected(); failed=true; active=false }
         }
     }
