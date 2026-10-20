@@ -89,15 +89,22 @@ object AudioRecorder {
                 val clippedOutput = maxOf(captured.clippedSamples, gainClipped)
                 val directory = File(context.cacheDir, "audio_recording_temp").apply { mkdirs() }
                 val file = File(directory, "brumm_${System.currentTimeMillis()}.wav")
-                file.outputStream().use {
-                    it.write(WavPcm16.buildHeader(
+                val writeAudit = try {
+                    RollingWavWriteAudit.write(file, WavPcm16.buildHeader(
                         sampleRateHz = AudioRecordingPolicy.TARGET_SAMPLE_RATE_HZ,
                         channels = 1,
                         bitsPerSample = 16,
                         dataBytes = wavPcm.size
-                    ))
-                    it.write(wavPcm)
+                    ), wavPcm)
+                } catch (e: Exception) {
+                    file.delete()
+                    return@withContext AudioRecordingResult(
+                        success = false,
+                        message = "WAV-Schreibkontrolle fehlgeschlagen: ${e.message}"
+                    )
                 }
+                DebugLogger.log(context, "ROLLING_WAV_WRITE_AUDIT_OK",
+                    "blocks=${writeAudit.blocks} frames=${writeAudit.frames} bytes=${writeAudit.bytes} sha256=${writeAudit.sha256}")
                 return@withContext AudioRecordingResult(
                     success = true,
                     file = file,

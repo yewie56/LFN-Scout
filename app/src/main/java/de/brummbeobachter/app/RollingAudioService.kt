@@ -171,9 +171,18 @@ class RollingAudioService : Service() {
             fun queueEpochSnapshot(snapshot: RollingEpochCsvExporter.Snapshot?) {
                 if (snapshot != null) scope.launch { epochExport?.write(snapshot) }
             }
+            val independentFftAudit = RollingFftCoverageAudit()
             rollingHalfHour = if (halfHourConfig.enabled) RollingHalfHourStatistics(
                 minimumHz = halfHourConfig.minimumHz, maximumHz = halfHourConfig.maximumHz,
                 onCompleted = { result ->
+                val independent = independentFftAudit.compare(
+                    result.startEpochMs, result.validEpochs, result.fftSecondsObserved)
+                DebugLogger.log(applicationContext, "ROLLING_FFT_INDEPENDENT_COVERAGE",
+                    "bucket=${independent.bucketMs} observed=${independent.observed} missing=${independent.missing} consistent=${independent.consistent}")
+                if (!independent.consistent) {
+                    DebugLogger.log(applicationContext, "ROLLING_FFT_COVERAGE_MISMATCH",
+                        "statistics=${result.validEpochs} fft=${result.fftSecondsObserved} independent=${independent.observed}")
+                }
                 if (halfHourConfig.exportOverallCsv) {
                     val item = result
                     val diagnostic = impulseDiagnostics.finish(item.startEpochMs)
@@ -205,6 +214,7 @@ class RollingAudioService : Service() {
                 val correctedPowers = NoiseFloorReference.compensateRollingSpectrum(powers)
                 val overall = RollingFftEpochEngine.bandDb(frequencies, correctedPowers,
                     halfHourConfig.minimumHz.toDouble(), halfHourConfig.maximumHz.toDouble())
+                independentFftAudit.accept(epochMs, overall.isFinite())
                 rollingHalfHour?.acceptFftEpoch(epochMs, overall)
                 if (halfHourConfig.filterEnabled) {
                     val width = (halfHourConfig.filterMaximumHz - halfHourConfig.filterMinimumHz).toDouble() / halfHourConfig.filterCount

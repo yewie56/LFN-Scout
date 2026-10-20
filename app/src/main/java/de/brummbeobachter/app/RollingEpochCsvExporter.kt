@@ -17,17 +17,27 @@ internal class RollingEpochCsvExporter(private val context: Context, private val
     private val writeMutex = Mutex()
     private val lastWrittenSize = mutableMapOf<Long, Int>()
     private var bucketMs = -1L
+    // Distinct overall and filter streams are monotonic independently. A late
+    // callback must never reopen an older bucket or overwrite accepted data.
+    private var lastOverallEpoch = -1L
+    private var lastFilterEpoch = -1L
+    @Synchronized fun acceptedEpochs(): Pair<Long, Long> = lastOverallEpoch to lastFilterEpoch
     @Synchronized fun overall(epoch: Long, value: Double): Snapshot? {
-        if (epoch < 0) return null
+        if (epoch < 0 || epoch % 1000L != 0L || !value.isFinite() || epoch <= lastOverallEpoch) return null
         val bucket = Math.floorDiv(epoch, 1_800_000L) * 1_800_000L
+        if (bucket < bucketMs) return null
         if (bucketMs != bucket) { bucketMs = bucket; rows.keys.removeAll { it < bucket - 1_800_000L } }
+        lastOverallEpoch = epoch
         rows.getOrPut(epoch) { Row(epoch) }.overall = value
         return if (!includeFilters && rows.keys.count { it >= bucket && it < bucket + 1_800_000L } % 300 == 0) snapshot(bucket) else null
     }
     @Synchronized fun filters(epoch: Long, values: List<Double>): Snapshot? {
-        if (epoch < 0 || !includeFilters) return null
+        if (epoch < 0 || epoch % 1000L != 0L || !includeFilters ||
+            values.isEmpty() || values.any { !it.isFinite() } || epoch <= lastFilterEpoch) return null
         val bucket = Math.floorDiv(epoch, 1_800_000L) * 1_800_000L
+        if (bucket < bucketMs) return null
         if (bucketMs != bucket) { bucketMs = bucket; rows.keys.removeAll { it < bucket - 1_800_000L } }
+        lastFilterEpoch = epoch
         rows.getOrPut(epoch) { Row(epoch) }.filters = values.toList()
         return if (rows.keys.count { it >= bucket && it < bucket + 1_800_000L } % 300 == 0) snapshot(bucket) else null
     }

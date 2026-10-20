@@ -1,3 +1,8 @@
+## v0.5.92 (2026-10-20) – Integrierte Auditpfade (Android-Build ausstehend)
+- Produktive Rolling-WAV-Aufnahme: blockweise Rücklese-/SHA256-Bestätigung; defekte Dateien werden nicht als Erfolg gemeldet.
+- Unabhängige FFT-Sekunden-Bitmap für Overall-Halbstundenabschluss, Abweichungen explizit geloggt.
+- 51 Python-Tests + isolierte Kotlin-JVM-Smoke-Prüfung PASS; Android-Gesamtbuild wegen fehlender Gradle-Wrapper-JAR nicht ausführbar.
+
 
 ## v0.5.91 – Fortsetzung 20.10.2026 (kein neuer Release)
 
