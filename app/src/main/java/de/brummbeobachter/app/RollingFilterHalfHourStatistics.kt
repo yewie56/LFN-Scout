@@ -120,17 +120,33 @@ internal class RollingFilterHalfHourStatistics(
         timedEpochs=0; peakEpochNanoseconds=0; epochNanoseconds=0; epochCosts.clear()
     }
     private var bucketStart = -1L
+    private var lastFftEpochMs = -1L
+    private val fftSecondPresent = BooleanArray(1800)
     private var epochStart = -1L
     private var samples = 0
 
     /** FFT-backed epoch injection: legacy filter-bank source retained, but never run in standard rolling service. */
     fun acceptFftEpoch(timeEpochMs: Long, levelsDb: List<Double>) {
         require(levelsDb.size == bandCount)
+        // Match the primary FFT-second ledger: bad levels, old callbacks and
+        // duplicate seconds must not increase filter-bank coverage.
+        if (timeEpochMs < 0L || levelsDb.any { !it.isFinite() }) return
         val bucket = Math.floorDiv(timeEpochMs, 1_800_000L) * 1_800_000L
         if (bucketStart < 0) bucketStart = bucket
-        if (bucket != bucketStart) { completeBucket(); bucketStart = bucket }
+        if (bucket < bucketStart) return
+        if (bucket != bucketStart) {
+            completeBucket()
+            bucketStart = bucket
+            lastFftEpochMs = -1L
+        }
+        val second = Math.floorDiv(timeEpochMs, 1000L) * 1000L
+        if (second <= lastFftEpochMs) return
+        val slot = ((second - bucketStart) / 1000L).toInt()
+        if (slot !in 0 until 1800 || fftSecondPresent[slot]) return
+        fftSecondPresent[slot] = true
+        lastFftEpochMs = second
         bands.forEachIndexed { i, band -> band.levels.add(levelsDb[i]) }
-        onEpoch(Math.floorDiv(timeEpochMs, 1000L) * 1000L, levelsDb)
+        onEpoch(second, levelsDb)
     }
 
     fun accept(sample: Short, timeEpochMs: Long) {
@@ -241,6 +257,7 @@ internal class RollingFilterHalfHourStatistics(
         }
         onCompleted(results)
         bands.forEach { it.levels.clear() }
+        fftSecondPresent.fill(false)
     }
-    fun stop() { finishEpoch(); completeBucket(); bucketStart = -1L; epochStart = -1L }
+    fun stop() { finishEpoch(); completeBucket(); bucketStart = -1L; epochStart = -1L; lastFftEpochMs = -1L }
 }

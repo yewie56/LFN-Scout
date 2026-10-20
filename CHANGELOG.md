@@ -1,3 +1,10 @@
+
+## v0.5.91 – Fortsetzung 20.10.2026 (kein neuer Release)
+
+- Filterbank-FFT-Sekundenbuchführung: negative/ungültige Werte, doppelte, verspätete und frühere Halbstunden werden ignoriert; Bitmap und Zeitmarke werden beim Bucketabschluss zurückgesetzt.
+- Host-JVM-Runtime-Prüfung sowie 3 neue Python-Vertragstests hinzugefügt.
+- Geräteseitige Tests 2/3/5 bleiben unverifiziert; kein Android-APK-Build.
+
 ## Arbeitsstand 20.10.2026 – Priorität 2/3/5 (ohne Versionssprung)
 - Rolling-Future-Captures gegen Generationswechsel und STOP/Neustart gesichert; zu lange Anforderungen abgewiesen.
 - Negative FFT-Zeitstempel werden vor Bucket-Anlage ignoriert.
