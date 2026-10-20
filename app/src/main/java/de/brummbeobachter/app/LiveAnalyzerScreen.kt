@@ -601,12 +601,21 @@ internal fun LiveAnalyzerScreen(
                 selected=settingsSection, onSelect={ selectSettingsSection(it) },
                 onOpenLocalSaveSettings={ localSettingsShown = true })
             if (settingsSection == "MON & Audio") {
+            LaunchedEffect(state.minFrequencyHz,state.rangeHz) {
+                AnalyzerMonitor.setSelectionRange(state.minFrequencyHz.toDouble(),
+                    (state.minFrequencyHz + state.rangeHz).toDouble())
+                monitorCenter=AnalyzerMonitor.centerHz
+            }
             var monitorWidth by remember { mutableStateOf(AnalyzerMonitor.bandwidthHz.toFloat()) }
+            LaunchedEffect(settingsSection,state.minFrequencyHz,state.rangeHz) {
+                monitorWidth=AnalyzerMonitor.bandwidthHz.toFloat()
+            }
+            val maxMonitorWidth=AnalyzerMonitor.availableBandwidthHz().toFloat().coerceAtLeast(0.5f)
             var monitorShiftHz by remember { mutableStateOf(AnalyzerMonitor.shiftHz.toFloat()) }
             Text("Mithören · steilflankiger Bandpass",color=cyan,fontSize=14.sp)
             Text("Bandbreite: ${monitorWidth.toInt()} Hz",color=white,fontSize=12.sp)
-            Slider(value=monitorWidth,onValueChange={ monitorWidth=it },valueRange=2f..100f,
-                onValueChangeFinished={ AnalyzerMonitor.setBandwidth(context,monitorWidth.toDouble()) })
+            Slider(value=monitorWidth,onValueChange={ monitorWidth=it },valueRange=0.5f..maxMonitorWidth,
+                onValueChangeFinished={ AnalyzerMonitor.setBandwidth(context,monitorWidth.toDouble()); monitorCenter=AnalyzerMonitor.centerHz })
             Text("Frequenzverschiebung: +${monitorShiftHz.toInt()} Hz",color=white,fontSize=12.sp)
             Slider(value=monitorShiftHz,onValueChange={ monitorShiftHz=it },valueRange=20f..400f,
                 onValueChangeFinished={ AnalyzerMonitor.setShift(context,monitorShiftHz.toDouble()) })

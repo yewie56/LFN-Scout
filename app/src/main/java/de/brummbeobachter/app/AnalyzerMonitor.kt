@@ -13,6 +13,13 @@ import kotlin.math.*
 internal object AnalyzerMonitor {
     private const val PREFS = "lfn_analyzer_monitor_049"
     private const val OUTPUT_RATE = 48000
+    private const val MON_MAX_HZ = 8000.0
+    private var rangeMinHz = 0.0
+    private var rangeMaxHz = MON_MAX_HZ
+    private var bypassHigh = false
+    private var bypassLow = false
+    private var bypassShiftHigh = false
+    private var bypassShiftLow = false
     private const val OUTPUT_RATE_LIMIT = 0.50 // fixed -6 dBFS digital safety ceiling, also with optional limiter OFF
     private val lock = Any()
     @Volatile var enabled = false; private set
@@ -85,8 +92,8 @@ internal object AnalyzerMonitor {
             "MON setup draft is incomplete; legacy values would otherwise leak into the selected setup"
         }
         // Validate numeric ranges before mutating any runtime field.
-        val limits = mapOf("center" to (1.0..200.0), "level" to (-60.0..120.0),
-            "width" to (2.0..150.0), "shift" to (20.0..400.0),
+        val limits = mapOf("center" to (0.0..MON_MAX_HZ), "level" to (-60.0..120.0),
+            "width" to (0.5..MON_MAX_HZ), "shift" to (20.0..400.0),
             "comp_thr" to (-60.0..0.0), "comp_ratio" to (1.0..20.0),
             "comp_attack" to (1.0..200.0), "comp_release" to (20.0..2000.0),
             "comp_knee" to (0.0..20.0), "comp_makeup" to (0.0..30.0),
@@ -148,9 +155,9 @@ internal object AnalyzerMonitor {
     fun load(context: Context) = synchronized(lock) {
         if (setupDraftActive) return@synchronized
         val p = context.getSharedPreferences(PREFS,Context.MODE_PRIVATE)
-        centerHz=p.getFloat("center",20f).toDouble().coerceIn(1.0,200.0)
+        centerHz=p.getFloat("center",20f).toDouble().coerceIn(0.0,MON_MAX_HZ)
         levelDb=p.getFloat("level",-24f).toDouble().coerceIn(-60.0,120.0)
-        bandwidthHz=p.getFloat("width",12f).toDouble().coerceIn(2.0,150.0)
+        bandwidthHz=p.getFloat("width",12f).toDouble().coerceIn(0.5,MON_MAX_HZ)
         shiftHz=p.getFloat("shift",100f).toDouble().coerceIn(20.0,400.0)
         compressorEnabled=p.getBoolean("comp_on",false)
         compressorThresholdDb=p.getFloat("comp_thr",-30f).toDouble().coerceIn(-60.0,0.0)
@@ -166,8 +173,28 @@ internal object AnalyzerMonitor {
         fadeSeconds=p.getFloat("fade",1.5f).toDouble().coerceIn(0.2,5.0)
         shifted=false; enabled=false
     }
-    fun setCenter(context:Context,hz:Double) {
-        centerHz=hz.coerceIn(1.0,200.0); initialized=false
+    /** Current display range, clipped to the supported MON selection range. */
+    fun setSelectionRange(minHz: Double, maxHz: Double) = synchronized(lock) {
+        if (!minHz.isFinite() || !maxHz.isFinite()) return@synchronized
+        val lo = minHz.coerceIn(0.0, MON_MAX_HZ)
+        val hi = maxHz.coerceIn(0.0, MON_MAX_HZ)
+        if (hi - lo < 0.5) return@synchronized
+        rangeMinHz = lo; rangeMaxHz = hi
+        normalizeSelection()
+    }
+    private fun normalizeSelection() {
+        val available = rangeMaxHz - rangeMinHz
+        bandwidthHz = bandwidthHz.coerceIn(0.5, available)
+        centerHz = centerHz.coerceIn(rangeMinHz + bandwidthHz / 2.0,
+            rangeMaxHz - bandwidthHz / 2.0)
+        initialized = false
+    }
+    fun availableBandwidthHz(): Double = synchronized(lock) { rangeMaxHz - rangeMinHz }
+    fun setCenter(context:Context,hz:Double)=synchronized(lock) {
+        if (hz.isFinite()) {
+            centerHz=hz.coerceIn(rangeMinHz+bandwidthHz/2,rangeMaxHz-bandwidthHz/2)
+            initialized=false
+        }
     }
     fun setLevel(context:Context,db:Double) {
         levelDb=db.coerceIn(-60.0,120.0)
@@ -175,7 +202,7 @@ internal object AnalyzerMonitor {
     /** Persist once on touch release; never perform SharedPreferences I/O per move event. */
     fun persistTouchSettings(context:Context) = synchronized(lock) { persistIfLegacy(context) }
     fun setBandwidth(context:Context,hz:Double)=synchronized(lock) {
-        bandwidthHz=hz.coerceIn(2.0,150.0); initialized=false;persistIfLegacy(context)
+        if (hz.isFinite()) { bandwidthHz=hz.coerceIn(0.5,rangeMaxHz-rangeMinHz); normalizeSelection();persistIfLegacy(context) }
     }
     fun setShift(context:Context,hz:Double)=synchronized(lock) {
         shiftHz=hz.coerceIn(20.0,400.0);initialized=false;persistIfLegacy(context)
@@ -246,12 +273,23 @@ internal object AnalyzerMonitor {
     }
     private fun rebuild() {
         val nyquist=rate/2.0
-        val bottom=(centerHz-bandwidthHz/2).coerceIn(0.5,nyquist*0.8)
-        val top=(centerHz+bandwidthHz/2).coerceIn(bottom+0.5,nyquist*0.9)
-        for(i in 0..3) { high[i].setupHighpass(bottom,rate.toDouble(),0.70710678)
-            low[i].setupLowpass(top,rate.toDouble(),0.70710678)
-            shiftHigh[i].setupHighpass((shiftHz+bottom).coerceAtMost(nyquist*0.85),rate.toDouble(),0.70710678)
-            shiftLow[i].setupLowpass((shiftHz+top).coerceAtMost(nyquist*0.9),rate.toDouble(),0.70710678)
+        // The requested filter range is a selection, not a promise of passband
+        // fidelity. Restrict physical cutoffs to the current input sample rate.
+        val requestedBottom=(centerHz-bandwidthHz/2).coerceAtLeast(0.0)
+        val requestedTop=(centerHz+bandwidthHz/2).coerceAtMost(MON_MAX_HZ)
+        val safeEdge=nyquist*0.95
+        bypassHigh=requestedBottom<=0.0
+        bypassLow=requestedTop>=safeEdge
+        val bottom=requestedBottom.coerceIn(0.5,nyquist*0.90)
+        val top=requestedTop.coerceIn(0.5,safeEdge)
+        // SHIFT filtering follows the original band and cannot exceed Nyquist.
+        bypassShiftHigh=shiftHz+requestedBottom<=0.0
+        bypassShiftLow=shiftHz+requestedTop>=safeEdge
+        for(i in 0..3) {
+            if (!bypassHigh) high[i].setupHighpass(bottom,rate.toDouble(),0.70710678)
+            if (!bypassLow) low[i].setupLowpass(top,rate.toDouble(),0.70710678)
+            if (!bypassShiftHigh) shiftHigh[i].setupHighpass((shiftHz+bottom).coerceAtMost(nyquist*0.90),rate.toDouble(),0.70710678)
+            if (!bypassShiftLow) shiftLow[i].setupLowpass((shiftHz+top).coerceAtMost(safeEdge),rate.toDouble(),0.70710678)
         }
         initialized=true
     }
@@ -269,7 +307,7 @@ internal object AnalyzerMonitor {
     }
     private fun process(frame:AnalyzerPcmHub.Frame) {
         val packet = synchronized(lock) {
-        if(!enabled || frame.sampleRateHz !in 8000..48000)return@synchronized null
+        if(!enabled || frame.sampleRateHz !in 8000..96000)return@synchronized null
         try {
             configure(frame.sampleRateHz)
             if(!initialized)rebuild()
@@ -281,17 +319,18 @@ internal object AnalyzerMonitor {
             val delta=2*PI*shiftHz/rate
             for(i in frame.samples.indices) {
                 var x=frame.samples[i].toDouble()/32768.0
-                for(s in 0..3) { x=high[s].process(x);x=low[s].process(x) }
+                for(s in 0..3) { if (!bypassHigh) x=high[s].process(x); if (!bypassLow) x=low[s].process(x) }
                 if(shifted) {
                     x *= 2.0*cos(phase)
                     phase+=delta; if(phase>=2*PI) phase-=2*PI
-                    for(s in 0..3) { x=shiftHigh[s].process(x);x=shiftLow[s].process(x) }
+                    for(s in 0..3) { if (!bypassShiftHigh) x=shiftHigh[s].process(x); if (!bypassShiftLow) x=shiftLow[s].process(x) }
                 }
                 processed[i]=if(x.isFinite()) x else 0.0
             }
             // Interpolate the post-filtered samples into a 48-kHz media stream.
-            // This is not a bandlimited resampler; the preceding <400-Hz bandpass
-            // leaves ample separation from Nyquist for the current monitor use.
+            // Linear interpolation is sufficient for the 8-kHz MON selection at
+            // 48-kHz output only with sample rates supporting that selection;
+            // a future quality pass should use a polyphase resampler.
             val count=(processed.size.toLong()*OUTPUT_RATE/rate).toInt().coerceAtLeast(1)
             val buffer=ShortArray(count)
             var blockPeak=0.0
