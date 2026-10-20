@@ -85,7 +85,7 @@ internal object PersistentSystemTest {
         result("rolling_lifecycle", if (rollingStarts == 0) "SKIP" else if (rollingStops > rollingStarts || stopRequests > rollingStarts) "FAIL" else "PASS", "Recording starts=$rollingStarts, stop requests=$stopRequests, cleanups=$rollingStops; explicit user stop allowed; $scopedNote")
         result("analyzer_start_observed", if (starts > 0) "PASS" else "SKIP", "Analyzer successful initializations=$starts; $scopedNote")
         result("unhandled_crash_observed", if (failures.isNotEmpty()) "FAIL" else "SKIP", "Fatal/restart failures in selected log window=${failures.size}; Android-only crashes require logcat")
-        result("sample_perfect_continuity", "SKIP", "PCM block sequence/gap verification is not yet instrumented")
+        result("sample_perfect_continuity", "SKIP", "Pending scoped AudioRecord→decimator→Rolling ring accounting; PASS establishes bounded software path only, not microphone/ADC physical losslessness")
         result("recording_write_continuity", "SKIP", "Per-block long-term recording write acknowledgements not yet instrumented")
         result("setup_mon_roundtrip", "SKIP", "Requires safe isolated setup fixture and state-controller harness")
         result("filterbank_roundtrip", "SKIP", "Requires safe isolated filterbank fixture and controller harness")
