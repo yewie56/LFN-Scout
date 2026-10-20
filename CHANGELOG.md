@@ -1,3 +1,8 @@
+## v0.5.93 (2026-10-20)
+
+- Produktionsquittungen für veröffentlichte Rolling-WAV und abgeschlossene 1800-Sekunden-Halbstunden-CSV, angebunden an die bestehenden Systemtest-IDs 3 und 5. Keine PASS-Promotion aus isolierten Fixtures.
+- Versionscode 251.
+
 ## v0.5.92 (2026-10-20) – Integrierte Auditpfade (Android-Build ausstehend)
 - Produktive Rolling-WAV-Aufnahme: blockweise Rücklese-/SHA256-Bestätigung; defekte Dateien werden nicht als Erfolg gemeldet.
 - Unabhängige FFT-Sekunden-Bitmap für Overall-Halbstundenabschluss, Abweichungen explizit geloggt.

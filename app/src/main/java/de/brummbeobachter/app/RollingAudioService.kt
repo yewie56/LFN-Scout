@@ -186,7 +186,7 @@ class RollingAudioService : Service() {
                 if (halfHourConfig.exportOverallCsv) {
                     val item = result
                     val diagnostic = impulseDiagnostics.finish(item.startEpochMs)
-                    scope.launch { RollingHalfHourCsvExporter.write(applicationContext, item, diagnostic) }
+                    scope.launch { RollingHalfHourCsvExporter.write(applicationContext, item, diagnostic, independent) }
                 }
                 scope.launch { RollingHalfHourCloudOutbox.enqueueAndDrain(applicationContext, result) }
                 if (!halfHourConfig.filterEnabled) queueEpochSnapshot(epochExport?.flush(result.startEpochMs))

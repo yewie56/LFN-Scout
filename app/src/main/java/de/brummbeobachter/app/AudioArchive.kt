@@ -892,6 +892,34 @@ object AudioArchive {
                     context.contentResolver.openInputStream(uri)
                         ?: error("Freigegebene WAV nicht lesbar"))
 
+                // Only a successfully published AND read-back-verified production
+                // Rolling WAV may generate the system-test writer receipt.
+                if (sourceFile.parentFile?.name == "audio_recording_temp" &&
+                    sourceFile.length() >= 44L && RollingAudioEngine.isRunning) {
+                    val pcmBytes = sourceFile.length() - 44L
+                    if (pcmBytes > 0 && pcmBytes % 2L == 0L &&
+                        pcmBytes / 2L <= Int.MAX_VALUE) {
+                        val sha = java.security.MessageDigest.getInstance("SHA-256")
+                        sourceFile.inputStream().use { stream ->
+                            val header = ByteArray(44)
+                            var read = 0
+                            while (read < 44) {
+                                val n = stream.read(header, read, 44 - read)
+                                check(n > 0) { "WAV header truncated" }
+                                read += n
+                            }
+                            val block = ByteArray(8192)
+                            while (true) {
+                                val n = stream.read(block)
+                                if (n < 0) break
+                                if (n > 0) sha.update(block, 0, n)
+                            }
+                        }
+                        ProductionEvidenceLedger.recordWav(context,
+                            ((pcmBytes + 8191L) / 8192L).toInt(), (pcmBytes / 2L).toInt(),
+                            pcmBytes, sha.digest().joinToString("") { "%02x".format(it.toInt() and 255) })
+                    }
+                }
                 PublishedWav(
                     displayName =
                         targetDisplayName,

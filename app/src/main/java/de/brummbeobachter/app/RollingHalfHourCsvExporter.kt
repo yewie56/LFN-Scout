@@ -12,7 +12,7 @@ import java.util.Locale
  * Export remains diagnostic until the DSP frequency response has been validated.
  */
 internal object RollingHalfHourCsvExporter {
-    fun write(context: Context, result: RollingHalfHourStatistics.HalfHourResult, diagnostic: RollingImpulseDiagnostics.Result? = null) {
+    fun write(context: Context, result: RollingHalfHourStatistics.HalfHourResult, diagnostic: RollingImpulseDiagnostics.Result? = null, independent: RollingFftCoverageAudit.Evidence? = null) {
         try {
             // Distinct FFT seconds are counted independently from accepted epochs.
             // Refuse to publish internally contradictory statistics instead of
@@ -74,6 +74,10 @@ internal object RollingHalfHourCsvExporter {
             val published = resolver.update(uri,
                 ContentValues().apply { put(MediaStore.MediaColumns.IS_PENDING, 0) }, null, null)
             if (published < 1) error("Half-hour CSV pending flag could not be cleared for $name")
+            if (independent != null) {
+                ProductionEvidenceLedger.recordStatistics(context, result.startEpochMs,
+                    independent, result.validEpochs, result.fftSecondsObserved)
+            }
             DebugLogger.log(context, "ROLLING_HALF_HOUR_CSV_OK",
                 "name=$name epochs=${result.validEpochs} readback_chars=${actual.length} verified=true")
         } catch (e: Exception) {

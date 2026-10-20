@@ -226,9 +226,21 @@ internal object PersistentSystemTest {
                         "OS exit evidence: ${osExit.detail}; no lifetime crash-free claim")
             } else Result(verdict.id, verdict.status, verdict.detail)
         }
+        // Use only durable receipts emitted by actual successful production writes.
+        // Do not confuse an isolated WAV fixture or synthetic FFT test with production evidence.
+        val (wavProof, statsProof) = ProductionEvidenceLedger.inspect(context)
+        val verified = reconciled.map { item ->
+            when (item.id) {
+                "recording_write_continuity" -> if (item.status == "SKIP")
+                    Result(item.id, wavProof.status, wavProof.detail) else item
+                "statistics_coverage" -> if (item.status == "SKIP")
+                    Result(item.id, statsProof.status, statsProof.detail) else item
+                else -> item
+            }
+        }
         // Determine unresolved evidence from the COMPLETE final report, not just
         // the reconciled historical subset. This includes prerequisite/live SKIPs.
-        val report = Report(fixtures + wavResults + liveWav + statistics + live + listOf(scopeResult) + rollingIntegrity + reconciled, scoped.size, System.currentTimeMillis(), "SAFE_LIVE_CYCLES_PLUS_RUN_SCOPED_LOG", runId, BuildConfig.VERSION_NAME)
+        val report = Report(fixtures + wavResults + liveWav + statistics + live + listOf(scopeResult) + rollingIntegrity + verified, scoped.size, System.currentTimeMillis(), "SAFE_LIVE_CYCLES_PLUS_RUN_SCOPED_LOG", runId, BuildConfig.VERSION_NAME)
         val unresolved = report.results.filter { it.status == "SKIP" }.map { it.id }
         DebugLogger.log(context, "SYSTEMTEST_UNVERIFIED", "run_id=$runId count=${unresolved.size} cases=${unresolved.joinToString(";")}")
         SystemTestArtifactStore.save(context, report)
