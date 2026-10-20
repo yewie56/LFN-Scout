@@ -27,6 +27,8 @@ internal object AnalyzerMonitor {
     @Volatile var centerHz = 20.0; private set
     @Volatile var levelDb = -24.0; private set
     @Volatile var bandwidthHz = 12.0; private set
+    /** Desired width survives edge squeezing and subsequent drag gestures. */
+    @Volatile var gestureTargetWidthHz = 12.0; private set
     @Volatile var shiftHz = 100.0; private set
     @Volatile var actualDevice = ""; private set
     @Volatile var outputRoute = "Kein AudioTrack"; private set
@@ -101,7 +103,7 @@ internal object AnalyzerMonitor {
             "limit_release" to (10.0..1000.0), "fade" to (0.2..5.0))
         for ((key, range) in limits) require(copy.getDouble(key) in range) { "MON parameter out of range: $key" }
         centerHz=copy.getDouble("center");levelDb=copy.getDouble("level")
-        bandwidthHz=copy.getDouble("width");shiftHz=copy.getDouble("shift")
+        bandwidthHz=copy.getDouble("width");gestureTargetWidthHz=bandwidthHz;shiftHz=copy.getDouble("shift")
         compressorEnabled=copy.getBoolean("comp_on");compressorThresholdDb=copy.getDouble("comp_thr")
         compressorRatio=copy.getDouble("comp_ratio");compressorAttackMs=copy.getDouble("comp_attack")
         compressorReleaseMs=copy.getDouble("comp_release");compressorKneeDb=copy.getDouble("comp_knee")
@@ -158,6 +160,7 @@ internal object AnalyzerMonitor {
         centerHz=p.getFloat("center",20f).toDouble().coerceIn(0.0,MON_MAX_HZ)
         levelDb=p.getFloat("level",-24f).toDouble().coerceIn(-60.0,120.0)
         bandwidthHz=p.getFloat("width",12f).toDouble().coerceIn(0.5,MON_MAX_HZ)
+        gestureTargetWidthHz=p.getFloat("gesture_target_width",bandwidthHz.toFloat()).toDouble().coerceIn(bandwidthHz,MON_MAX_HZ)
         shiftHz=p.getFloat("shift",100f).toDouble().coerceIn(20.0,400.0)
         compressorEnabled=p.getBoolean("comp_on",false)
         compressorThresholdDb=p.getFloat("comp_thr",-30f).toDouble().coerceIn(-60.0,0.0)
@@ -185,6 +188,7 @@ internal object AnalyzerMonitor {
     private fun normalizeSelection() {
         val available = rangeMaxHz - rangeMinHz
         bandwidthHz = bandwidthHz.coerceIn(0.5, available)
+        gestureTargetWidthHz = gestureTargetWidthHz.coerceIn(bandwidthHz, available)
         centerHz = centerHz.coerceIn(rangeMinHz + bandwidthHz / 2.0,
             rangeMaxHz - bandwidthHz / 2.0)
         initialized = false
@@ -215,7 +219,7 @@ internal object AnalyzerMonitor {
     /** Persist once on touch release; never perform SharedPreferences I/O per move event. */
     fun persistTouchSettings(context:Context) = synchronized(lock) { persistIfLegacy(context) }
     fun setBandwidth(context:Context,hz:Double)=synchronized(lock) {
-        if (hz.isFinite()) { bandwidthHz=hz.coerceIn(0.5,rangeMaxHz-rangeMinHz); normalizeSelection();persistIfLegacy(context) }
+        if (hz.isFinite()) { bandwidthHz=hz.coerceIn(0.5,rangeMaxHz-rangeMinHz); gestureTargetWidthHz=bandwidthHz; normalizeSelection();persistIfLegacy(context) }
     }
     fun setShift(context:Context,hz:Double)=synchronized(lock) {
         shiftHz=hz.coerceIn(20.0,400.0);initialized=false;persistIfLegacy(context)
@@ -242,7 +246,7 @@ internal object AnalyzerMonitor {
     private fun save(context: Context) {
         context.getSharedPreferences(PREFS,Context.MODE_PRIVATE).edit()
             .putFloat("center",centerHz.toFloat()).putFloat("level",levelDb.toFloat())
-            .putFloat("width",bandwidthHz.toFloat()).putFloat("shift",shiftHz.toFloat())
+            .putFloat("width",bandwidthHz.toFloat()).putFloat("gesture_target_width",gestureTargetWidthHz.toFloat()).putFloat("shift",shiftHz.toFloat())
             .putBoolean("comp_on",compressorEnabled).putFloat("comp_thr",compressorThresholdDb.toFloat())
             .putFloat("comp_ratio",compressorRatio.toFloat()).putFloat("comp_attack",compressorAttackMs.toFloat())
             .putFloat("comp_release",compressorReleaseMs.toFloat()).putFloat("comp_knee",compressorKneeDb.toFloat())

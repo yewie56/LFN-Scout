@@ -1017,12 +1017,16 @@ internal fun LiveAnalyzerScreen(
                     // Keep the original width for the full drag. Clipping both translated
                     // edges squeezes at either boundary and restores width on the way back.
                     var gestureCenter = AnalyzerMonitor.centerHz
-                    var gestureWidth = AnalyzerMonitor.bandwidthHz
+                    var gestureWidth = AnalyzerMonitor.gestureTargetWidthHz
                     detectDragGestures(
                     onDragStart={
                         monitoringTouch=true;frozenSpectrum=state
-                        gestureCenter=AnalyzerMonitor.centerHz
-                        gestureWidth=AnalyzerMonitor.bandwidthHz
+                        gestureWidth=AnalyzerMonitor.gestureTargetWidthHz
+                        val minHz=AnalyzerMonitor.selectionMinHz()
+                        val maxHz=AnalyzerMonitor.selectionMaxHz()
+                        val lowHz=AnalyzerMonitor.centerHz-AnalyzerMonitor.bandwidthHz/2.0
+                        val highHz=AnalyzerMonitor.centerHz+AnalyzerMonitor.bandwidthHz/2.0
+                        gestureCenter=MonBandEdgeGesture.resumeCenter(minHz,maxHz,lowHz,highHz,gestureWidth)
                     },
                     onDragEnd={ monitoringTouch=false;frozenSpectrum=null; AnalyzerMonitor.persistTouchSettings(context) },
                     onDragCancel={ monitoringTouch=false;frozenSpectrum=null; AnalyzerMonitor.persistTouchSettings(context) }

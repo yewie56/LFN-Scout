@@ -6,6 +6,17 @@ package de.brummbeobachter.app
  * band on the return gesture. No filter with zero/negative width is emitted.
  */
 internal object MonBandEdgeGesture {
+    /** Recover the virtual (unclipped) drag position from the squeezed band.
+     * This is needed when the user releases at a boundary and starts a new gesture. */
+    fun resumeCenter(minHz: Double, maxHz: Double, lowHz: Double, highHz: Double, targetWidth: Double): Double {
+        val half = targetWidth / 2.0
+        return when {
+            lowHz <= minHz + 1e-6 && highHz < maxHz - 1e-6 -> highHz - half
+            highHz >= maxHz - 1e-6 && lowHz > minHz + 1e-6 -> lowHz + half
+            else -> (lowHz + highHz) / 2.0
+        }
+    }
+
     fun edges(minHz: Double, maxHz: Double, virtualCenter: Double, width: Double): Pair<Double, Double> {
         require(minHz.isFinite() && maxHz.isFinite() && maxHz - minHz >= 0.5)
         require(virtualCenter.isFinite() && width.isFinite() && width >= 0.5)

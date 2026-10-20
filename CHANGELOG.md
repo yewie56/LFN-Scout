@@ -1,3 +1,8 @@
+## v0.5.97 (2026-10-20)
+- MON-Randquetschung: ursprüngliche Sollbandbreite über mehrere Wischgesten erhalten; virtuellen Mittelpunkt aus gequetschten Filtergrenzen rekonstruieren.
+- Sollbandbreite zusätzlich in Legacy-MON-Preferences persistieren; JSON-Setups speichern weiterhin die effektive Bandbreite.
+- Lokale Regression zu Mehrfachgesten ergänzt. Smartphone-/Android-Build noch nicht ausgeführt.
+
 ## v0.5.96 (2026-10-20) – MON-Randquetschung im Wasserfall (Quellkandidat)
 
 - MON-Wasserfallgeste verschiebt das Filterband bis zur jeweiligen Range-Grenze und quetscht es bei weiterer Bewegung symmetrisch links/rechts.
