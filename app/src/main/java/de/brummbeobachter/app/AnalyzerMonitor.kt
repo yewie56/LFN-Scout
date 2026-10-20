@@ -13,9 +13,9 @@ import kotlin.math.*
 internal object AnalyzerMonitor {
     private const val PREFS = "lfn_analyzer_monitor_049"
     private const val OUTPUT_RATE = 48000
-    private const val MON_MAX_HZ = 8000.0
+    private const val MON_MAX_HZ = 48000.0 // setup validation ceiling; live selection comes from the analyzer range
     private var rangeMinHz = 0.0
-    private var rangeMaxHz = MON_MAX_HZ
+    private var rangeMaxHz = 4000.0
     private var bypassHigh = false
     private var bypassLow = false
     private var bypassShiftHigh = false
@@ -190,6 +190,8 @@ internal object AnalyzerMonitor {
         initialized = false
     }
     fun availableBandwidthHz(): Double = synchronized(lock) { rangeMaxHz - rangeMinHz }
+    fun selectionMinHz(): Double = synchronized(lock) { rangeMinHz }
+    fun selectionMaxHz(): Double = synchronized(lock) { rangeMaxHz }
     fun setCenter(context:Context,hz:Double)=synchronized(lock) {
         if (hz.isFinite()) {
             centerHz=hz.coerceIn(rangeMinHz+bandwidthHz/2,rangeMaxHz-bandwidthHz/2)
@@ -276,7 +278,7 @@ internal object AnalyzerMonitor {
         // The requested filter range is a selection, not a promise of passband
         // fidelity. Restrict physical cutoffs to the current input sample rate.
         val requestedBottom=(centerHz-bandwidthHz/2).coerceAtLeast(0.0)
-        val requestedTop=(centerHz+bandwidthHz/2).coerceAtMost(MON_MAX_HZ)
+        val requestedTop=(centerHz+bandwidthHz/2).coerceAtMost(rangeMaxHz)
         val safeEdge=nyquist*0.95
         bypassHigh=requestedBottom<=0.0
         bypassLow=requestedTop>=safeEdge

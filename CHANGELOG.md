@@ -1,3 +1,11 @@
+## v0.5.95 (2026-10-20) – MON-Range im Direktanalyzer (korrigierter Quellkandidat)
+
+- MON im Direktanalyzer folgt RangeMin..RangeMax statt einer festen 8.000-Hz-Auswahlgrenze.
+- Spezialmodus mit 8-kHz-Abtastrate verwendet separat den nominellen Auswahlbereich 0..4.000 Hz.
+- MON-Mitten-Slider und Wasserfall-Horizontalskalierung folgen den betriebsartabhängigen Bereichen.
+- MON-Setup-Schema akzeptiert Werte bis 48 kHz; effektive DSP-Grenzen hängen weiter von Nyquist und Ausgangsweg ab.
+- Noch KEIN Android-Build- oder Smartphone-Testnachweis.
+
 ## v0.5.93 (2026-10-20)
 
 - Produktionsquittungen für veröffentlichte Rolling-WAV und abgeschlossene 1800-Sekunden-Halbstunden-CSV, angebunden an die bestehenden Systemtest-IDs 3 und 5. Keine PASS-Promotion aus isolierten Fixtures.

@@ -354,6 +354,15 @@ internal fun LiveAnalyzerScreen(
             delay(if (state.fftHopSamples <= 50) 50L else 100L)
         }
     }
+    // Keep MON selection limits current even when the settings panel stays closed.
+    // In particular, horizontal waterfall dragging must never retain an old
+    // 200-Hz or 8,000-Hz ceiling after a direct-analyzer range change.
+    LaunchedEffect(state.direct48k, state.minFrequencyHz, state.rangeHz) {
+        val minHz = if (state.direct48k) state.minFrequencyHz.toDouble() else 0.0
+        val maxHz = if (state.direct48k) state.rangeHz.toDouble() else 4000.0
+        AnalyzerMonitor.setSelectionRange(minHz, maxHz)
+        monitorCenter = AnalyzerMonitor.centerHz
+    }
     LaunchedEffect(state.running) {
         // The setup/filter STOP is temporary. MON keeps its current live
         // subscription and EIN/AUS state while rolling continues to capture PCM.
@@ -601,18 +610,30 @@ internal fun LiveAnalyzerScreen(
                 selected=settingsSection, onSelect={ selectSettingsSection(it) },
                 onOpenLocalSaveSettings={ localSettingsShown = true })
             if (settingsSection == "MON & Audio") {
-            LaunchedEffect(state.minFrequencyHz,state.rangeHz) {
-                AnalyzerMonitor.setSelectionRange(state.minFrequencyHz.toDouble(),
-                    (state.minFrequencyHz + state.rangeHz).toDouble())
+            // The 8-kHz rolling analyzer and the direct analyzer use separate limits.
+            // In direct mode MON follows the currently displayed analyzer range,
+            // in rolling mode the selection stays below the 8-kHz Nyquist limit.
+            val monRangeMin = if (state.direct48k) state.minFrequencyHz.toDouble() else 0.0
+            val monRangeMax = if (state.direct48k) state.rangeHz.toDouble() else 4000.0
+            LaunchedEffect(settingsSection, state.direct48k, monRangeMin, monRangeMax) {
+                AnalyzerMonitor.setSelectionRange(monRangeMin, monRangeMax)
                 monitorCenter=AnalyzerMonitor.centerHz
             }
             var monitorWidth by remember { mutableStateOf(AnalyzerMonitor.bandwidthHz.toFloat()) }
             LaunchedEffect(settingsSection,state.minFrequencyHz,state.rangeHz) {
                 monitorWidth=AnalyzerMonitor.bandwidthHz.toFloat()
             }
-            val maxMonitorWidth=AnalyzerMonitor.availableBandwidthHz().toFloat().coerceAtLeast(0.5f)
+            val availableMonWidth=(monRangeMax-monRangeMin).toFloat().coerceAtLeast(0.5f)
+            val maxMonitorWidth=availableMonWidth
+            val centerMin=(monRangeMin.toFloat() + monitorWidth / 2f)
+            val centerMax=(monRangeMax.toFloat() - monitorWidth / 2f).coerceAtLeast(centerMin)
             var monitorShiftHz by remember { mutableStateOf(AnalyzerMonitor.shiftHz.toFloat()) }
             Text("Mithören · steilflankiger Bandpass",color=cyan,fontSize=14.sp)
+            Text("Filtermitte: ${monitorCenter.toInt()} Hz (MON ${monRangeMin.toInt()}–${monRangeMax.toInt()} Hz)", color=white, fontSize=12.sp)
+            Slider(value=monitorCenter.toFloat().coerceIn(centerMin,centerMax),
+                onValueChange={ monitorCenter=it.toDouble(); AnalyzerMonitor.setCenter(context,it.toDouble()) },
+                valueRange=centerMin..centerMax,
+                onValueChangeFinished={ AnalyzerMonitor.persistTouchSettings(context) })
             Text("Bandbreite: ${monitorWidth.toInt()} Hz",color=white,fontSize=12.sp)
             Slider(value=monitorWidth,onValueChange={ monitorWidth=it },valueRange=0.5f..maxMonitorWidth,
                 onValueChangeFinished={ AnalyzerMonitor.setBandwidth(context,monitorWidth.toDouble()); monitorCenter=AnalyzerMonitor.centerHz })
@@ -991,7 +1012,7 @@ internal fun LiveAnalyzerScreen(
         }
         Box(Modifier.fillMaxWidth().height(waterfallHeight).background(Color(0xFF130C29))
             .clickable { if(!monitoring)expanded=!expanded }
-            .pointerInput(monitoring) {
+            .pointerInput(monitoring,state.direct48k,state.minFrequencyHz,state.rangeHz) {
                 if(monitoring)detectDragGestures(
                     onDragStart={ monitoringTouch=true;frozenSpectrum=state },
                     onDragEnd={ monitoringTouch=false;frozenSpectrum=null; AnalyzerMonitor.persistTouchSettings(context) },
@@ -999,7 +1020,7 @@ internal fun LiveAnalyzerScreen(
                 ) { change, delta ->
                     if(kotlin.math.abs(delta.x)>kotlin.math.abs(delta.y)) {
                         AnalyzerMonitor.setCenter(context,AnalyzerMonitor.centerHz+
-                            delta.x.toDouble()/size.width*state.rangeHz)
+                            delta.x.toDouble()/size.width*(if (state.direct48k) (state.rangeHz-state.minFrequencyHz).toDouble() else 4000.0))
                         monitorCenter=AnalyzerMonitor.centerHz
                     } else {
                         AnalyzerMonitor.setLevel(context,AnalyzerMonitor.levelDb-
@@ -1270,7 +1291,7 @@ internal fun LiveAnalyzerScreen(
             // while listening; detectTapGestures does not fire onTap after onLongPress.
             Box(Modifier.size(buttonWidth,buttonHeight).border(BorderStroke(1.dp,
                 if(monitoringShift) Color(0xFFFFCF65) else if(monitoring) cyan else muted),
-                RoundedCornerShape(6.dp)).pointerInput(monitoring) {
+                RoundedCornerShape(6.dp)).pointerInput(monitoring,state.direct48k,state.minFrequencyHz,state.rangeHz) {
                 detectTapGestures(onTap={
                     if(AnalyzerMonitor.enabled) {
                         if(monRecRunning) {
