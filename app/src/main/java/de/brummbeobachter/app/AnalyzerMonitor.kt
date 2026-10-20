@@ -24,6 +24,17 @@ internal object AnalyzerMonitor {
     private val lock = Any()
     @Volatile var enabled = false; private set
     @Volatile var shifted = false; private set
+    /** Direct analyzer only; F is the legacy monitoring bandpass. */
+    @Volatile var eqMode = false; private set
+    private val eqGains = DoubleArray(8)
+    private val eqCutoffs = Array(7) { Array(2) { Biquad() } }
+    private val eqCutoffEnabled = BooleanArray(7)
+    fun eqGainSnapshot(): List<Double> = synchronized(lock) { eqGains.toList() }
+    fun setEqMode(value: Boolean) = synchronized(lock) { eqMode = value; initialized = false }
+    fun setEqGain(index: Int, db: Double) = synchronized(lock) {
+        if (index in 0..7 && db.isFinite()) eqGains[index] = db.coerceIn(-60.0, 120.0)
+    }
+
     @Volatile var centerHz = 20.0; private set
     @Volatile var levelDb = -24.0; private set
     @Volatile var bandwidthHz = 12.0; private set
@@ -308,6 +319,15 @@ internal object AnalyzerMonitor {
             if (!bypassShiftHigh) shiftHigh[i].setupHighpass((shiftHz+bottom).coerceAtMost(nyquist*0.90),rate.toDouble(),0.70710678)
             if (!bypassShiftLow) shiftLow[i].setupLowpass((shiftHz+top).coerceAtMost(safeEdge),rate.toDouble(),0.70710678)
         }
+        val start = rangeMinHz
+        val width = (rangeMaxHz - start) / 8.0
+        for (k in 0..6) {
+            val cutoff = start + (k+1) * width
+            eqCutoffEnabled[k] = cutoff > 0.0 && cutoff < nyquist * 0.95
+            if (eqCutoffEnabled[k]) {
+                for (stage in 0..1) eqCutoffs[k][stage].setupLowpass(cutoff, rate.toDouble(), 0.70710678)
+            }
+        }
         initialized=true
     }
     private fun smootherCoeff(timeMs:Double):Double = exp(-1.0/(OUTPUT_RATE*timeMs*0.001).coerceAtLeast(1.0))
@@ -336,8 +356,28 @@ internal object AnalyzerMonitor {
             val delta=2*PI*shiftHz/rate
             for(i in frame.samples.indices) {
                 var x=frame.samples[i].toDouble()/32768.0
-                for(s in 0..3) { if (!bypassHigh) x=high[s].process(x); if (!bypassLow) x=low[s].process(x) }
-                if(shifted) {
+                if (eqMode) {
+                    // Parallel lowpass-crossover difference bank. The eight contributions
+                    // telescope back to the original PCM at 0 dB on every band.
+                    // Gain transitions are smooth in frequency, not rectangular masks.
+                    val original = x
+                    var previous = 0.0
+                    var mixed = 0.0
+                    for (band in 0..6) {
+                        var cumulative = original
+                        if (eqCutoffEnabled[band]) {
+                            for (stage in 0..1) cumulative = eqCutoffs[band][stage].process(cumulative)
+                        }
+                        val part = cumulative - previous
+                        mixed += part * 10.0.pow(eqGains[band] / 20.0)
+                        previous = cumulative
+                    }
+                    mixed += (original - previous) * 10.0.pow(eqGains[7] / 20.0)
+                    x = mixed
+                } else {
+                    for(s in 0..3) { if (!bypassHigh) x=high[s].process(x); if (!bypassLow) x=low[s].process(x) }
+                }
+                if(shifted && !eqMode) {
                     x *= 2.0*cos(phase)
                     phase+=delta; if(phase>=2*PI) phase-=2*PI
                     for(s in 0..3) { if (!bypassShiftHigh) x=shiftHigh[s].process(x); if (!bypassShiftLow) x=shiftLow[s].process(x) }

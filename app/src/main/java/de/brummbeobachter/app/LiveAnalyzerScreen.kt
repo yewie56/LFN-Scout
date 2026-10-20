@@ -204,6 +204,8 @@ internal fun LiveAnalyzerScreen(
     var monLocalOnly by remember { mutableStateOf(context.getSharedPreferences("mon_rec_053",Context.MODE_PRIVATE).getBoolean("only_local",true)) }
     var monitoringShift by remember { mutableStateOf(false) }
     var monitorCenter by remember { mutableStateOf(20.0) }
+    var eqMode by remember { mutableStateOf(false) }
+    var eqGainsUi by remember { mutableStateOf(List(8) { 0.0 }) }
     var monitorLevel by remember { mutableStateOf(-24.0) }
     var monitoringTouch by remember { mutableStateOf(false) }
     var frozenSpectrum by remember { mutableStateOf<LiveAnalyzerController.Snapshot?>(null) }
@@ -335,6 +337,8 @@ internal fun LiveAnalyzerScreen(
     val cyan = Color(0xFF30D7EF)
     LaunchedEffect(Unit) {
         AnalyzerMonitor.load(context)
+        eqMode=AnalyzerMonitor.eqMode
+        eqGainsUi=AnalyzerMonitor.eqGainSnapshot()
         monitorCenter=AnalyzerMonitor.centerHz
         monitorLevel=AnalyzerMonitor.levelDb
         while (true) {
@@ -353,6 +357,10 @@ internal fun LiveAnalyzerScreen(
             // Display refresh is independent from FFT computation and waterfall decimation.
             delay(if (state.fftHopSamples <= 50) 50L else 100L)
         }
+    }
+    LaunchedEffect(state.direct48k) {
+        if (!state.direct48k && AnalyzerMonitor.eqMode) AnalyzerMonitor.setEqMode(false)
+        if (!state.direct48k) eqMode = false
     }
     // Keep MON selection limits current even when the settings panel stays closed.
     // In particular, horizontal waterfall dragging must never retain an old
@@ -828,7 +836,7 @@ internal fun LiveAnalyzerScreen(
                 val top=plotTopDp.toPx(); val bottom=size.height-plotBottomDp.toPx()
                 val plotW=right-left; val plotH=bottom-top
                 if (plotW <= 0f || plotH <= 0f) return@Canvas
-                if(monitoring) {
+                if(monitoring && !(eqMode && state.direct48k)) {
                     val width=AnalyzerMonitor.bandwidthHz
                     fun xFor(hz:Double):Float = left+((hz-state.minFrequencyHz)/
                         (state.rangeHz-state.minFrequencyHz)*plotW).toFloat()
@@ -1012,8 +1020,21 @@ internal fun LiveAnalyzerScreen(
         }
         Box(Modifier.fillMaxWidth().height(waterfallHeight).background(Color(0xFF130C29))
             .clickable { if(!monitoring)expanded=!expanded }
-            .pointerInput(monitoring,state.direct48k,state.minFrequencyHz,state.rangeHz) {
-                if(monitoring) {
+            .pointerInput(monitoring,eqMode,state.direct48k,state.minFrequencyHz,state.rangeHz) {
+                if (monitoring && eqMode && state.direct48k) {
+                    var activeBand = -1
+                    detectDragGestures(onDragStart={ p ->
+                        val left=plotLeftDp.toPx(); val right=size.width-plotRightDp.toPx()
+                        activeBand = if (p.x in left..right) (((p.x-left)/(right-left))*8).toInt().coerceIn(0,7) else -1
+                    }) { change, delta ->
+                        if (activeBand >= 0) {
+                            val next=(AnalyzerMonitor.eqGainSnapshot()[activeBand]-delta.y.toDouble()/size.height*180.0).coerceIn(-60.0,120.0)
+                            AnalyzerMonitor.setEqGain(activeBand,next)
+                            eqGainsUi=eqGainsUi.toMutableList().also { it[activeBand]=next }
+                            change.consume()
+                        }
+                    }
+                } else if(monitoring) {
                     // Keep the original width for the full drag. Clipping both translated
                     // edges squeezes at either boundary and restores width on the way back.
                     var gestureCenter = AnalyzerMonitor.centerHz
@@ -1073,36 +1094,14 @@ internal fun LiveAnalyzerScreen(
                             RectF(left,top,right,bottom),NativePaint(NativePaint.FILTER_BITMAP_FLAG))
                     }
                 }
-                if (monitoring && state.sampleRateHz > 0 && state.rangeHz > state.minFrequencyHz) {
-                    val overlayPath = Path()
-                    val samples = plotW.toInt().coerceIn(96, 480)
-                    val selectionMinHz = AnalyzerMonitor.selectionMinHz()
-                    val selectionMaxHz = AnalyzerMonitor.selectionMaxHz()
-                    val monitorBandwidthHz = AnalyzerMonitor.bandwidthHz
-                    for (index in 0 until samples) {
-                        val fraction = if (samples <= 1) 0.0 else index.toDouble() / (samples - 1).toDouble()
-                        val hz = state.minFrequencyHz + (state.rangeHz - state.minFrequencyHz) * fraction
-                        val gainDb = MonFrequencyResponse.totalGainDbAt(
-                            frequencyHz = hz.toDouble(),
-                            sampleRateHz = state.sampleRateHz,
-                            rangeMinHz = selectionMinHz,
-                            rangeMaxHz = selectionMaxHz,
-                            centerHz = monitorCenter,
-                            bandwidthHz = monitorBandwidthHz,
-                            levelDb = monitorLevel
-                        )
-                        val x = left + plotW * fraction.toFloat()
-                        val yFraction = ((gainDb - MonFrequencyResponse.DISPLAY_MIN_DB) /
-                            (MonFrequencyResponse.DISPLAY_MAX_DB - MonFrequencyResponse.DISPLAY_MIN_DB))
-                            .coerceIn(0.0, 1.0)
-                        val y = bottom - plotH * yFraction.toFloat()
-                        if (index == 0) overlayPath.moveTo(x, y) else overlayPath.lineTo(x, y)
+                if (monitoring && eqMode && state.direct48k) {
+                    val green = Color(0xFF48ED87)
+                    for (i in 0..7) {
+                        val centerX=left+plotW*(i+0.5f)/8f
+                        val y=bottom-plotH*((eqGainsUi[i]+60.0)/180.0).toFloat()
+                        drawLine(green,Offset(centerX-9.dp.toPx(),y),Offset(centerX+9.dp.toPx(),y),strokeWidth=3.dp.toPx())
+                        drawLine(green.copy(alpha=0.55f),Offset(centerX,y-8.dp.toPx()),Offset(centerX,y+8.dp.toPx()),strokeWidth=1.dp.toPx())
                     }
-                    drawPath(
-                        path = overlayPath,
-                        color = Color(0xFFFFE15A),
-                        style = Stroke(width = 2.dp.toPx())
-                    )
                 }
                 // Black live timeline between the existing colorbar and the FIXED spectrum x-origin.
                 // Ticks are attached to real acquired rows, not fabricated elapsed seconds.
@@ -1373,6 +1372,17 @@ internal fun LiveAnalyzerScreen(
                         color=white,fontSize=8.sp,lineHeight=10.sp)
                 }
                 LongPressMark(show=monitoring)
+            }
+            if (state.direct48k) {
+                Box(Modifier.size(buttonWidth,buttonHeight)
+                    .border(BorderStroke(1.dp, if(eqMode) Color(0xFF48ED87) else cyan), RoundedCornerShape(6.dp))
+                    .clickable {
+                        eqMode=!eqMode
+                        AnalyzerMonitor.setEqMode(eqMode)
+                        eqGainsUi=AnalyzerMonitor.eqGainSnapshot()
+                    }, contentAlignment=Alignment.Center) {
+                    Text(if(eqMode) "EQ" else "F",color=if(eqMode) Color(0xFF48ED87) else white,fontSize=15.sp)
+                }
             }
             if(!state.direct48k) {
                 WaterfallSwitchIcon(buttonWidth=buttonWidth,buttonHeight=buttonHeight,original=true,active=state.showOriginalWaterfall, onLongPress={}) {
