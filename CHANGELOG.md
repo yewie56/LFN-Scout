@@ -1,3 +1,8 @@
+## Arbeitsstand 20.10.2026 – Priorität 2/3/5 (ohne Versionssprung)
+- Rolling-Future-Captures gegen Generationswechsel und STOP/Neustart gesichert; zu lange Anforderungen abgewiesen.
+- Negative FFT-Zeitstempel werden vor Bucket-Anlage ignoriert.
+- Regression: 40/40 PASS, Rolling-Kotlin isoliert kompiliert; Android-APK nicht verifiziert.
+
 ## 2026-10-20 – konsolidierte Fortsetzung 20× weiter (v0.5.91 unverändert)
 
 - Produktive WAV-Archivveröffentlichung: Byteanzahl-/SHA-256-Rückleseprüfung vor und nach MediaStore-Freigabe (auch Legacy-Dateiweg).

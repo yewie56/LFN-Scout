@@ -19,6 +19,7 @@ object RollingAudioEngine {
 
     private data class FutureCapture(
         val targetSamples: Int,
+        val generation: Long,
         val pcm: ByteArrayOutputStream,
         var clippedSamples: Int = 0,
         var completed: Boolean = false
@@ -131,12 +132,13 @@ object RollingAudioEngine {
         onProgressSeconds: suspend (Int) -> Unit = {},
         onClippingChanged: suspend (Int) -> Unit = {}
     ): Snapshot? {
-        if (!isRunning || seconds <= 0) return null
+        if (!isRunning || seconds <= 0 || seconds > RollingAudioPolicy.CAPACITY_SAMPLES / RollingAudioPolicy.TARGET_SAMPLE_RATE_HZ) return null
         val started = System.currentTimeMillis()
         val localCapture = synchronized(lock) {
-            if (capture != null) return null
+            if (!isRunning || capture != null) return null
             FutureCapture(
                 targetSamples = seconds * RollingAudioPolicy.TARGET_SAMPLE_RATE_HZ,
+                generation = generation,
                 pcm = ByteArrayOutputStream(seconds * RollingAudioPolicy.TARGET_SAMPLE_RATE_HZ * 2)
             ).also { capture = it }
         }
@@ -144,7 +146,7 @@ object RollingAudioEngine {
         try {
             var lastProgress = -1
             var lastClip = -1
-            while (isRunning) {
+            while (isRunning && continuity().generation == localCapture.generation) {
                 val state = synchronized(lock) {
                     Triple(localCapture.completed, localCapture.pcm.size() / 2, localCapture.clippedSamples)
                 }
@@ -167,7 +169,14 @@ object RollingAudioEngine {
                 bytes = localCapture.pcm.toByteArray()
                 clips = localCapture.clippedSamples
             }
-            if (bytes.isEmpty()) return null
+            // STOP/capture interruption must never be exported as a successful,
+            // shorter-than-requested WAV. A completed capture contains exactly
+            // targetSamples 16-bit PCM samples from this Rolling generation.
+            val complete = synchronized(lock) {
+                isRunning && generation == localCapture.generation &&
+                    capture === localCapture && localCapture.completed
+            }
+            if (!complete || bytes.size != localCapture.targetSamples * 2) return null
             val end = System.currentTimeMillis()
             return Snapshot(bytes, started, end, sourceLabel, deviceLabel, clips)
         } finally {

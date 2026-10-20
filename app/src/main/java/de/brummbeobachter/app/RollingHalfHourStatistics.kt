@@ -69,7 +69,7 @@ internal class RollingHalfHourStatistics(
         // Invalid measurements must not advance the active half-hour window.
         // Otherwise a NaN/Infinity timestamp from a future bucket could flush
         // valid statistics early and cause a spurious NO_DATA/PARTIAL export.
-        if (!db.isFinite()) return
+        if (!db.isFinite() || timeEpochMs < 0L) return
         val bucket = Math.floorDiv(timeEpochMs, 1_800_000L) * 1_800_000L
         if (bucketStart < 0) bucketStart = bucket
         // A half-hour is COMPLETE only with 1800 distinct seconds. Duplicate,
@@ -77,7 +77,7 @@ internal class RollingHalfHourStatistics(
         if (bucket < bucketStart) return
         if (bucket != bucketStart) { completeBucket(); bucketStart = bucket; lastFftEpochMs = -1L }
         val second = Math.floorDiv(timeEpochMs, 1000L) * 1000L
-        if (second <= lastFftEpochMs || !db.isFinite()) return
+        if (second <= lastFftEpochMs) return
         lastFftEpochMs = second
         val slot = ((second - bucketStart) / 1000L).toInt()
         if (slot !in 0 until 1800 || fftSecondPresent[slot]) return
