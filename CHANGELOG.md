@@ -1,3 +1,9 @@
+## v0.5.98 (2026-10-20)
+- MON-Wasserfall: gelbe Overlay-Kurve für den Frequenzgang des aktuellen MON-Filters ergänzt.
+- Kurve läuft über der Wasserfallbreite auf der aktuellen Analyzer-Frequenzachse und ist auf die feste MON-Gain-Skala −60 dB bis +120 dB abgebildet.
+- Angezeigt wird der effektive Bandpass-Frequenzgang inklusive eingestellter MON-Verstärkung; Werte außerhalb der Skala werden am Rand abgeschnitten.
+- Regressions-/JVM-Test für Passband, Sperrband und Randfall am unteren Frequenzende ergänzt. Android-Gesamtbuild/Smartphone-Test noch offen.
+
 ## v0.5.97 (2026-10-20)
 - MON-Randquetschung: ursprüngliche Sollbandbreite über mehrere Wischgesten erhalten; virtuellen Mittelpunkt aus gequetschten Filtergrenzen rekonstruieren.
 - Sollbandbreite zusätzlich in Legacy-MON-Preferences persistieren; JSON-Setups speichern weiterhin die effektive Bandbreite.

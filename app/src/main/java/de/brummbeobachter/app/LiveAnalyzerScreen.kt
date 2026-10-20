@@ -1073,6 +1073,37 @@ internal fun LiveAnalyzerScreen(
                             RectF(left,top,right,bottom),NativePaint(NativePaint.FILTER_BITMAP_FLAG))
                     }
                 }
+                if (monitoring && state.sampleRateHz > 0 && state.rangeHz > state.minFrequencyHz) {
+                    val overlayPath = Path()
+                    val samples = plotW.toInt().coerceIn(96, 480)
+                    val selectionMinHz = AnalyzerMonitor.selectionMinHz()
+                    val selectionMaxHz = AnalyzerMonitor.selectionMaxHz()
+                    val monitorBandwidthHz = AnalyzerMonitor.bandwidthHz
+                    for (index in 0 until samples) {
+                        val fraction = if (samples <= 1) 0.0 else index.toDouble() / (samples - 1).toDouble()
+                        val hz = state.minFrequencyHz + (state.rangeHz - state.minFrequencyHz) * fraction
+                        val gainDb = MonFrequencyResponse.totalGainDbAt(
+                            frequencyHz = hz.toDouble(),
+                            sampleRateHz = state.sampleRateHz,
+                            rangeMinHz = selectionMinHz,
+                            rangeMaxHz = selectionMaxHz,
+                            centerHz = monitorCenter,
+                            bandwidthHz = monitorBandwidthHz,
+                            levelDb = monitorLevel
+                        )
+                        val x = left + plotW * fraction.toFloat()
+                        val yFraction = ((gainDb - MonFrequencyResponse.DISPLAY_MIN_DB) /
+                            (MonFrequencyResponse.DISPLAY_MAX_DB - MonFrequencyResponse.DISPLAY_MIN_DB))
+                            .coerceIn(0.0, 1.0)
+                        val y = bottom - plotH * yFraction.toFloat()
+                        if (index == 0) overlayPath.moveTo(x, y) else overlayPath.lineTo(x, y)
+                    }
+                    drawPath(
+                        path = overlayPath,
+                        color = Color(0xFFFFE15A),
+                        style = Stroke(width = 2.dp.toPx())
+                    )
+                }
                 // Black live timeline between the existing colorbar and the FIXED spectrum x-origin.
                 // Ticks are attached to real acquired rows, not fabricated elapsed seconds.
                 val timeBandL = barRight + 1.dp.toPx()
