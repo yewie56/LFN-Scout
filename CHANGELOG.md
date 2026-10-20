@@ -1,3 +1,22 @@
+## 2026-10-20 – konsolidierte Fortsetzung 20× weiter (v0.5.91 unverändert)
+
+- Produktive WAV-Archivveröffentlichung: Byteanzahl-/SHA-256-Rückleseprüfung vor und nach MediaStore-Freigabe (auch Legacy-Dateiweg).
+- Produktiver FFT-Sekunden-CSV-Export: unabhängiges Parsen der tatsächlichen Zeitstempel, Erkennung von Duplicate/Missing/Out-of-Bucket und Persistenz-Readback.
+- 42 Python-Regressionstests PASS, isolierte Kotlin-JVM-Tests 7/7 PASS; Gradle/App-Build und Android-Gerätetest weiterhin blockiert bzw. ausstehend.
+- Drei priorisierte Freigabefälle 2/3/5 bleiben mangels vollständiger Gerätebelege SKIP. Details: `PRUEFBERICHT_20X_PRIORITAET_2_3_5_2026-10-20.md`.
+
+## 2026-10-20 – Konsolidierte Datenintegritätsprüfung (unversionierter Arbeitsstand)
+
+- Freigabekriterium auf **2 Sample-Kontinuität**, **3 produktive Rolling-Schreibkontinuität** und **5 Statistikabdeckung** beschränkt. Absturz- und Setup-Tests bleiben diagnostisch erhalten und sind nicht mehr verpflichtende Gate-IDs.
+- Produktiver Halbstunden-CSV-Export liest den geschriebenen Inhalt durch MediaStore zurück, vergleicht die gesamte CSV mit den Sollbytes (UTF-8), prüft die Freigabe des PENDING-Flags und protokolliert Abweichungen als ERROR statt fälschlich OK.
+- Keine automatische Aufwertung der drei technischen SKIP-Ergebnisse: der echte Archiv-WAV-Writer und die physikalische Vollständigkeit der Rohsamples sind noch nicht unabhängig nachgewiesen.
+- Kein Android-Build verifiziert: Gradle 8.13 nicht lokal verfügbar. Noch kein APK-Testkandidat.
+
+## v0.5.91 / versionCode 249 – MON-WAV-Dateirückleseprüfung (unfreigegebener Testkandidat)
+- Vor MON-Archivierung jetzt unabhängiger CRC32-Rücklesevergleich der tatsächlich gespeicherten PCM-Nutzdaten mit den zuvor angenommenen und an den Writer übergebenen Blöcken.
+- Vier reale JVM-Tests: intakte Datei, manipuliertes Byte, vertauschte Blöcke, abgeschnittene Datei.
+- Bestehende fünf Android-SKIP-Fälle bleiben ungelöst; die Änderung betrifft MON und beweist weder Rolling-Langzeit-Schreibkontinuität noch physikalisch lückenfreie Aufnahme.
+
 ## v0.5.88 / versionCode 246 – Regressionstest-Vertragsabgleich (Android-Testkandidat)
 - Veralteten MON-Setup-Rollback-Vertragstest auf repository.restoreSelection(previousActiveId, previousSelection.recent) umgestellt. Der Test fordert jetzt ausdrücklich MRU-Wiederherstellung.
 - Enthält den bis zur vorherigen Arbeitsrunde vorliegenden MON-Setup-A/B/A-Prüfpfad und die PCM-Schreibprüfsummen-Erweiterung.

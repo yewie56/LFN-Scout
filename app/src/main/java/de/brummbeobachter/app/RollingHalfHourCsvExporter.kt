@@ -60,8 +60,22 @@ internal object RollingHalfHourCsvExporter {
             resolver.openOutputStream(uri, "wt")?.bufferedWriter(Charsets.UTF_8)?.use {
                 it.write(header); it.write(row)
             } ?: error("Cannot write $uri")
-            resolver.update(uri, ContentValues().apply { put(MediaStore.MediaColumns.IS_PENDING, 0) }, null, null)
-            DebugLogger.log(context, "ROLLING_HALF_HOUR_CSV_OK", "name=$name epochs=${result.validEpochs}")
+            // Verify durable export through the public MediaStore read path. This is
+            // a separate filesystem read, not merely an in-memory statistics check.
+            // A failed readback must never publish a falsely successful CSV.
+            val expected = header + row
+            val actual = resolver.openInputStream(uri)?.bufferedReader(Charsets.UTF_8)?.use { it.readText() }
+                ?: error("Cannot re-open exported half-hour CSV $uri")
+            if (actual != expected) {
+                DebugLogger.log(context, "ROLLING_HALF_HOUR_CSV_ERROR",
+                    "readback_mismatch name=$name expected_chars=${expected.length} actual_chars=${actual.length}")
+                error("Half-hour CSV readback mismatch for $name")
+            }
+            val published = resolver.update(uri,
+                ContentValues().apply { put(MediaStore.MediaColumns.IS_PENDING, 0) }, null, null)
+            if (published < 1) error("Half-hour CSV pending flag could not be cleared for $name")
+            DebugLogger.log(context, "ROLLING_HALF_HOUR_CSV_OK",
+                "name=$name epochs=${result.validEpochs} readback_chars=${actual.length} verified=true")
         } catch (e: Exception) {
             DebugLogger.log(context, "ROLLING_HALF_HOUR_CSV_ERROR", "type=${e.javaClass.simpleName} message=${e.message}")
         }

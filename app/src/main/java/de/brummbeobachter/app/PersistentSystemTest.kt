@@ -15,6 +15,7 @@ internal object PersistentSystemTest {
         val passed get() = results.count { it.status == "PASS" }
         val failed get() = results.count { it.status == "FAIL" }
         val skipped get() = results.count { it.status == "SKIP" }
+        val releaseAssessment get() = SystemTestReleaseGate.assess(results)
         fun json(): String = JSONObject().apply {
             put("schema", "lfn-scout-systemtest-v1")
             put("appVersion", appVersion)
@@ -23,6 +24,15 @@ internal object PersistentSystemTest {
             if (runId != null) put("runId", runId)
             put("checkedLogLines", checkedLines)
             put("pass", passed); put("fail", failed); put("skip", skipped)
+            put("acceptanceGate", JSONObject().apply {
+                put("status", releaseAssessment.status)
+                put("ready", releaseAssessment.ready)
+                put("requiredCaseIds", JSONArray(SystemTestReleaseGate.required))
+                put("unproven", JSONArray(releaseAssessment.missing))
+                put("failed", JSONArray(releaseAssessment.failed))
+                put("duplicateIds", JSONArray(releaseAssessment.duplicated))
+                put("invalidStatuses", JSONArray(releaseAssessment.invalid))
+            })
             put("limitations", "Isolated real repository A/B fixture tests and optional real Analyzer STOP/RUN cycles. Live named setup switching, complete write/PCM gap continuity and independent statistics coverage remain unverified. A separate non-persistent controller filter A/B/A probe exists; its outcome is reported independently. Missing evidence is SKIP.")
             put("results", JSONArray().apply { results.forEach { r -> put(JSONObject().apply {
                 put("id", r.id); put("status", r.status); put("detail", r.detail)
@@ -34,7 +44,7 @@ internal object PersistentSystemTest {
                 append(listOf(r.id, r.status, r.detail).joinToString(",") { v -> "\"${v.replace("\"", "\"\"").replace("\n", " ")}\"" }); append('\n')
             }
         }
-        fun summary(): String = "PASS $passed · FAIL $failed · SKIP $skipped"
+        fun summary(): String = "PASS $passed · FAIL $failed · SKIP $skipped · Freigabe ${releaseAssessment.status}"
     }
 
     /** Pure evaluator, also testable by ordinary JVM tests. */
@@ -89,7 +99,8 @@ internal object PersistentSystemTest {
     suspend fun runAutomated(context: Context): Report {
         check(running.compareAndSet(false, true)) { "Ein Systemtest läuft bereits" }
         try {
-        val runId = System.currentTimeMillis().toString(36)
+        val runStartedMs = System.currentTimeMillis()
+        val runId = runStartedMs.toString(36)
         DebugLogger.log(context, "SYSTEMTEST_BEGIN", "id=$runId version=${BuildConfig.VERSION_NAME} version_code=${BuildConfig.VERSION_CODE}")
         // A failed fixture must remain visible as FAIL, rather than aborting the
         // whole report and hiding later independent checks. Preserve cancellation.
@@ -129,6 +140,17 @@ internal object PersistentSystemTest {
             listOf(Result("isolated_wav_filesystem_roundtrip", "FAIL",
                 "Unhandled WAV fixture error: ${t.javaClass.simpleName}: ${t.message}"))
         }
+        val liveWav = try {
+            val evidence = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                LiveRollingWavAudit.execute(context)
+            }
+            listOf(Result("live_rolling_wav_snapshot_integrity", evidence.status, evidence.detail))
+        } catch (c: kotlinx.coroutines.CancellationException) {
+            throw c
+        } catch (t: Exception) {
+            listOf(Result("live_rolling_wav_snapshot_integrity", "FAIL",
+                "Audit error: ${t.javaClass.simpleName}: ${t.message}"))
+        }
         val statistics = try {
             kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) {
                 IsolatedStatisticsSystemTest.execute().map {
@@ -166,14 +188,47 @@ internal object PersistentSystemTest {
         // A run-scoped log may begin long after Rolling and Analyzer were started.
         // Replace only those historical SKIPs with independently observed real live
         // lifecycle evidence, never with the mere absence of an error message.
+        // Android 11+ exposes independent OS process-exit evidence. A reported
+        // crash/ANR is a genuine FAIL; no entry is not a proof of absence.
+        // Attribute OS exit evidence only to this test run; historical crashes
+        // (possibly from another app version) must not fail the present run.
+        val osExit = AndroidProcessExitEvidence.inspect(context, runStartedMs)
         val reconciled = LiveEvidenceReconciliation.reconcile(
             historical.results.map { LiveEvidenceReconciliation.Verdict(it.id, it.status, it.detail) },
             (live + rollingIntegrity).map { LiveEvidenceReconciliation.Verdict(it.id, it.status, it.detail) },
             logScopeAvailable
-        ).map { Result(it.id, it.status, it.detail) }
+        ).map { verdict ->
+            if (verdict.id == "unhandled_crash_observed") {
+                val osCrash = osExit.supported && osExit.anomalousCount > 0
+                // A bounded completed run may establish that no fatal exception was
+                // observed DURING this run. It does not certify lifetime crash freedom.
+                // Require OS history accessibility, both run markers, controller
+                // restoration, and zero fatal events in the scoped application log.
+                val runtimeRecovered = live.any {
+                    it.id == "live_analyzer_run_restored" && it.status == "PASS"
+                } && live.any {
+                    it.id == "live_rolling_survives_analyzer" && it.status == "PASS"
+                }
+                val scopedFatal = scoped.any {
+                    "FATAL EXCEPTION" in it || "ANALYZER_RESTART_FAILED" in it ||
+                    "SYSTEMTEST_RESTORE_FAILED" in it || "ROLLING_CAPTURE_FAILED" in it
+                }
+                val boundedNoCrashObserved = logScopeAvailable && osExit.supported &&
+                    !scopedFatal && runtimeRecovered && !osCrash && verdict.status == "SKIP"
+                Result(verdict.id,
+                    when {
+                        osCrash || scopedFatal -> "FAIL"
+                        boundedNoCrashObserved -> "PASS"
+                        else -> verdict.status
+                    },
+                    "${verdict.detail}; bounded_run_no_crash_observed=$boundedNoCrashObserved; " +
+                        "logScopeComplete=$logScopeAvailable recovered=$runtimeRecovered scopedFatal=$scopedFatal; " +
+                        "OS exit evidence: ${osExit.detail}; no lifetime crash-free claim")
+            } else Result(verdict.id, verdict.status, verdict.detail)
+        }
         // Determine unresolved evidence from the COMPLETE final report, not just
         // the reconciled historical subset. This includes prerequisite/live SKIPs.
-        val report = Report(fixtures + wavResults + statistics + live + listOf(scopeResult) + rollingIntegrity + reconciled, scoped.size, System.currentTimeMillis(), "SAFE_LIVE_CYCLES_PLUS_RUN_SCOPED_LOG", runId, BuildConfig.VERSION_NAME)
+        val report = Report(fixtures + wavResults + liveWav + statistics + live + listOf(scopeResult) + rollingIntegrity + reconciled, scoped.size, System.currentTimeMillis(), "SAFE_LIVE_CYCLES_PLUS_RUN_SCOPED_LOG", runId, BuildConfig.VERSION_NAME)
         val unresolved = report.results.filter { it.status == "SKIP" }.map { it.id }
         DebugLogger.log(context, "SYSTEMTEST_UNVERIFIED", "run_id=$runId count=${unresolved.size} cases=${unresolved.joinToString(";")}")
         SystemTestArtifactStore.save(context, report)

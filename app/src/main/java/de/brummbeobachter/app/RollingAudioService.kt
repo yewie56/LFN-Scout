@@ -241,6 +241,7 @@ class RollingAudioService : Service() {
             var analyzerCount = 0
             var samplesRead = 0L
             readAccounting.begin(System.nanoTime())
+            deliveryAccounting.begin()
             var lastHeartbeatNs = System.nanoTime()
             var lastLimitCheckElapsedMs = 0L
             var currentLimitHours = settings.rollingMaxOperationHours
@@ -263,6 +264,7 @@ class RollingAudioService : Service() {
                 // Account for negative AudioRecord return codes BEFORE throwing;
                 // otherwise a failed read vanishes from the continuity diagnostics.
                 readAccounting.onRead(count, System.nanoTime())
+                if (count < 0) deliveryAccounting.completedRead(count, 0L)
                 if (count < 0) error("Audio-Lesefehler: $count")
                 if (count > 0) samplesRead += count
                 val nowNs = System.nanoTime()
@@ -279,6 +281,7 @@ class RollingAudioService : Service() {
                     AnalyzerSessionGateway.rawPcm.publish(input, count, sourceRate,
                         mode.displayName(), currentRouted, 0, firstSampleNs)
                 }
+                val emittedBeforeRead = rollingSamplesSinceStart
                 for (i in 0 until count) {
                     sum += input[i].toLong(); countGroup++
                     if (countGroup == decimation) {
@@ -305,6 +308,7 @@ class RollingAudioService : Service() {
                         sum = 0; countGroup = 0
                     }
                 }
+                deliveryAccounting.completedRead(count, rollingSamplesSinceStart - emittedBeforeRead)
                 notificationTick++
                 if (notificationTick >= 30) {
                     notificationTick = 0
@@ -388,6 +392,7 @@ class RollingAudioService : Service() {
 
     companion object {
         internal val readAccounting = RollingPcmReadAccounting()
+        internal val deliveryAccounting = RollingCaptureDeliveryAccounting()
         private const val CHANNEL_ID = "rolling_audio"
         private const val NOTIFICATION_ID = 4101
         private const val RESTART_NOTIFICATION_ID = 4102

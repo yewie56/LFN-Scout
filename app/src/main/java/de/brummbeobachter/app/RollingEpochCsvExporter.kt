@@ -53,6 +53,7 @@ internal class RollingEpochCsvExporter(private val context: Context, private val
     suspend fun write(snapshot: Snapshot) = writeMutex.withLock {
         if ((lastWrittenSize[snapshot.bucket] ?: -1) > snapshot.rowCount) return@withLock
         try {
+            val coverage = RollingEpochCsvIntegrity.verify(snapshot.content, snapshot.bucket, snapshot.rowCount)
             if (Build.VERSION.SDK_INT < 29) error("Android 10+ required for public Downloads")
             val name = "HalfHourEpochs_${snapshot.bucket}.csv"
             val resolver = context.contentResolver
@@ -73,9 +74,18 @@ internal class RollingEpochCsvExporter(private val context: Context, private val
                 }) ?: error("MediaStore insert failed")
             resolver.openOutputStream(destination, "wt")?.bufferedWriter(Charsets.UTF_8)?.use { it.write(snapshot.content) }
                 ?: error("MediaStore write failed")
-            resolver.update(destination, ContentValues().apply { put(MediaStore.MediaColumns.IS_PENDING, 0) }, null, null)
+            val persisted = resolver.openInputStream(destination)?.bufferedReader(Charsets.UTF_8)?.use { it.readText() }
+                ?: error("Cannot read back epoch CSV")
+            val persistedCoverage = RollingEpochCsvIntegrity.verify(persisted, snapshot.bucket, snapshot.rowCount)
+            check(persisted == snapshot.content && persistedCoverage == coverage) {
+                "Epoch CSV content/coverage changed during persistence"
+            }
+            val updated = resolver.update(destination,
+                ContentValues().apply { put(MediaStore.MediaColumns.IS_PENDING, 0) }, null, null)
+            check(updated > 0) { "Epoch CSV publication failed" }
             lastWrittenSize[snapshot.bucket] = snapshot.rowCount
-            DebugLogger.log(context, "ROLLING_EPOCH_CSV_OK", "bucket=${snapshot.bucket}")
+            DebugLogger.log(context, "ROLLING_EPOCH_CSV_OK",
+                "bucket=${snapshot.bucket} distinct_seconds=${coverage.distinctSeconds} missing_seconds=${coverage.missingSeconds} verified=true")
         } catch (e: Exception) {
             DebugLogger.log(context, "ROLLING_EPOCH_CSV_ERROR", "type=${e.javaClass.simpleName} message=${e.message}")
         }

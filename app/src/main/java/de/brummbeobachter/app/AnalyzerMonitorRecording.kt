@@ -108,7 +108,7 @@ internal object AnalyzerMonitorRecording {
         }
         val accounting = writeAccounting.snapshot()
         if (failed || samples <= 0L || !accounting.complete(f.length()) ||
-            accounting.writtenBytes != samples * 2L) {
+            accounting.writtenBytes != samples * 2L || !writeAccounting.persistedPayloadMatches(f)) {
             f.delete()
             synchronized(mutex) { outputFile=null;writer=null;thread=null }
             return@withContext null

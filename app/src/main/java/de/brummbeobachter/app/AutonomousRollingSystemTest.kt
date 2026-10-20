@@ -34,6 +34,7 @@ internal object AutonomousRollingSystemTest {
             record("live_rolling_survives_analyzer", "SKIP", reason)
             record("live_analyzer_run_restored", "SKIP", reason)
             record("live_pcm_read_callback_continuity", "SKIP", reason)
+            record("live_capture_to_ring_sample_accounting", "SKIP", reason)
             return out
         }
         val beforeMon = AnalyzerMonitor.enabled
@@ -42,6 +43,7 @@ internal object AutonomousRollingSystemTest {
         val beforeBuffered = RollingAudioEngine.bufferedSeconds()
         val beforeContinuity = RollingAudioEngine.continuity()
         val beforeReads = RollingAudioService.readAccounting.snapshot()
+        val beforeDelivery = RollingAudioService.deliveryAccounting.snapshot()
         record("live_scout_rolling_guard", "PASS", "Rolling already started in Scout; buffer=${beforeBuffered}s")
         var failed = false
         var completed = 0
@@ -347,6 +349,7 @@ internal object AutonomousRollingSystemTest {
         }, "Originally MON=$beforeMon; activeProbe=$monProbeCompleted; restored=$monProbeRestored; rollingIntact=$monProbeRollingIntact; error=$monProbeError")
         val afterContinuity = RollingAudioEngine.continuity()
         val afterReads = RollingAudioService.readAccounting.snapshot()
+        val afterDelivery = RollingAudioService.deliveryAccounting.snapshot()
         val readEpochUnchanged = beforeReads.epoch != 0L && beforeReads.epoch == afterReads.epoch
         val readsContinued = afterReads.blocks > beforeReads.blocks && afterReads.samples > beforeReads.samples
         val readErrorsUnchanged = afterReads.readErrors == beforeReads.readErrors &&
@@ -361,6 +364,35 @@ internal object AutonomousRollingSystemTest {
             failed -> "SKIP"
             else -> "PASS"
         }, "AudioRecord callback counters, NOT physical losslessness: epoch=${beforeReads.epoch}->${afterReads.epoch} blocks=${beforeReads.blocks}->${afterReads.blocks} samples=${beforeReads.samples}->${afterReads.samples} errors=${beforeReads.readErrors}->${afterReads.readErrors} zeroReads=${beforeReads.zeroReads}->${afterReads.zeroReads} sequenceErrors=${beforeReads.sequenceErrors}->${afterReads.sequenceErrors} timestampRegressions=${beforeReads.timestampRegressions}->${afterReads.timestampRegressions}")
+        // Independent read-side versus consumer-side accounting across the SAME
+        // uninterrupted AudioRecord epoch. A streaming decimator can retain at
+        // most decimation-1 pending source samples at either snapshot boundary.
+        // This verifies observed software delivery, NOT microphone/ADC losslessness.
+        val sourceDelta = afterDelivery.sourceSamples - beforeDelivery.sourceSamples
+        val ringDelta = afterDelivery.emittedSamples - beforeDelivery.emittedSamples
+        val deliveryEpochUnchanged = beforeDelivery.epoch != 0L &&
+            beforeDelivery.epoch == afterDelivery.epoch
+        val deliveryErrorsUnchanged = beforeDelivery.sourceReadErrors == afterDelivery.sourceReadErrors
+        val decimation = AudioRecordingPolicy.SOURCE_SAMPLE_RATE_HZ /
+            AudioRecordingPolicy.TARGET_SAMPLE_RATE_HZ
+        val sourceMinusConsumed = sourceDelta - ringDelta * decimation.toLong()
+        val softwareAccountingOk = sourceMinusConsumed in (-(decimation - 1).toLong())..(decimation - 1).toLong()
+        // A separate engine-owned counter must agree with the delivery-accounting
+        // counter. Matching read/decimator counters alone would miss a missing
+        // RollingAudioEngine.append() call (or an accidental duplicate append).
+        val actualRingDelta = afterContinuity.appended - beforeContinuity.appended
+        val ringCounterAgreement = ringDelta == actualRingDelta
+        record("live_capture_to_ring_sample_accounting", when {
+            !deliveryEpochUnchanged || !deliveryErrorsUnchanged ||
+                beforeContinuity.generation != afterContinuity.generation ||
+                !RollingAudioEngine.isRunning -> "FAIL"
+            sourceDelta <= 0L || ringDelta <= 0L || !softwareAccountingOk || !ringCounterAgreement -> "FAIL"
+            !readErrorsUnchanged || failed -> "SKIP"
+            else -> "PASS"
+        }, "Observed AudioRecord source samples=$sourceDelta; Rolling ring appended=$ringDelta; " +
+            "actualEngineAppended=$actualRingDelta agreement=$ringCounterAgreement; " +
+            "decimation=$decimation; residual=$sourceMinusConsumed (allowed +/-${decimation - 1}); " +
+            "deliveryEpochUnchanged=$deliveryEpochUnchanged; no physical sample-perfect claim")
         val rollingOk = !rollingInterrupted && RollingAudioEngine.isRunning && MicCaptureArbiter.owner == "rolling" &&
             beforeContinuity.starts == afterContinuity.starts && beforeContinuity.stops == afterContinuity.stops &&
             beforeContinuity.generation == afterContinuity.generation && afterContinuity.appended > beforeContinuity.appended

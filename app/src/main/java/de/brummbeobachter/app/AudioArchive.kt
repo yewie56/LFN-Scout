@@ -869,6 +869,12 @@ object AudioArchive {
                         "Downloads-Datei konnte nicht geöffnet werden"
                     )
 
+                // Verify the real published MediaStore WAV before making it visible.
+                // This is the productive archive writer, not an isolated cache fixture.
+                val publishedStream = context.contentResolver.openInputStream(uri)
+                    ?: error("Veröffentlichte WAV kann nicht zurückgelesen werden")
+                PublishedWavIntegrity.verify(sourceFile.inputStream(), publishedStream)
+
                 val readyValues =
                     ContentValues().apply {
                         put(
@@ -879,14 +885,12 @@ object AudioArchive {
                         )
                     }
 
-                context
-                    .contentResolver
-                    .update(
-                        uri,
-                        readyValues,
-                        null,
-                        null
-                    )
+                val updated = context.contentResolver.update(uri, readyValues, null, null)
+                check(updated > 0) { "WAV-Freigabe in MediaStore fehlgeschlagen" }
+                // Read back again after clearing IS_PENDING to verify the public object.
+                PublishedWavIntegrity.verify(sourceFile.inputStream(),
+                    context.contentResolver.openInputStream(uri)
+                        ?: error("Freigegebene WAV nicht lesbar"))
 
                 PublishedWav(
                     displayName =
@@ -929,10 +933,13 @@ object AudioArchive {
                     targetDisplayName
                 )
 
-            sourceFile.copyTo(
-                destination,
-                overwrite = true
-            )
+            sourceFile.copyTo(destination, overwrite = true)
+            try {
+                PublishedWavIntegrity.verify(sourceFile.inputStream(), destination.inputStream())
+            } catch (error: Exception) {
+                destination.delete()
+                throw error
+            }
 
             PublishedWav(
                 displayName =

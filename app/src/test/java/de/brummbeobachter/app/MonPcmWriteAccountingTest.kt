@@ -5,6 +5,20 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class MonPcmWriteAccountingTest {
+    @Test fun persistedPcmMustMatchWriterData() {
+        val file = java.io.File.createTempFile("lfn-mon-", ".wav")
+        try {
+            val meter = MonPcmWriteAccounting()
+            val samples = byteArrayOf(1, 2, 3, 4)
+            meter.acceptedBlock(samples)
+            meter.writtenBlock(samples)
+            file.outputStream().use { it.write(ByteArray(44)); it.write(samples) }
+            assertTrue(meter.persistedPayloadMatches(file))
+            java.io.RandomAccessFile(file, "rw").use { it.seek(44L); it.write(99) }
+            assertFalse(meter.persistedPayloadMatches(file))
+        } finally { file.delete() }
+    }
+
     @Test fun requiresEveryAcceptedBlockWrittenAndExactFileLength() {
         val meter = MonPcmWriteAccounting()
         assertFalse(meter.snapshot().complete(44))
