@@ -198,6 +198,17 @@ internal object AnalyzerMonitor {
             initialized=false
         }
     }
+    /** Apply both edges together during a MON drag. A single atomic update avoids
+     * intermediate invalid centre/width combinations and never writes settings per frame. */
+    fun setGestureEdges(lowHz: Double, highHz: Double) = synchronized(lock) {
+        if (!lowHz.isFinite() || !highHz.isFinite()) return@synchronized
+        val low = lowHz.coerceIn(rangeMinHz, rangeMaxHz)
+        val high = highHz.coerceIn(rangeMinHz, rangeMaxHz)
+        if (high - low < 0.5) return@synchronized
+        bandwidthHz = high - low
+        centerHz = (low + high) / 2.0
+        initialized = false
+    }
     fun setLevel(context:Context,db:Double) {
         levelDb=db.coerceIn(-60.0,120.0)
     }

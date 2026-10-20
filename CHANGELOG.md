@@ -1,3 +1,12 @@
+## v0.5.96 (2026-10-20) – MON-Randquetschung im Wasserfall (Quellkandidat)
+
+- MON-Wasserfallgeste verschiebt das Filterband bis zur jeweiligen Range-Grenze und quetscht es bei weiterer Bewegung symmetrisch links/rechts.
+- Beim Zurückziehen innerhalb derselben Geste wird das ursprüngliche Filterband wieder aufgeweitet.
+- Atomare Übernahme beider Filtergrenzen; Mindestbandbreite 0,5 Hz verhindert einen Nullbreiten-Bandpass.
+- 8-kHz-Spezialmodus und Direktanalyzer behalten die getrennten Frequenzbereiche aus v0.5.95.
+- Tests: 66 Python-PASS; Kotlin-Helfer kompiliert und 8 Geometrieprüfungen PASS.
+- Android-Gesamtbuild, Gerätestest und physikalische Filterwirkung noch NICHT nachgewiesen.
+
 ## v0.5.95 (2026-10-20) – MON-Range im Direktanalyzer (korrigierter Quellkandidat)
 
 - MON im Direktanalyzer folgt RangeMin..RangeMax statt einer festen 8.000-Hz-Auswahlgrenze.

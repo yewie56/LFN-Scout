@@ -1013,14 +1013,26 @@ internal fun LiveAnalyzerScreen(
         Box(Modifier.fillMaxWidth().height(waterfallHeight).background(Color(0xFF130C29))
             .clickable { if(!monitoring)expanded=!expanded }
             .pointerInput(monitoring,state.direct48k,state.minFrequencyHz,state.rangeHz) {
-                if(monitoring)detectDragGestures(
-                    onDragStart={ monitoringTouch=true;frozenSpectrum=state },
+                if(monitoring) {
+                    // Keep the original width for the full drag. Clipping both translated
+                    // edges squeezes at either boundary and restores width on the way back.
+                    var gestureCenter = AnalyzerMonitor.centerHz
+                    var gestureWidth = AnalyzerMonitor.bandwidthHz
+                    detectDragGestures(
+                    onDragStart={
+                        monitoringTouch=true;frozenSpectrum=state
+                        gestureCenter=AnalyzerMonitor.centerHz
+                        gestureWidth=AnalyzerMonitor.bandwidthHz
+                    },
                     onDragEnd={ monitoringTouch=false;frozenSpectrum=null; AnalyzerMonitor.persistTouchSettings(context) },
                     onDragCancel={ monitoringTouch=false;frozenSpectrum=null; AnalyzerMonitor.persistTouchSettings(context) }
                 ) { change, delta ->
                     if(kotlin.math.abs(delta.x)>kotlin.math.abs(delta.y)) {
-                        AnalyzerMonitor.setCenter(context,AnalyzerMonitor.centerHz+
-                            delta.x.toDouble()/size.width*(if (state.direct48k) (state.rangeHz-state.minFrequencyHz).toDouble() else 4000.0))
+                        val minHz=AnalyzerMonitor.selectionMinHz()
+                        val maxHz=AnalyzerMonitor.selectionMaxHz()
+                        gestureCenter += delta.x.toDouble()/size.width*(maxHz-minHz)
+                        val edges=MonBandEdgeGesture.edges(minHz,maxHz,gestureCenter,gestureWidth)
+                        AnalyzerMonitor.setGestureEdges(edges.first,edges.second)
                         monitorCenter=AnalyzerMonitor.centerHz
                     } else {
                         AnalyzerMonitor.setLevel(context,AnalyzerMonitor.levelDb-
@@ -1028,6 +1040,7 @@ internal fun LiveAnalyzerScreen(
                         monitorLevel=AnalyzerMonitor.levelDb
                     }
                     change.consume()
+                }
                 }
             }) {
             Canvas(Modifier.matchParentSize()) {
