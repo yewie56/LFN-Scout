@@ -83,6 +83,14 @@ internal class RollingEpochCsvExporter(private val context: Context, private val
             val updated = resolver.update(destination,
                 ContentValues().apply { put(MediaStore.MediaColumns.IS_PENDING, 0) }, null, null)
             check(updated > 0) { "Epoch CSV publication failed" }
+            // An object can change its visibility/storage representation when
+            // IS_PENDING is cleared. Verify the public object, not just pending bytes.
+            val published = resolver.openInputStream(destination)?.bufferedReader(Charsets.UTF_8)?.use { it.readText() }
+                ?: error("Cannot read published epoch CSV")
+            val publicCoverage = RollingEpochCsvIntegrity.verify(published, snapshot.bucket, snapshot.rowCount)
+            check(published == snapshot.content && publicCoverage == coverage) {
+                "Published epoch CSV differs from verified source"
+            }
             lastWrittenSize[snapshot.bucket] = snapshot.rowCount
             DebugLogger.log(context, "ROLLING_EPOCH_CSV_OK",
                 "bucket=${snapshot.bucket} distinct_seconds=${coverage.distinctSeconds} missing_seconds=${coverage.missingSeconds} verified=true")

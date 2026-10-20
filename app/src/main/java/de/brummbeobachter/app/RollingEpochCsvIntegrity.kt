@@ -17,6 +17,7 @@ internal object RollingEpochCsvIntegrity {
         val rows = lines.drop(1)
         require(rows.size == expectedRows) { "CSV rows ${rows.size} != $expectedRows" }
         val seconds = HashSet<Long>()
+        var lastEpoch = -1L
         for (row in rows) {
             val fields = row.split(';')
             require(fields.size == header.size) { "Invalid epoch CSV field count" }
@@ -30,6 +31,8 @@ internal object RollingEpochCsvIntegrity {
             require(epoch % 1000L == 0L) { "Unaligned FFT epoch $epoch" }
             require(epoch >= bucketMs && epoch < bucketMs + 1_800_000L) { "Epoch outside half-hour" }
             require(seconds.add(epoch)) { "Duplicate epoch $epoch" }
+            require(epoch > lastEpoch) { "Nonmonotonic CSV epoch $epoch after $lastEpoch" }
+            lastEpoch = epoch
         }
         return Coverage(seconds.size, 1800 - seconds.size)
     }
