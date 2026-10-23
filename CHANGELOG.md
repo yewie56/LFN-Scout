@@ -2389,3 +2389,9 @@ Kein PASS für Android-Build, Emulator oder Xiaomi ohne tatsächlichen Lauf. 16:
 - Unabhängiger JSON/CSV-Systemtestexport-Validator mit echtem FAIL/SKIP-Freigabegate.
 - Sechs neue Validator-Regressionstests; bestehender Android-Testpfad unverändert.
 - Noch keine Android-Buildfreigabe; produktive fünf SKIP-Fälle weiterhin offen.
+
+## v0.5.101 – Modusspezifische Setup-Kopfzeile (Quellkandidat, 23.10.2026)
+- Korrigiert `AnalyzerSetupStatusIndicator`: statt globalem `listing.activeId` wird die für den aktuellen `LiveAnalyzerController.snapshot().direct48k`-Modus ausgewählte ID (`selectedForMode`) angezeigt.
+- Gemeinsame, isoliert testbare Formatierung `AnalyzerModeSetupStatus`; drei neue JUnit-Regressionstests für 8-kHz-Anzeige, Direct-Anzeige und Modus ohne Zuordnung.
+- Unverändert: Setup-Speicherung, JSON-Schemata, FFT/MON/Audio-Controller, Systemtest, Termux-v13-Skript. VersionName 0.5.101, versionCode 259.
+- Android-Gradle/JUnit- und Smartphone-Test noch nicht durchgeführt. Referenzgerät v0.5.100: 59 PASS, 0 FAIL, 3 SKIP; der Anzeige-Fehler wurde praktisch reproduziert.

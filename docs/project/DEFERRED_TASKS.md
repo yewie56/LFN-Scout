@@ -396,3 +396,8 @@ Die Kennzeichnung **R01–R07, O01–O08 und A01–A05** können wir künftig al
 - UI570-01: Bestehende neun Unterseiten auf die gewünschten sieben logisch zusammengefassten Panels überführen, ohne Parameter- oder Funktionsverlust. MON-Livebedienung und JSON-Bindung kontrollieren.
 - UI570-02: Innenbereiche der Settings optisch vereinheitlichen (helle Kontraste), ohne Controller- oder Speicherlogik zu verändern.
 - UI570-03: Device-/Self-Test der v0.5.70-Übersicht, Setup-MRU, Panelrückkehr und MON-RUN-Verhalten.
+
+## 23.10.2026 – v0.5.101 offener Prüfstand
+- [ ] SETUP-HEAD-101: GitHub JUnit und APK-Build für v0.5.101 verifizieren; auf dem Telefon reproduzierten Kopfzeilenfehler nach Update erneut mit Moduswechsel Direct → 8 kHz testen.
+- [ ] SYS-RELEASE-100: Im v0.5.100-Live-Systemtest verblieben `recording_write_continuity`, `setup_mon_roundtrip`, `statistics_coverage` als SKIP (59 PASS / 0 FAIL / 3 SKIP).
+- [ ] TERMUX-V13: ZIP-Import-Löschentscheidung (sicheres Beibehalten fehlender Dateien) und APK-Download-Fortschrittsanzeige verbessern; vorerst nicht Teil des Kopfzeilenfixes.

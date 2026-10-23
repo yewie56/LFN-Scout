@@ -20,9 +20,9 @@ internal fun AnalyzerSetupStatusIndicator(context: Context) {
         while (true) {
             val updated = runCatching {
         val repo = AnalyzerJsonSetupRepository(context.applicationContext)
-        val listing = repo.listing()
-        val entry = listing.entries.firstOrNull { it.id == listing.activeId }
-        if (entry == null) "Setup: keines" else "Setup: ${entry.name} (zugeordnet)"
+        val direct48k = LiveAnalyzerController.snapshot().direct48k
+        val selectedId = repo.selectedForMode(direct48k)
+        AnalyzerModeSetupStatus.label(repo.listing().entries.map { it.id to it.name }, selectedId)
             }.getOrElse { "Setup: Status nicht lesbar" }
             if (status != updated) status = updated
             delay(400L)
