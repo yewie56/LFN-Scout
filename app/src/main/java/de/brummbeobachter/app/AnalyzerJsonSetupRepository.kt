@@ -71,32 +71,45 @@ internal class AnalyzerJsonSetupRepository(context: Context) {
         return Listing(found.values.sortedWith(compareBy(String.CASE_INSENSITIVE_ORDER) { it.name }), recent, active)
     }
 
-    /** Schema v1 remains readable; mode pins are stored additively and never rewrite setup JSON. */
+    /** Idempotent, atomic v1 -> v2 migration. Never changes any named setup JSON.
+     * In an ambiguous mode we intentionally leave its pin absent: the user must
+     * select the desired setup, rather than copying another mode's global id.
+     */
+    @Synchronized fun migrateIndexIfNeeded() {
+        val raw = if (index.exists()) readJson(index) else return
+        if (raw.optInt("schemaVersion", 1) >= 2 && raw.has("activeByMode")) return
+        val validIds = listing().entries.map { it.id }
+        val pins = raw.optJSONObject("activeByMode") ?: JSONObject()
+        for ((key, direct) in listOf("ROLLING_8K" to false, "DIRECT_48K" to true)) {
+            if (pins.optString(key).isNotBlank()) continue
+            val compatibleIds = validIds.filter { id ->
+                runCatching {
+                    val legacy = load(id).getJSONObject("parameters").getJSONObject("legacy")
+                    AnalyzerModeSetupGuard.compatible(legacy, direct)
+                }.getOrDefault(false)
+            }
+            // A unique matching setup can be pinned safely. Ambiguous matches
+            // must not be guessed from names or the old global activeId.
+            AnalyzerModePinMigration.uniqueCandidate(compatibleIds)?.let { pins.put(key, it) }
+        }
+        raw.put("schemaVersion", 2).put("activeByMode", pins)
+        writeAtomic(index, raw)
+    }
+
     @Synchronized fun selectedForMode(direct48k: Boolean): String? {
+        migrateIndexIfNeeded()
         val valid = listing().entries.map { it.id }.toSet()
-        val raw = if (index.exists()) readJson(index) else JSONObject()
+        val raw = if (index.exists()) readJson(index) else return null
         val key = if (direct48k) "DIRECT_48K" else "ROLLING_8K"
         val pinned = raw.optJSONObject("activeByMode")?.optString(key)?.takeIf { it in valid }
-        if (pinned != null) return pinned
-        // Legacy migration: do not use a Direct-only activeId for the 8-kHz analyzer.
-        val candidates = listing().entries.map { it.id }.filter { id ->
-            runCatching {
-                val legacy = load(id).getJSONObject("parameters").getJSONObject("legacy")
-                AnalyzerModeSetupGuard.compatible(legacy, direct48k)
-            }.getOrDefault(false)
-        }
-        val global = listing().activeId
-        if (candidates.size == 1) return candidates.single()
-        // A mathematically Direct-compatible 8-kHz setup must not be treated as
-        // the user's Direct setup. Require an explicit direct-typical legacy state.
-        if (direct48k && global in candidates) {
-            val legacy = load(global!!).getJSONObject("parameters").getJSONObject("legacy")
-            if (legacy.optInt("decimation_factor", -1) in 0..1) return global
-        }
-        return null
+            ?: return null
+        val legacy = runCatching { load(pinned).getJSONObject("parameters").getJSONObject("legacy") }
+            .getOrNull() ?: return null
+        return pinned.takeIf { AnalyzerModeSetupGuard.compatible(legacy, direct48k) }
     }
 
     @Synchronized fun selectForMode(id: String, direct48k: Boolean) {
+        migrateIndexIfNeeded()
         val legacy = load(id).getJSONObject("parameters").getJSONObject("legacy")
         require(AnalyzerModeSetupGuard.compatible(legacy, direct48k)) {
             "Setup ist mit ${if (direct48k) "Direct 48 kHz" else "8 kHz"} nicht kompatibel: " +
@@ -113,6 +126,7 @@ internal class AnalyzerJsonSetupRepository(context: Context) {
     }
 
     @Synchronized fun restoreModePin(direct48k: Boolean, previous: String?) {
+        migrateIndexIfNeeded()
         val raw = if (index.exists()) readJson(index) else JSONObject()
         val pins = raw.optJSONObject("activeByMode") ?: JSONObject()
         val key = if (direct48k) "DIRECT_48K" else "ROLLING_8K"

@@ -180,7 +180,7 @@ internal fun AnalyzerSimpleSetupPanel(context: Context) {
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         Text("Meine Analyzer-Setups", color = ink)
-        val selectedName = data?.entries?.firstOrNull { it.id == data?.activeId }?.name ?: "Kein aktives JSON-Setup"
+        val selectedName = data?.entries?.firstOrNull { it.id == selectedId }?.name ?: "Kein Setup für diesen Analyzer-Modus"
         Text("Zugeordnetes Setup: $selectedName", color = ink)
         Text("Einmal auf einen Namen tippen: Werte werden bei STOP übernommen.", color = ink)
         OutlinedButton(onClick = { menuOpen = true }, modifier = Modifier.fillMaxWidth()) {
@@ -220,7 +220,7 @@ internal fun AnalyzerSimpleSetupPanel(context: Context) {
                 require(!AnalyzerMonitorRecording.isActive()) {
                     "MON-Aufnahme zuerst beenden; Setup wurde nicht angelegt"
                 }
-                if (repo.listing().activeId != null) {
+                if (currentId() != null) {
                     require(saveCurrent()) { "Vorheriges Setup nicht gespeichert" }
                 }
                 val groups = JSONObject()
