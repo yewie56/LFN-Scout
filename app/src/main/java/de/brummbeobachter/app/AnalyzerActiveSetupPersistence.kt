@@ -10,7 +10,13 @@ import org.json.JSONObject
 internal object AnalyzerActiveSetupPersistence {
     fun saveOnAnalyzerExit(context: Context): Result<Boolean> = runCatching {
         val repository = AnalyzerJsonSetupRepository(context.applicationContext)
-        val id = repository.listing().activeId ?: return@runCatching false
+        val direct = LiveAnalyzerController.snapshot().direct48k
+        val id = repository.selectedForMode(direct) ?: return@runCatching false
+        val oldLegacy = repository.load(id).getJSONObject("parameters").getJSONObject("legacy")
+        check(AnalyzerModeSetupGuard.compatible(oldLegacy, direct)) {
+            "Automatisches Speichern verhindert: Inkompatibles Setup " +
+                AnalyzerModeSetupGuard.reason(oldLegacy, direct)
+        }
         val doc = repository.load(id)
         val analyzer = AnalyzerRuntimeSetupSnapshot.capture(LiveAnalyzerController.snapshot())
         val monitor = AnalyzerMonitor.snapshotSetupParameters()

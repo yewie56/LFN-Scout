@@ -36,7 +36,8 @@ import org.json.JSONObject
 internal fun AnalyzerSimpleSetupPanel(context: Context) {
     val repo = remember(context) { AnalyzerJsonSetupRepository(context.applicationContext) }
     var listing by remember { mutableStateOf(runCatching { repo.listing() }.getOrNull()) }
-    var selectedId by remember { mutableStateOf(listing?.activeId) }
+    fun currentId() = repo.selectedForMode(LiveAnalyzerController.snapshot().direct48k)
+    var selectedId by remember { mutableStateOf(currentId()) }
     var menuOpen by remember { mutableStateOf(false) }
     var createName by remember { mutableStateOf("") }
     var notice by remember { mutableStateOf("") }
@@ -45,7 +46,7 @@ internal fun AnalyzerSimpleSetupPanel(context: Context) {
     var failedSwitchReason by remember { mutableStateOf("") }
     val ink = Color(0xFF25384C)
     val sky = Color(0xFFF0F5FA)
-    fun refresh() { listing = runCatching { repo.listing() }.getOrNull(); selectedId = listing?.activeId }
+    fun refresh() { listing = runCatching { repo.listing() }.getOrNull(); selectedId = currentId() }
     fun saveCurrent(): Boolean {
         val result = AnalyzerActiveSetupPersistence.saveOnAnalyzerExit(context)
         if (result.isFailure)
@@ -53,7 +54,7 @@ internal fun AnalyzerSimpleSetupPanel(context: Context) {
         return result.isSuccess
     }
     fun selectDraft(id: String, savedBeforeSelection: Boolean = false) {
-        if (id == repo.listing().activeId) {
+        if (id == currentId()) {
             selectedId = id
             notice = "Dieses Setup ist bereits zugeordnet."
             return
@@ -77,6 +78,8 @@ internal fun AnalyzerSimpleSetupPanel(context: Context) {
         }
         // A controller rollback must also restore the repository selection. A
         // failed commit must never leave the index pointing at another setup.
+        val directMode = LiveAnalyzerController.snapshot().direct48k
+        val previousModeId = repo.selectedForMode(directMode)
         val previousActiveId = repo.listing().activeId
         val monWasEnabled = AnalyzerMonitor.enabled
         val monWasShifted = AnalyzerMonitor.shifted
@@ -86,6 +89,9 @@ internal fun AnalyzerSimpleSetupPanel(context: Context) {
             val groups = repo.load(id).getJSONObject("parameters")
             val analyzer = groups.optJSONObject("legacy") ?: error("Analyzer-Daten fehlen")
             val monitor = groups.optJSONObject("monitor") ?: error("MON-Daten fehlen")
+            require(AnalyzerModeSetupGuard.compatible(analyzer, directMode)) {
+                "Setup passt nicht zum Analyzer-Modus: " + AnalyzerModeSetupGuard.reason(analyzer, directMode)
+            }
             // STOP only the MON playback subscription while the strict setup
             // transaction is in flight. The shared rolling PCM source is untouched.
             if (monWasEnabled) AnalyzerMonitor.stop()
@@ -93,8 +99,8 @@ internal fun AnalyzerSimpleSetupPanel(context: Context) {
             when (outcome) {
                 AnalyzerSetupSwitchTransaction.Outcome.Applied,
                 AnalyzerSetupSwitchTransaction.Outcome.Unchanged -> {
-                    repo.select(id)
-                    check(repo.listing().activeId == id) { "Setup-Index nach Auswahl nicht bestätigt" }
+                    repo.selectForMode(id, directMode)
+                    check(repo.selectedForMode(directMode) == id) { "Setup-Index nach Auswahl nicht bestätigt" }
                     refresh()
                     notice = "Setup übernommen; MON und Rolling bleiben im bisherigen Betriebszustand."
                 }
@@ -119,6 +125,7 @@ internal fun AnalyzerSimpleSetupPanel(context: Context) {
                 check(repo.listing().activeId == previousActiveId) {
                     "Alter Setup-Index konnte nicht wiederhergestellt werden"
                 }
+                repo.restoreModePin(directMode, previousModeId)
                 refresh()
             }
             notice = "Setup nicht übernommen: ${failure.message}" +
@@ -220,7 +227,7 @@ internal fun AnalyzerSimpleSetupPanel(context: Context) {
                     .put("legacy", AnalyzerRuntimeSetupSnapshot.capture(LiveAnalyzerController.snapshot()))
                     .put("monitor", AnalyzerMonitor.snapshotSetupParameters())
                 val entry = repo.create(createName.trim(), groups)
-                repo.select(entry.id)
+                repo.selectForMode(entry.id, LiveAnalyzerController.snapshot().direct48k)
                 selectedId = entry.id
                 createName = ""
                 refresh()

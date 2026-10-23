@@ -71,6 +71,59 @@ internal class AnalyzerJsonSetupRepository(context: Context) {
         return Listing(found.values.sortedWith(compareBy(String.CASE_INSENSITIVE_ORDER) { it.name }), recent, active)
     }
 
+    /** Schema v1 remains readable; mode pins are stored additively and never rewrite setup JSON. */
+    @Synchronized fun selectedForMode(direct48k: Boolean): String? {
+        val valid = listing().entries.map { it.id }.toSet()
+        val raw = if (index.exists()) readJson(index) else JSONObject()
+        val key = if (direct48k) "DIRECT_48K" else "ROLLING_8K"
+        val pinned = raw.optJSONObject("activeByMode")?.optString(key)?.takeIf { it in valid }
+        if (pinned != null) return pinned
+        // Legacy migration: do not use a Direct-only activeId for the 8-kHz analyzer.
+        val candidates = listing().entries.map { it.id }.filter { id ->
+            runCatching {
+                val legacy = load(id).getJSONObject("parameters").getJSONObject("legacy")
+                AnalyzerModeSetupGuard.compatible(legacy, direct48k)
+            }.getOrDefault(false)
+        }
+        val global = listing().activeId
+        if (candidates.size == 1) return candidates.single()
+        // A mathematically Direct-compatible 8-kHz setup must not be treated as
+        // the user's Direct setup. Require an explicit direct-typical legacy state.
+        if (direct48k && global in candidates) {
+            val legacy = load(global!!).getJSONObject("parameters").getJSONObject("legacy")
+            if (legacy.optInt("decimation_factor", -1) in 0..1) return global
+        }
+        return null
+    }
+
+    @Synchronized fun selectForMode(id: String, direct48k: Boolean) {
+        val legacy = load(id).getJSONObject("parameters").getJSONObject("legacy")
+        require(AnalyzerModeSetupGuard.compatible(legacy, direct48k)) {
+            "Setup ist mit ${if (direct48k) "Direct 48 kHz" else "8 kHz"} nicht kompatibel: " +
+                AnalyzerModeSetupGuard.reason(legacy, direct48k)
+        }
+        val raw = if (index.exists()) readJson(index) else JSONObject()
+        val pins = raw.optJSONObject("activeByMode") ?: JSONObject()
+        pins.put(if (direct48k) "DIRECT_48K" else "ROLLING_8K", id)
+        raw.put("schemaVersion", 2).put("activeByMode", pins)
+        raw.put("activeId", id) // compatibility with legacy setup UI and MRU readers
+        val recent = (listOf(id) + listing().recent.filterNot { it == id }).take(3)
+        raw.put("recent", JSONArray(recent))
+        writeAtomic(index, raw)
+    }
+
+    @Synchronized fun restoreModePin(direct48k: Boolean, previous: String?) {
+        val raw = if (index.exists()) readJson(index) else JSONObject()
+        val pins = raw.optJSONObject("activeByMode") ?: JSONObject()
+        val key = if (direct48k) "DIRECT_48K" else "ROLLING_8K"
+        if (previous == null) pins.remove(key) else {
+            load(previous)
+            pins.put(key, previous)
+        }
+        raw.put("activeByMode", pins)
+        writeAtomic(index, raw)
+    }
+
     @Synchronized fun load(id: String): JSONObject = check(readJson(fileFor(id)), id)
 
     @Synchronized fun create(name: String, parameters: JSONObject, description: String = ""): Entry {
@@ -95,8 +148,8 @@ internal class AnalyzerJsonSetupRepository(context: Context) {
         load(id)  // Reject missing/corrupt setup without changing MRU.
         val current = listing()
         val recent = (listOf(id) + current.recent.filterNot { it == id }).take(3)
-        val raw = JSONObject().put("schemaVersion", 1).put("activeId", id)
-            .put("recent", JSONArray(recent))
+        val raw = (if (index.exists()) readJson(index) else JSONObject())
+            .put("activeId", id).put("recent", JSONArray(recent))
         writeAtomic(index, raw)
     }
 
@@ -109,9 +162,10 @@ internal class AnalyzerJsonSetupRepository(context: Context) {
         require(activeId == null || activeId in valid) { "Rollback active setup no longer exists" }
         require(recentIds.size <= 3 && recentIds.distinct().size == recentIds.size &&
             recentIds.all { it in valid }) { "Rollback MRU contains invalid setup identifiers" }
-        writeAtomic(index, JSONObject().put("schemaVersion", 1)
+        val raw = (if (index.exists()) readJson(index) else JSONObject())
             .put("activeId", activeId ?: JSONObject.NULL)
-            .put("recent", JSONArray(recentIds)))
+            .put("recent", JSONArray(recentIds))
+        writeAtomic(index, raw)
         val restored = listing()
         check(restored.activeId == activeId && restored.recent == recentIds) {
             "Rollback index verification failed"
@@ -128,9 +182,15 @@ internal class AnalyzerJsonSetupRepository(context: Context) {
         file.copyTo(backup, overwrite = false)
         require(file.delete()) { "Could not delete setup" }
         val remaining = current.recent.filterNot { it == id }
-        writeAtomic(index, JSONObject().put("schemaVersion", 1)
+        val raw = (if (index.exists()) readJson(index) else JSONObject())
             .put("activeId", current.activeId?.takeIf { it != id } ?: JSONObject.NULL)
-            .put("recent", JSONArray(remaining)))
+            .put("recent", JSONArray(remaining))
+        raw.optJSONObject("activeByMode")?.let { pins ->
+            listOf("ROLLING_8K", "DIRECT_48K").forEach { key ->
+                if (pins.optString(key) == id) pins.remove(key)
+            }
+        }
+        writeAtomic(index, raw)
     }
 
     /** Import is create-new, never overwrites an existing setup ID. */

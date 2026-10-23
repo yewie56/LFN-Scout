@@ -10,7 +10,7 @@ import android.content.Context
 internal object AnalyzerNamedSetupStart {
     fun start(context: Context) {
         val repository = AnalyzerJsonSetupRepository(context.applicationContext)
-        val activeId = repository.listing().activeId
+        val activeId = repository.selectedForMode(direct48k = false)
         if (activeId == null) {
             LiveAnalyzerController.start(context)
             return
@@ -18,6 +18,12 @@ internal object AnalyzerNamedSetupStart {
         check(!LiveAnalyzerController.snapshot().running) { "Analyzer muss vor Setup-Laden STOP sein" }
         val parameters = repository.load(activeId).getJSONObject("parameters")
         val legacy = parameters.getJSONObject("legacy")
+        if (!AnalyzerModeSetupGuard.compatible(legacy, direct48k = false)) {
+            // Preserve the incompatible JSON; use the controller's validated 8-kHz
+            // preferences instead of aborting the complete audio start.
+            LiveAnalyzerController.start(context)
+            return
+        }
         val monitor = parameters.getJSONObject("monitor")
         val result = AnalyzerStoppedJsonControllerPort.applyCombinedDraft(legacy, monitor)
         when (result) {
