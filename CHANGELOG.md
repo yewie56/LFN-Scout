@@ -1,3 +1,7 @@
+## v0.5.102 (2026-10-25) – Rolling-Systemtest-Hinweis (Quellkandidat)
+- Systemtest-Diagnosepanel: kurzer Hinweis zur mindestens 45-minütigen, ununterbrochenen Rolling-Laufzeit einschließlich einer vollständigen Uhrzeit-Halbstunde; andernfalls SKIP.
+- Keine Änderung der Rolling-Aufzeichnung, Testlogik oder Cloud. Android-Build und Gerätetest ausstehend.
+
 ## v0.5.98 (2026-10-20) – Direct Analyzer MON F/EQ (Quellkandidat)
 - Neue F/EQ-Umschaltung unmittelbar rechts vom MON-Button nur im Direktanalyzer.
 - Acht grüne vertikal verschiebbare EQ-Gain-Marker auf dem Wasserfall; acht lineare Bänder von RangeMin bis RangeMax.
