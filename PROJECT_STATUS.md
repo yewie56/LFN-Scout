@@ -888,3 +888,7 @@ Rolling/Direct: erfolgreiche asynchrone Startanforderungen werden bis `onDestroy
 
 ## Phase 3O / AP27 (15.10.2026)
 Neuer opt-in Android-Berechtigungsdialog für Mikrofon und GPS/Standort bei App-Start. Vorhandene Manifestberechtigungen unverändert. Gradle-Version 0.5.57 / 215; TEST-APK muss noch in GitHub gebaut und auf Android getestet werden. Audio/Setups unverändert.
+
+## 25.10.2026 – v0.5.104 MON-Gain-Swipe (Quellkandidat)
+- Beide Analyzer: Drag auf der linken MON-Gain-Leiste im Spektrum regelt denselben Gain wie der Wasserfall; vertikaler dB-Maßstab auf die Wasserfallhöhe normiert.
+- Zusätzlicher JUnit-Test vorhanden; Android-Build und Gerätetest stehen aus. Kein Eingriff in MON-Audiopipeline, Setups oder GitHub-Workflow.

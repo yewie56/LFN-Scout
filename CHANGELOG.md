@@ -1,3 +1,9 @@
+## v0.5.104 – MON-Gain per Swipe auf Lautstärkebalken (Quellkandidat, Build offen)
+- Direktanalyzer und 8-kHz-Analyzer: MON-Gain per vertikalem Swipe auf dem linken MON-Lautstärkebalken des Spektrums.
+- Gleiche dB-pro-Pixel-Empfindlichkeit wie Wasserfall: gemeinsame MonGainSwipe-Logik mit Wasserfallhöhe als Referenz.
+- Vorhandene Wasserfall- und Cursor-Gesten bleiben erhalten; gespeicherter MON-Pegel wird am Gestenende persistiert.
+- Neue Unit-Tests für Richtung, Grenzen, ungültige Höhe. Android-Build und Gerätetest noch offen.
+
 ## v0.5.103 (2026-10-25) – MON-Grenzen im 8-kHz-Analyzer (Quellkandidat)
 - MON-Filtermitte und -Bandbreite folgen auch im 8-kHz-Analyzer den aktuell sichtbaren Frequenzgrenzen (RangeMin..RangeMax), analog zum Direktanalyzer; keine feste 0–4000-Hz-Auswahl mehr.
 - Zwei UI-/Laufzeitpfade vereinheitlicht; vorhandene AnalyzerMonitor-Grenzkorrektur für Setup- und Frequenzbereichwechsel bleibt maßgeblich.

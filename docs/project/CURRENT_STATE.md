@@ -554,3 +554,7 @@ Historie: Phase 3O/14 führte gemeinsame Rolling-/Direct-Startschranken ein; Pha
 
 ## AP31 kombinierter STOP-Entwurf (2026-10-15)
 Neue kombinierte Analyzer+MON-Entwurfsübernahme mit Vorab-STOP-Sperren, Snapshots und Rücknahme bei MON-Fehler. Noch nicht persistent; normales START kann alte Legacy-Einstellungen laden. Kein Hardwaretest und kein Gradle-Lauf bestätigt.
+
+## 25.10.2026 – v0.5.104 MON-Gain-Swipe (Quellkandidat)
+- Beide Analyzer: Drag auf der linken MON-Gain-Leiste im Spektrum regelt denselben Gain wie der Wasserfall; vertikaler dB-Maßstab auf die Wasserfallhöhe normiert.
+- Zusätzlicher JUnit-Test vorhanden; Android-Build und Gerätetest stehen aus. Kein Eingriff in MON-Audiopipeline, Setups oder GitHub-Workflow.

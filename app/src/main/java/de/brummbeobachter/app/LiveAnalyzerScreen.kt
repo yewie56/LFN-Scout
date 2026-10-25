@@ -812,21 +812,44 @@ internal fun LiveAnalyzerScreen(
                             .toDouble().coerceIn(state.minFrequencyHz.toDouble(),state.rangeHz.toDouble())
                     }
                 }
-            }.pointerInput(state.rangeHz,state.minFrequencyHz) {
-                detectDragGestures(onDragStart = { pt ->
-                    val left = plotLeftDp.toPx(); val right = size.width-plotRightDp.toPx()
-                    if (pt.x in left..right) {
-                        cursorHz = (state.minFrequencyHz+(pt.x-left)/(right-left)*(state.rangeHz-state.minFrequencyHz)).toDouble()
-                            .coerceIn(state.minFrequencyHz.toDouble(),state.rangeHz.toDouble())
+            }.pointerInput(state.rangeHz,state.minFrequencyHz,monitoring) {
+                // The MON gain bar occupies x=3..20 dp. Keep its gesture separate
+                // from the frequency cursor without affecting the waterfall gesture.
+                var draggingMonGain = false
+                detectDragGestures(
+                    onDragStart = { pt ->
+                        val left = plotLeftDp.toPx(); val right = size.width-plotRightDp.toPx()
+                        val top = plotTopDp.toPx(); val bottom = size.height-plotBottomDp.toPx()
+                        draggingMonGain = monitoring && pt.x in 3.dp.toPx()..20.dp.toPx() && pt.y in top..bottom
+                        if (!draggingMonGain && pt.x in left..right) {
+                            cursorHz = (state.minFrequencyHz+(pt.x-left)/(right-left)*(state.rangeHz-state.minFrequencyHz)).toDouble()
+                                .coerceIn(state.minFrequencyHz.toDouble(),state.rangeHz.toDouble())
+                        }
+                    },
+                    onDragEnd = {
+                        if (draggingMonGain) AnalyzerMonitor.persistTouchSettings(context)
+                        draggingMonGain = false
+                    },
+                    onDragCancel = {
+                        if (draggingMonGain) AnalyzerMonitor.persistTouchSettings(context)
+                        draggingMonGain = false
+                    },
+                    onDrag = { change, delta ->
+                        if (draggingMonGain) {
+                            AnalyzerMonitor.setLevel(context, MonGainSwipe.nextLevel(
+                                AnalyzerMonitor.levelDb, delta.y.toDouble(), waterfallHeight.toPx().toDouble()))
+                            monitorLevel = AnalyzerMonitor.levelDb
+                            change.consume()
+                        } else {
+                            val left = plotLeftDp.toPx(); val right = size.width-plotRightDp.toPx()
+                            if (change.position.x in left..right) {
+                                cursorHz = (state.minFrequencyHz+(change.position.x-left)/(right-left)*(state.rangeHz-state.minFrequencyHz)).toDouble()
+                                    .coerceIn(state.minFrequencyHz.toDouble(),state.rangeHz.toDouble())
+                                change.consume()
+                            }
+                        }
                     }
-                }, onDrag = { change, _ ->
-                    val left = plotLeftDp.toPx(); val right = size.width-plotRightDp.toPx()
-                    if (change.position.x in left..right) {
-                        cursorHz = (state.minFrequencyHz+(change.position.x-left)/(right-left)*(state.rangeHz-state.minFrequencyHz)).toDouble()
-                            .coerceIn(state.minFrequencyHz.toDouble(),state.rangeHz.toDouble())
-                        change.consume()
-                    }
-                })
+                )
             }) {
             val drawnState=if(monitoring && monitoringTouch) frozenSpectrum ?: state else state
             val freq=drawnState.frequencyHz
@@ -1059,8 +1082,8 @@ internal fun LiveAnalyzerScreen(
                         AnalyzerMonitor.setGestureEdges(edges.first,edges.second)
                         monitorCenter=AnalyzerMonitor.centerHz
                     } else {
-                        AnalyzerMonitor.setLevel(context,AnalyzerMonitor.levelDb-
-                            delta.y.toDouble()/size.height*180.0)
+                        AnalyzerMonitor.setLevel(context, MonGainSwipe.nextLevel(
+                            AnalyzerMonitor.levelDb, delta.y.toDouble(), size.height.toDouble()))
                         monitorLevel=AnalyzerMonitor.levelDb
                     }
                     change.consume()
