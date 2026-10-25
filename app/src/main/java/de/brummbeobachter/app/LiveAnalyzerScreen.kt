@@ -363,11 +363,11 @@ internal fun LiveAnalyzerScreen(
         if (!state.direct48k) eqMode = false
     }
     // Keep MON selection limits current even when the settings panel stays closed.
-    // In particular, horizontal waterfall dragging must never retain an old
-    // 200-Hz or 8,000-Hz ceiling after a direct-analyzer range change.
+    // Neither 8-kHz nor direct mode may retain an outdated limit after
+    // a change of the visible analyzer frequency range.
     LaunchedEffect(state.direct48k, state.minFrequencyHz, state.rangeHz) {
-        val minHz = if (state.direct48k) state.minFrequencyHz.toDouble() else 0.0
-        val maxHz = if (state.direct48k) state.rangeHz.toDouble() else 4000.0
+        val minHz = state.minFrequencyHz.toDouble()
+        val maxHz = state.rangeHz.toDouble()
         AnalyzerMonitor.setSelectionRange(minHz, maxHz)
         monitorCenter = AnalyzerMonitor.centerHz
     }
@@ -618,11 +618,10 @@ internal fun LiveAnalyzerScreen(
                 selected=settingsSection, onSelect={ selectSettingsSection(it) },
                 onOpenLocalSaveSettings={ localSettingsShown = true })
             if (settingsSection == "MON & Audio") {
-            // The 8-kHz rolling analyzer and the direct analyzer use separate limits.
-            // In direct mode MON follows the currently displayed analyzer range,
-            // in rolling mode the selection stays below the 8-kHz Nyquist limit.
-            val monRangeMin = if (state.direct48k) state.minFrequencyHz.toDouble() else 0.0
-            val monRangeMax = if (state.direct48k) state.rangeHz.toDouble() else 4000.0
+            // In both modes MON follows the visible analyzer frequency range.
+            // AnalyzerMonitor enforces the valid band edges after range/setup changes.
+            val monRangeMin = state.minFrequencyHz.toDouble()
+            val monRangeMax = state.rangeHz.toDouble()
             LaunchedEffect(settingsSection, state.direct48k, monRangeMin, monRangeMax) {
                 AnalyzerMonitor.setSelectionRange(monRangeMin, monRangeMax)
                 monitorCenter=AnalyzerMonitor.centerHz

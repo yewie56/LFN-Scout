@@ -1,3 +1,6 @@
+## 25.10.2026 – v0.5.103 Quellkandidat
+- 8-kHz-MON-Bereich auf sichtbare Frequenzgrenzen umgestellt; statische Regression 4/4 PASS. Android-Build und Hardwareabnahme offen. Letzte vom Nutzer bestätigte v0.5.102: Build und Rolling-Test-Hinweis PASS, automatischer Systemtest nicht ausgeführt.
+
 # v0.5.67 – Quellkandidat
 
 Analyzer-Exit und MON-JSON-Sicherung korrigiert. Lokale statische Regression bestanden; GitHub TEST/Kotlin-Compile, integrierter Self-Test und Hardwareabnahme stehen aus.

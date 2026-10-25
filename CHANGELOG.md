@@ -1,3 +1,8 @@
+## v0.5.103 (2026-10-25) – MON-Grenzen im 8-kHz-Analyzer (Quellkandidat)
+- MON-Filtermitte und -Bandbreite folgen auch im 8-kHz-Analyzer den aktuell sichtbaren Frequenzgrenzen (RangeMin..RangeMax), analog zum Direktanalyzer; keine feste 0–4000-Hz-Auswahl mehr.
+- Zwei UI-/Laufzeitpfade vereinheitlicht; vorhandene AnalyzerMonitor-Grenzkorrektur für Setup- und Frequenzbereichwechsel bleibt maßgeblich.
+- Regressionstest zur Bereichskopplung hinzugefügt. Android-Build und Gerätetest noch ausstehend.
+
 ## v0.5.102 (2026-10-25) – Rolling-Systemtest-Hinweis (Quellkandidat)
 - Systemtest-Diagnosepanel: kurzer Hinweis zur mindestens 45-minütigen, ununterbrochenen Rolling-Laufzeit einschließlich einer vollständigen Uhrzeit-Halbstunde; andernfalls SKIP.
 - Keine Änderung der Rolling-Aufzeichnung, Testlogik oder Cloud. Android-Build und Gerätetest ausstehend.

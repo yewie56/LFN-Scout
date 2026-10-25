@@ -1,3 +1,6 @@
+## 25.10.2026 – MON-Bereich 8-kHz-Analyzer (v0.5.103)
+- [ ] MON-103: 8-kHz-MON folgt wie Direktanalyzer dem sichtbaren Frequenzbereich; statische Regression 4/4 PASS. GitHub-Android-Build und Gerätetest (0–200 Hz, 20–100 Hz, Setupwechsel) ausstehend.
+
 
 ## AP31 noch offen (15.10.2026)
 - Vollständige transaktionale Analyzer-Setup-Aktivierung mit STOP-/Audio-/FFT-Gates, Rollback und Verifikation; ältere Slots nicht überschreiben.
