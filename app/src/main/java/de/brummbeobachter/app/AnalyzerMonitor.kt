@@ -32,7 +32,7 @@ internal object AnalyzerMonitor {
     fun eqGainSnapshot(): List<Double> = synchronized(lock) { eqGains.toList() }
     fun setEqMode(value: Boolean) = synchronized(lock) { eqMode = value; initialized = false }
     fun setEqGain(index: Int, db: Double) = synchronized(lock) {
-        if (index in 0..7 && db.isFinite()) eqGains[index] = db.coerceIn(-60.0, 120.0)
+        if (index in 0..7 && db.isFinite()) eqGains[index] = db.coerceIn(-60.0, 140.0)
     }
 
     @Volatile var centerHz = 20.0; private set
@@ -105,7 +105,7 @@ internal object AnalyzerMonitor {
             "MON setup draft is incomplete; legacy values would otherwise leak into the selected setup"
         }
         // Validate numeric ranges before mutating any runtime field.
-        val limits = mapOf("center" to (0.0..MON_MAX_HZ), "level" to (-60.0..120.0),
+        val limits = mapOf("center" to (0.0..MON_MAX_HZ), "level" to (-60.0..140.0),
             "width" to (0.5..MON_MAX_HZ), "shift" to (20.0..400.0),
             "comp_thr" to (-60.0..0.0), "comp_ratio" to (1.0..20.0),
             "comp_attack" to (1.0..200.0), "comp_release" to (20.0..2000.0),
@@ -169,7 +169,7 @@ internal object AnalyzerMonitor {
         if (setupDraftActive) return@synchronized
         val p = context.getSharedPreferences(PREFS,Context.MODE_PRIVATE)
         centerHz=p.getFloat("center",20f).toDouble().coerceIn(0.0,MON_MAX_HZ)
-        levelDb=p.getFloat("level",-24f).toDouble().coerceIn(-60.0,120.0)
+        levelDb=p.getFloat("level",-24f).toDouble().coerceIn(-60.0,140.0)
         bandwidthHz=p.getFloat("width",12f).toDouble().coerceIn(0.5,MON_MAX_HZ)
         gestureTargetWidthHz=p.getFloat("gesture_target_width",bandwidthHz.toFloat()).toDouble().coerceIn(bandwidthHz,MON_MAX_HZ)
         shiftHz=p.getFloat("shift",100f).toDouble().coerceIn(20.0,400.0)
@@ -225,7 +225,7 @@ internal object AnalyzerMonitor {
         initialized = false
     }
     fun setLevel(context:Context,db:Double) {
-        levelDb=db.coerceIn(-60.0,120.0)
+        levelDb=db.coerceIn(-60.0,140.0)
     }
     /** Persist once on touch release; never perform SharedPreferences I/O per move event. */
     fun persistTouchSettings(context:Context) = synchronized(lock) { persistIfLegacy(context) }

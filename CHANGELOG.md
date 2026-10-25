@@ -1,3 +1,10 @@
+## v0.5.105 – MON-Gain −60 bis +140 dB (Quellkandidat)
+- Gemeinsamer MON-Lautstärkepegel in 8-kHz- und Direktanalyzer: Obergrenze +140 statt +120 dB.
+- Grenzvalidierung, Persistenz-Ladebegrenzung, Wasserfall-/Balken-Swipe und Skalenbeschriftung angepasst.
+- Bestehende Swipe-Empfindlichkeit 180 dB pro Wasserfallhöhe unverändert.
+- EQ-Band-Gains (separate Funktion) unverändert.
+- Regressionstest auf Erreichbarkeit der neuen Obergrenze; Android-Build/Gerätetest ausstehend.
+
 ## v0.5.104 – MON-Gain per Swipe auf Lautstärkebalken (Quellkandidat, Build offen)
 - Direktanalyzer und 8-kHz-Analyzer: MON-Gain per vertikalem Swipe auf dem linken MON-Lautstärkebalken des Spektrums.
 - Gleiche dB-pro-Pixel-Empfindlichkeit wie Wasserfall: gemeinsame MonGainSwipe-Logik mit Wasserfallhöhe als Referenz.

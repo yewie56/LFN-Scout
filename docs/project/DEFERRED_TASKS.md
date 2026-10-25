@@ -1,3 +1,6 @@
+## 25.10.2026 – MON-Pegel +140 dB (v0.5.105)
+- [ ] v0.5.105: MON-Level in beiden Analyzern bis +140 dB, bisherige Untergrenze −60 dB; Android-Unit- und Gerätetest offen. Sehr hohe Verstärkung kann abrupt laute Wiedergabe verursachen; Ausgangslautstärke vor Tests niedrig halten.
+
 ## 25.10.2026 – MON-Bereich 8-kHz-Analyzer (v0.5.103)
 - [ ] MON-103: 8-kHz-MON folgt wie Direktanalyzer dem sichtbaren Frequenzbereich; statische Regression 4/4 PASS. GitHub-Android-Build und Gerätetest (0–200 Hz, 20–100 Hz, Setupwechsel) ausstehend.
 
