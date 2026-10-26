@@ -1,3 +1,11 @@
+## v0.5.123 – Scout-Hauptpanel, Exit-Back und Extension-Hintergrund (versionCode 281)
+- Scout-Header: Titel LFN-Scout mit kleiner Versionsangabe unmittelbar rechts daneben.
+- Rechtsbuendig und untereinander: RP:mm:ss/30:00min (ohne Leerzeichen; tatsaechlicher Rolling-Fuellstand, sekündlich aktualisiert) und DevMode bei aktivem Entwicklermodus.
+- Extension-Popup: alle zehn Buttons mit deckend schwarzem Hintergrund, NOISE-Langdruck und uebrige Bedienung unveraendert.
+- Analyzer-Exit-Dialog: System-Back und Dialog-Aussentippen verwenden wie „Nein – stoppen“ die vorhandene Setup-Speicherung und Stop-and-Leave-Strecke; bei Speicherfehler bleibt die bestehende Sicherheitsabfrage.
+- Kein Eingriff in Signalverarbeitung, Rolling-Audiodaten, Setups, Cloud oder Filteralgorithmen.
+- Nur statische Quellpruefung; Android-Build und Geraetetest ausstehend.
+
 ## v0.5.122 – 10 Extension-Buttons gleichzeitig sichtbar (versionCode 280)
 - Popup-Höhenbegrenzung auf fünf Plätze entfernt und oberen Versatz auf zehn volle Buttonhöhen mit bestehenden 4-dp-Abständen angepasst. Kein Scrollen, keine Buttonverkleinerung.
 - Alle Extension-Funktionen (1 Cloud/Supabase Test, 2 NOISE, 3 Diag, 4–10 frei), die 8-kHz-ALGO-Funktionen und Setups gegenüber v0.5.121 unverändert.

@@ -1,3 +1,6 @@
+## 2026-10-26 v0.5.123 – Quellkandidat
+Extension 1–10 schwarz; RP/DevMode rechtsbuendig im Scout-Header; Back im Analyzer-Exit wie Nein-Stoppen. GitHub-Build und Android-Geraetetest offen.
+
 ## v0.5.122 – Extension-Popup auf volle 10 Buttonhöhen erweitert
 - Gerätetest v0.5.121: fünf Buttons auf einmal sichtbar, weitere per Wischen erreichbar; Nutzer fordert ausdrücklich zehn gleichzeitig sichtbare Buttons gleicher Größe und unveränderten Abstands.
 - Popup in v0.5.122 ohne Begrenzung/Scrolling und mit zehnfachem Aufwärtsversatz; Risiko bei geringer nutzbarer Displayhöhe muss auf Zielgerät geprüft werden.

@@ -293,9 +293,20 @@ internal fun LiveAnalyzerScreen(
             TextButton(onClick = { exitSaveFailure = false; exitConfirmOpen = false }) { Text("Abbrechen") }
         } }
     )
-    BackHandler(enabled = !settings) { leavePanel() }
+    // Dialog-Back must match the existing "Nein – stoppen" path, including setup persistence.
+    BackHandler(enabled = !settings) {
+        if (exitSaveFailure) {
+            // Keep the explicit save-failure decision dialog open.
+        } else if (exitConfirmOpen) {
+            exitAfterFailureKeepRunning = false
+            if (persistBeforeExit()) stopAndLeave()
+        } else leavePanel()
+    }
     if (exitConfirmOpen && !exitSaveFailure) AlertDialog(
-        onDismissRequest = { exitConfirmOpen = false },
+        onDismissRequest = {
+            exitAfterFailureKeepRunning = false
+            if (persistBeforeExit()) stopAndLeave()
+        },
         title = { Text("Analyzer verlassen?") },
         text = { Text("Soll der Analyzer im Hintergrund weiterlaufen? Standard: Nein") },
         confirmButton = {
@@ -1523,6 +1534,7 @@ internal fun LiveAnalyzerScreen(
                             if(n==2) {
                                 Box(Modifier.size(buttonWidth,buttonHeight).border(BorderStroke(1.dp,
                 if (noiseState.enabled) cyan else muted), RoundedCornerShape(6.dp))
+                .background(Color.Black, RoundedCornerShape(6.dp))
                 .pointerInput(state.running,state.paused,noiseState.capturing) { detectTapGestures(
                     onTap = { noiseMessage=LiveAnalyzerController.toggleNoiseCalibration(); noiseState=NoiseFloorReference.state(); multiOpen=false },
                     onLongPress = { if(state.running && !state.paused && !noiseState.capturing) {
@@ -1543,12 +1555,12 @@ internal fun LiveAnalyzerScreen(
 
                             } else if(n==3) {
                                 Box(Modifier.size(buttonWidth,buttonHeight).border(BorderStroke(1.dp,muted),RoundedCornerShape(6.dp))
-                                    .background(bg,RoundedCornerShape(6.dp))
+                                    .background(Color.Black,RoundedCornerShape(6.dp))
                                     .clickable {multiOpen=false;diagnosticOpen=true},contentAlignment=Alignment.Center) {
                                     Text("Diag",color=cyan,fontSize=12.sp)
                                 }
                             } else Box(Modifier.size(buttonWidth,buttonHeight).border(BorderStroke(1.dp,muted),RoundedCornerShape(6.dp))
-                                .background(bg,RoundedCornerShape(6.dp))
+                                .background(Color.Black,RoundedCornerShape(6.dp))
                                 .clickable {
                                     multiOpen=false
                                     if(n==1) {

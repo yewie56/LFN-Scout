@@ -2898,6 +2898,7 @@ onRollingBufferEnabledChange = { enabled ->
                     formatNextReminderStatus(reminderSettings),
                 reminderMode = reminderSettings.mode,
                 audioSettings = reminderSettings,
+                rollingBufferedSeconds = rollingBufferedSeconds,
                 keyInput = keyInput,
                 observerId = observerId,
                 reminderStore = reminderStore,
@@ -3119,6 +3120,7 @@ private fun LFNScoutScreen(
     nextReminderStatus: String,
     reminderMode: ReminderMode,
     audioSettings: ReminderSettings,
+    rollingBufferedSeconds: Int,
     keyInput: String,
     observerId: String,
     reminderStore: ReminderSettingsStore,
@@ -3189,6 +3191,8 @@ private fun LFNScoutScreen(
         ) {
             MainPanelHeader(
                 developerModeEnabled = audioSettings.developerModeEnabled,
+                rollingEnabled = audioSettings.rollingBufferEnabled,
+                rollingBufferedSeconds = rollingBufferedSeconds,
                 onOpenSettings = onOpenSettings,
                 onOpenAnalyzer = onOpenAnalyzer,
                 onOpenMore = onOpenMore,
@@ -3398,6 +3402,8 @@ private fun LFNScoutScreen(
 @Composable
 private fun MainPanelHeader(
     developerModeEnabled: Boolean,
+    rollingEnabled: Boolean,
+    rollingBufferedSeconds: Int,
     onOpenSettings: () -> Unit,
     onOpenAnalyzer: () -> Unit,
     onOpenMore: () -> Unit,
@@ -3405,15 +3411,20 @@ private fun MainPanelHeader(
 ) {
     Column(Modifier.fillMaxWidth()) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            Text("LFN-Scout", fontSize = 25.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
-            if (developerModeEnabled) {
-                Text(
-                    "ENTWICKLERMODUS",
-                    color = MaterialTheme.colorScheme.secondary,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 10.sp,
-                    maxLines = 1
-                )
+            Row(modifier = Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
+                Text("LFN-Scout", fontSize = 25.sp, fontWeight = FontWeight.Bold)
+                Spacer(Modifier.width(5.dp))
+                Text("v${BuildConfig.VERSION_NAME}", style = MaterialTheme.typography.labelSmall,
+                    maxLines = 1)
+            }
+            Column(horizontalAlignment = Alignment.End) {
+                val bufferSeconds = if (rollingEnabled) rollingBufferedSeconds.coerceIn(0, 1800) else 0
+                Text("RP:%d:%02d/30:00min".format(java.util.Locale.US,
+                    bufferSeconds / 60, bufferSeconds % 60), fontSize = 10.sp, maxLines = 1)
+                if (developerModeEnabled) {
+                    Text("DevMode", color = MaterialTheme.colorScheme.secondary,
+                        fontWeight = FontWeight.Bold, fontSize = 10.sp, maxLines = 1)
+                }
             }
         }
         Text("Beobachten · bewerten · dokumentieren", style = MaterialTheme.typography.bodySmall)

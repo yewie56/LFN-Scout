@@ -14,8 +14,8 @@ android {
         applicationId = "de.brummbeobachter.app"
         minSdk = 23
         targetSdk = 36
-        versionCode = 280
-        versionName = "0.5.122"
+        versionCode = 281
+        versionName = "0.5.123"
         manifestPlaceholders["lfnAppLabel"] = "LFN-Scout"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"

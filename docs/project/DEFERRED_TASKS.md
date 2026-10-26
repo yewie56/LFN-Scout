@@ -1,3 +1,7 @@
+## 26.10.2026 – v0.5.123 Test offen
+- [ ] Android Build/Regression fuer schwarze Extension-Hintergruende, RP/DevMode-Header, Backtaste=Nein-Stoppen, Speicherfehlerpfad.
+- [ ] RP-Wert auf Hardware bei aktivem Rolling gegen Pufferstaende pruefen.
+
 ## Extension-Popup 10 gleichzeitig – v0.5.122
 - Umsetzung im Quellkandidaten: unveränderte Buttonmaße/4-dp-Abstände, keine Popup-Scrollfunktion, zehnfache Höhe. Android-GitHub-Build und Sichtprüfung auf Zielgerät offen.
 
