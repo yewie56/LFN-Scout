@@ -1,3 +1,8 @@
+## v0.5.120 (2026-10-26) – Kotlin-Buildfix Extension-Popup
+- `heightIn`-Import für 10-Button-Extension-Popup ergänzt (`LiveAnalyzerScreen.kt`).
+- Keine weiteren Funktionsänderungen gegenüber v0.5.119.
+- versionCode 278; GitHub-Android-Build und Gerätetest noch offen.
+
 ## v0.5.119 (2026-10-26) – Extension NOISE/Diag und 8-kHz-Impulsanzeige
 - Extension 1 Supabase-Test, 2 NOISE inklusive bisherigem Langdruck, 3 Diag mit vollständiger bestehender Diagnose, 4–10 frei.
 - Nur 8 kHz: ALGO RMS/IMP und IMP SET Exzess-Schwelle (0–20 dB).

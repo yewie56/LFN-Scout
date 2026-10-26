@@ -1,3 +1,8 @@
+## v0.5.120 – Buildfix-Kandidat, Build offen
+- Eindeutigen GitHub-Compile-Fehler aus Run 40364563194 behoben: fehlender Compose-Import `heightIn` in LiveAnalyzerScreen.kt, Zeile 1521.
+- Gegenüber v0.5.119 nur Import, Versionsnummer und Dokumentation verändert; Extension-Belegung, RMS-/IMP-Pfade und Direktanalyzer-Abgrenzung unangetastet.
+- Android-Build noch nicht bestätigt.
+
 ## v0.5.119 – Quellkandidat, Build offen
 
 - Extension-Leiste zehn Plätze (seit v0.5.118), 1 Supabase-Test; 2 NOISE mit unverändertem Kurz-/Langdruck; 3 Diag mit Originaldiagnose; 4–10 frei.
