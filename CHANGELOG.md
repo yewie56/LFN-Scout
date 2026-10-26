@@ -2456,3 +2456,9 @@ Kein PASS für Android-Build, Emulator oder Xiaomi ohne tatsächlichen Lauf. 16:
 - Gemeinsame, isoliert testbare Formatierung `AnalyzerModeSetupStatus`; drei neue JUnit-Regressionstests für 8-kHz-Anzeige, Direct-Anzeige und Modus ohne Zuordnung.
 - Unverändert: Setup-Speicherung, JSON-Schemata, FFT/MON/Audio-Controller, Systemtest, Termux-v13-Skript. VersionName 0.5.101, versionCode 259.
 - Android-Gradle/JUnit- und Smartphone-Test noch nicht durchgeführt. Referenzgerät v0.5.100: 59 PASS, 0 FAIL, 3 SKIP; der Anzeige-Fehler wurde praktisch reproduziert.
+
+## v0.5.112 – Analyzer-Auswahl vor Panel, mode-eigene Setup-Aktivierung
+- Auswahl-Dialog erscheint ohne darunter aufgebautes Analyzer-Panel oder Setup-Statusabfrage.
+- Beide Betriebsarten laden beim Start ihr jeweils zugeordnetes benanntes JSON-Setup; bisher nur 8 kHz.
+- Keine Änderung an JSON-Schema, Einstellungen oder GitHub-Workflow.
+- Android-Build und Gerätetest noch offen.

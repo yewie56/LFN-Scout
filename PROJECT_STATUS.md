@@ -902,3 +902,8 @@ Neuer opt-in Android-Berechtigungsdialog für Mikrofon und GPS/Standort bei App-
 ## 25.10.2026 – v0.5.104 MON-Gain-Swipe (Quellkandidat)
 - Beide Analyzer: Drag auf der linken MON-Gain-Leiste im Spektrum regelt denselben Gain wie der Wasserfall; vertikaler dB-Maßstab auf die Wasserfallhöhe normiert.
 - Zusätzlicher JUnit-Test vorhanden; Android-Build und Gerätetest stehen aus. Kein Eingriff in MON-Audiopipeline, Setups oder GitHub-Workflow.
+
+### v0.5.112 (Quellkandidat)
+- Vorschalt-Auswahl ohne verfrühte Analyzer-UI. Benanntes Setup wird bei Direct und 8k vor Analyzer-Start übernommen.
+- Zu prüfen: bereits zugeordnete Direct/8k-Setups, STOP/Verlassen/Neustart, Abbruch des Popups, persistente MON-Werte.
+- Build nicht durchgeführt.

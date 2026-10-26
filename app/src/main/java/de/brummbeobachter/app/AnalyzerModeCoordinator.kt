@@ -97,7 +97,9 @@ internal object AnalyzerModeCoordinator {
                         AnalyzerInspectionExport.exportSetups(context)
                     } }.onFailure { AnalyzerAudioTrace.write(context, "SETUP_EXPORT_FAILED", "type=${it.javaClass.simpleName}") }
                 }
-                if (chosen == Mode.ROLLING_8K) AnalyzerNamedSetupStart.start(context) else LiveAnalyzerController.start(context)
+                // Both modes activate their own selected named JSON before starting the analyzer.
+                // Avoid the old DIRECT path that started from stale in-memory/legacy values.
+                AnalyzerNamedSetupStart.start(context, chosen in listOf(Mode.DIRECT_48K, Mode.TEST_48K))
                 AnalyzerAudioTrace.write(context, "BEGIN_SUCCESS", "chosen=$chosen owner=${MicCaptureArbiter.owner} rolling=${RollingAudioEngine.isRunning} direct=${AnalyzerDirectAudioService.isCapturing} subscribers=${AnalyzerSessionGateway.rawPcm.activeSubscribers}")
                 true
             }
