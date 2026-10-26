@@ -1,3 +1,8 @@
+## v0.5.122 – 10 Extension-Buttons gleichzeitig sichtbar (versionCode 280)
+- Popup-Höhenbegrenzung auf fünf Plätze entfernt und oberen Versatz auf zehn volle Buttonhöhen mit bestehenden 4-dp-Abständen angepasst. Kein Scrollen, keine Buttonverkleinerung.
+- Alle Extension-Funktionen (1 Cloud/Supabase Test, 2 NOISE, 3 Diag, 4–10 frei), die 8-kHz-ALGO-Funktionen und Setups gegenüber v0.5.121 unverändert.
+- Android-Build und Gerätetest ausstehend.
+
 ## v0.5.121 – Kompatibilitätsfix für ältere 8-kHz-Setups (versionCode 279)
 - Beim Laden eines alten benannten 8-kHz-Setups werden fehlende `filter_impulse_mode` und `filter_impulse_threshold` nur im Arbeitsspeicher mit RMS/3 dB ergänzt.
 - Originale JSON-Datei wird nicht verändert; explizit gespeicherte Werte bleiben unverändert.

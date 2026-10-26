@@ -1,3 +1,6 @@
+## Extension-Popup 10 gleichzeitig – v0.5.122
+- Umsetzung im Quellkandidaten: unveränderte Buttonmaße/4-dp-Abstände, keine Popup-Scrollfunktion, zehnfache Höhe. Android-GitHub-Build und Sichtprüfung auf Zielgerät offen.
+
 ## v0.5.119 – noch zu validieren
 - Extension 1/2/3 und 10er-Scroll, NOISE Langdruck, Diag, ALGO RMS/IMP nur bei 8 kHz, JSON-Wiederladen und Export testen.
 - Echte neue DSP-Impulserkennung mit konfigurierbaren FAST/SLOW-Zeitkonstanten und Ringing-Unterdrückung bleibt als weitergehende Aufgabe offen; v0.5.119 nutzt bestehenden Exzesskanal der Filterbank.

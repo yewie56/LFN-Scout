@@ -1,3 +1,8 @@
+## v0.5.122 – Extension-Popup auf volle 10 Buttonhöhen erweitert
+- Gerätetest v0.5.121: fünf Buttons auf einmal sichtbar, weitere per Wischen erreichbar; Nutzer fordert ausdrücklich zehn gleichzeitig sichtbare Buttons gleicher Größe und unveränderten Abstands.
+- Popup in v0.5.122 ohne Begrenzung/Scrolling und mit zehnfachem Aufwärtsversatz; Risiko bei geringer nutzbarer Displayhöhe muss auf Zielgerät geprüft werden.
+- Alle zuvor bestandenen v0.5.121-Tests bleiben erhalten; GitHub-Build und Gerätetest für v0.5.122 offen.
+
 ## v0.5.120 – Buildfix-Kandidat, Build offen
 - Eindeutigen GitHub-Compile-Fehler aus Run 40364563194 behoben: fehlender Compose-Import `heightIn` in LiveAnalyzerScreen.kt, Zeile 1521.
 - Gegenüber v0.5.119 nur Import, Versionsnummer und Dokumentation verändert; Extension-Belegung, RMS-/IMP-Pfade und Direktanalyzer-Abgrenzung unangetastet.

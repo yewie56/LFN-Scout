@@ -26,7 +26,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.size
@@ -1514,15 +1513,12 @@ internal fun LiveAnalyzerScreen(
                 .clickable { multiOpen=!multiOpen },contentAlignment=Alignment.Center) {
                 Text("...",color=cyan,fontSize=16.sp)
                 if(multiOpen) Popup(alignment=Alignment.TopStart,
-                    offset=IntOffset(0,with(LocalDensity.current){(-(buttonHeight * 5 + 4.dp * 5)).roundToPx()}),
+                    offset=IntOffset(0,with(LocalDensity.current){(-(buttonHeight * 10 + 4.dp * 10)).roundToPx()}),
                     properties=PopupProperties(focusable=false)) {
-                    // Ten stable extension slots; scroll within the original five-button
-                    // footprint so the popup stays usable on narrow Android screens.
-                    Column(
-                        modifier=Modifier.heightIn(max=buttonHeight * 5 + 4.dp * 4)
-                            .verticalScroll(rememberScrollState()),
-                        verticalArrangement=Arrangement.spacedBy(4.dp)
-                    ) {
+                    // Ten extension slots, all visible at their original button size.
+                    // No height cap and no nested scrolling: the popup extends upward
+                    // across ten full button heights plus unchanged 4dp gaps.
+                    Column(verticalArrangement=Arrangement.spacedBy(4.dp)) {
                         for(n in 1..10) {
                             if(n==2) {
                                 Box(Modifier.size(buttonWidth,buttonHeight).border(BorderStroke(1.dp,
