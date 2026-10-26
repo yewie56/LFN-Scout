@@ -946,13 +946,14 @@ internal fun LiveAnalyzerSettingsPanel(
                 }
                 "Diagnose" -> {
                     val d=state.diagnostics
-                    SettingNote("Rohquelle: ${d?.sourceRateHz ?: "–"} Hz · ${d?.sourceLabel ?: "–"}")
-                    SettingNote("Rohpeak: ${d?.rawPeak ?: "–"} PCM · RMS: ${d?.rawRms ?: "–"}")
-                    SettingNote("LF-Peak: ${d?.lfPeak ?: "–"} PCM · LF-RMS: ${d?.lfRms ?: "–"}")
-                    SettingNote("FFT: ${state.spectra} · Signalalter: ${state.signalAgeMs} ms")
-                    SettingNote("Drops: ${state.dropped} · Resets: ${state.discontinuities} · Callback-Fehler: ${state.callbackErrors}")
-                    SettingNote("Letztes Bild: ${state.lastSave} · Status: ${state.status}")
-                    SettingNote("Export enthält nur erlaubte Einstellungen, Setup-Kopien und AUDIO_DIAG-Zeilen; keine privaten Rohdateien oder Zugangsschlüssel.")
+                    DiagnosticNote("Rohquelle: ${d?.sourceRateHz ?: "–"} Hz · ${d?.sourceLabel ?: "–"}")
+                    DiagnosticNote("Rohpeak: ${d?.rawPeak ?: "–"} PCM · RMS: ${d?.rawRms ?: "–"}")
+                    DiagnosticNote("LF-Peak: ${d?.lfPeak ?: "–"} PCM")
+                    DiagnosticNote("LF-RMS: ${d?.lfRms ?: "–"} PCM")
+                    DiagnosticNote("FFT: ${state.spectra} · Signalalter: ${state.signalAgeMs} ms")
+                    DiagnosticNote("Drops: ${state.dropped} · Resets: ${state.discontinuities} · Callback-Fehler: ${state.callbackErrors}")
+                    DiagnosticNote("Letztes Bild: ${state.lastSave} · Status: ${state.status}")
+                    DiagnosticNote("Export enthält nur erlaubte Einstellungen, Setup-Kopien und AUDIO_DIAG-Zeilen; keine privaten Rohdateien oder Zugangsschlüssel.")
                     OutlinedButton(onClick={
                         exportScope.launch {
                             message = "Erzeuge Diagnose-ZIP …"
@@ -961,9 +962,9 @@ internal fun LiveAnalyzerSettingsPanel(
                                 .onFailure { message="Diagnose-Export fehlgeschlagen: ${it.javaClass.simpleName}" }
                         }
                     }) { Text("Diagnose-ZIP exportieren", color=white) }
-                    if (message.isNotBlank()) SettingNote(message)
-                    SettingNote("Automatischer Systemtest · LFN-Scout v${BuildConfig.VERSION_NAME} (Build ${BuildConfig.VERSION_CODE}). Prüft isolierte A/B-JSON-Setups, WAV-Datei-I/O und Statistiklogik sowie bei aktivem Scout-Rolling echte Analyzer-STOP/RUN-Zyklen, MON und Filterbank-A/B/A. Temporäre Teständerungen werden zurückgesetzt; Nutzersetups und Rolling-Aufnahmen müssen geschützt bleiben. PASS bedeutet geprüfter Nachweis, FAIL erkannter Fehler, SKIP fehlender oder nicht sicher ausführbarer Nachweis. Aktive benannte Setupwechsel, durchgängige PCM-/WAV-Schreibkontinuität und Statistik-End-to-End-Abdeckung sind nicht allein durch isolierte Tests bestätigt.")
-                    SettingNote("Rolling-Test: Mindestens 45 Minuten ununterbrochene Laufzeit, einschließlich einer vollständigen Uhrzeit-Halbstunde (XX:00–XX:30 oder XX:30–XX:00). Andernfalls SKIP.")
+                    if (message.isNotBlank()) DiagnosticNote(message)
+                    DiagnosticNote("Automatischer Systemtest · LFN-Scout v${BuildConfig.VERSION_NAME} (Build ${BuildConfig.VERSION_CODE}). Prüft isolierte A/B-JSON-Setups, WAV-Datei-I/O und Statistiklogik sowie bei aktivem Scout-Rolling echte Analyzer-STOP/RUN-Zyklen, MON und Filterbank-A/B/A. Temporäre Teständerungen werden zurückgesetzt; Nutzersetups und Rolling-Aufnahmen müssen geschützt bleiben. PASS bedeutet geprüfter Nachweis, FAIL erkannter Fehler, SKIP fehlender oder nicht sicher ausführbarer Nachweis. Aktive benannte Setupwechsel, durchgängige PCM-/WAV-Schreibkontinuität und Statistik-End-to-End-Abdeckung sind nicht allein durch isolierte Tests bestätigt.")
+                    DiagnosticNote("Rolling-Test: Mindestens 45 Minuten ununterbrochene Laufzeit, einschließlich einer vollständigen Uhrzeit-Halbstunde (XX:00–XX:30 oder XX:30–XX:00). Andernfalls SKIP.")
                     OutlinedButton(onClick={
                         exportScope.launch {
                             systemTestBusy = true
@@ -977,7 +978,7 @@ internal fun LiveAnalyzerSettingsPanel(
                             systemTestBusy = false
                         }
                     }, enabled = !systemTestBusy) { Text("Automatischen Systemtest starten",color=white) }
-                    if(selfTestSummary.isNotBlank()) SettingNote(selfTestSummary)
+                    if(selfTestSummary.isNotBlank()) DiagnosticNote(selfTestSummary)
                     OutlinedButton(onClick={
                         exportScope.launch {
                             message="Erzeuge Systemtest-Paket …"
@@ -986,7 +987,7 @@ internal fun LiveAnalyzerSettingsPanel(
                                 .onFailure { message="Export fehlgeschlagen: ${it.javaClass.simpleName}" }
                         }
                     }) { Text("Systemtest-Paket exportieren",color=white) }
-                    SettingNote("Messung mit STOP in der Analyzer-Kopfzeile beenden; dabei bleibt die Audio-Betriebsart bis zum Verlassen des gestoppten Panels erhalten.")
+                    DiagnosticNote("Messung mit STOP in der Analyzer-Kopfzeile beenden; dabei bleibt die Audio-Betriebsart bis zum Verlassen des gestoppten Panels erhalten.")
                 }
             }
         }
@@ -1005,6 +1006,12 @@ private fun DisabledSetting(label: String, fixed: String) {
 private fun SettingCaption(value: String) {
     Text(value,color=Color(0xFFF1F6F8),fontSize=12.sp,fontWeight=FontWeight.Medium,
         modifier=Modifier.padding(top=5.dp,bottom=4.dp))
+}
+
+@Composable
+private fun DiagnosticNote(value: String) {
+    Text(value,color=Color(0xFFABB8C0),fontSize=11.sp,lineHeight=13.sp,
+        modifier=Modifier.padding(vertical=1.dp))
 }
 
 @Composable

@@ -1,3 +1,15 @@
+## v0.5.108 – MON-Anzeige BB und Shift (Quellkandidat)
+- In beiden Analyzer-Betriebsarten zeigt das MON-Overlay neben Mittenfrequenz und Gain nun die aktuelle BB-Bandbreite und den eingestellten Frequenz-Shift in Hz auf einer zweiten Zeile.
+- Der aktive SHIFT-Zustand wird durch „(AN)“ gekennzeichnet; der eingestellte Shiftwert ist auch bei ausgeschaltetem Shift sichtbar.
+- Keine Änderung an MON-Signalverarbeitung, Setup-Speicherung oder den bekannten offenen Persistenzfehlern.
+- Android-Build und Gerätetest noch nicht durchgeführt.
+
+## v0.5.107 – Kompakteres Diagnose-Panel (Zwischenversion)
+- Im Analyzer-Diagnose-Panel vertikalen Abstand der Diagnosehinweise von 4 dp auf 1 dp pro Seite reduziert und Zeilenhöhe auf 13 sp gesetzt; übrige Panels unverändert.
+- LF-RMS auf eine separate Zeile unter LF-Peak verschoben, Anzeigeinhalt unverändert.
+- MON-Setup-Persistenz nicht geändert: gemeldeter Speicherfehler weiterhin offen.
+- Vollständiger Android-Build und Gerätetest noch offen.
+
 ## v0.5.106 – Einstellbare maximale MON-Verstärkung (Quellkandidat)
 - Ein gemeinsamer Parameter `max_gain` im benannten MON-JSON-Setup, Standard +160 dB; Einstellbereich für die Obergrenze 0 bis +200 dB, Untergrenze −60 dB unverändert.
 - MON & Audio zeigt den Regler in beiden Analyzern; MON-Swipe im Wasserfall und am Pegelbalken sowie MON-Audiogain nutzen dieselbe Obergrenze.

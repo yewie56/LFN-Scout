@@ -1214,10 +1214,12 @@ internal fun LiveAnalyzerScreen(
                     if (y in top..bottom) drawLine(cyan,Offset(left,y),Offset(right,y),strokeWidth=1.dp.toPx())
                 }
             }
-            if(monitoring) Text("MON ${"%.0f".format(Locale.US,monitorCenter)} Hz · ${"%.0f".format(Locale.US,monitorLevel)} dB${if(monitoringShift) " · SHIFT" else ""}",
+            if(monitoring) Text(
+                "MON ${"%.0f".format(Locale.US,monitorCenter)} Hz · ${"%.0f".format(Locale.US,monitorLevel)} dB" +
+                    "\nBB ${"%.1f".format(Locale.US,AnalyzerMonitor.bandwidthHz)} Hz · Shift ${"%.0f".format(Locale.US,AnalyzerMonitor.shiftHz)} Hz${if(monitoringShift) " (AN)" else ""}",
                 modifier=Modifier.align(Alignment.TopEnd).padding(end=plotRightDp + 4.dp,top=plotTopDp + 4.dp)
                     .background(Color(0xD9081016),RoundedCornerShape(4.dp)).padding(horizontal=4.dp,vertical=2.dp),
-                color=if(monitoringShift)Color(0xFFFFCF65) else cyan,fontSize=10.sp)
+                color=if(monitoringShift)Color(0xFFFFCF65) else cyan,fontSize=10.sp,lineHeight=12.sp)
             // Two-line waterfall notification is a composited overlay at the LOWER-RIGHT
             // of the plot (inside Hz-axis margins). It does not change the Bitmap, plot
             // coordinates, underlying pixels, colorbar, time axis, or PNG/JPG export.

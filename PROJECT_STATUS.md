@@ -1,3 +1,7 @@
+## v0.5.107 – Zwischenversion / Diagnose-Layout
+- Diagnose-Texte kompakter und LF-RMS auf eigener Zeile. Keine Änderung an MON-Setup-Speicherung, Audioverarbeitung oder Systemtestlogik.
+- Android-Build und Gerätetest noch offen. Bekannter MON-Persistenzfehler weiterhin offen.
+
 ## 25.10.2026 – v0.5.103 Quellkandidat
 - 8-kHz-MON-Bereich auf sichtbare Frequenzgrenzen umgestellt; statische Regression 4/4 PASS. Android-Build und Hardwareabnahme offen. Letzte vom Nutzer bestätigte v0.5.102: Build und Rolling-Test-Hinweis PASS, automatischer Systemtest nicht ausgeführt.
 
