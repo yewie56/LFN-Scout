@@ -8,25 +8,24 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import kotlinx.coroutines.delay
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.delay
 
-/** Reports repository selection honestly, without claiming that audio START has loaded it. */
+/** Live status based on mode pin AND exact on-disk/live comparison; never infer SAVE from a name. */
 @Composable
 internal fun AnalyzerSetupStatusIndicator(context: Context) {
-    var status by remember(context) { mutableStateOf("Setup: wird geladen") }
+    var status by remember(context) { mutableStateOf("Setup: wird geprüft") }
+    var warning by remember(context) { mutableStateOf(false) }
     LaunchedEffect(context) {
         while (true) {
-            val updated = runCatching {
-        val repo = AnalyzerJsonSetupRepository(context.applicationContext)
-        val direct48k = LiveAnalyzerController.snapshot().direct48k
-        val selectedId = repo.selectedForMode(direct48k)
-        AnalyzerModeSetupStatus.label(repo.listing().entries.map { it.id to it.name }, selectedId)
-            }.getOrElse { "Setup: Status nicht lesbar" }
-            if (status != updated) status = updated
+            val result = AnalyzerSetupLiveStatus.read(context)
+            if (status != result.first || warning != result.second) {
+                status = result.first
+                warning = result.second
+            }
             delay(400L)
         }
     }
-    Text(status, color = Color(0xFFB6DEE4), fontSize = 12.sp)
+    Text(status, color = if (warning) Color(0xFFFFC978) else Color(0xFFB6DEE4), fontSize = 12.sp)
 }

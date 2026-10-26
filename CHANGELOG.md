@@ -1,3 +1,10 @@
+## v0.5.111 – Setup-Zustand und Speicherprüfung
+- Setup-Kopfzeile vergleicht nun aktuelle Analyzer- und MON-Parameter mit dem tatsächlich geladenen JSON.
+- Nicht zugeordnet, geändert/nicht gespeichert und Lesefehler werden sichtbar unterschieden.
+- Unveränderte Werte gelten als erfolgreich geprüfter Speicherzustand.
+- Direkter STOP und Verlassen behalten die Speicherprüfung der v0.5.110.
+- Diagnose und Status ersetzen keine vollständigen Gerätetests.
+
 ## v0.5.110 – MON-Setup Speichern: Fehlerkontrolle und STOP-Persistenz (Quellkandidat)
 - Fehlt das aktive benannte Setup, wird das Speichern jetzt als Fehler statt als stiller Erfolg gemeldet; kein implizites Erzeugen oder Überschreiben fremder Setups.
 - Der Haupt-STOP-Button sichert das aktive JSON-Setup vor dem Stoppen; bei Fehler bleibt die Messung unverändert und der Fehlerdialog erscheint.

@@ -28,7 +28,7 @@ internal object AnalyzerActiveSetupPersistence {
             previousAnalyzer.toString() == analyzer.toString() &&
             previousMonitor.toString() == monitor.toString()) {
             AnalyzerAudioTrace.write(context, "SETUP_SAVE_UNCHANGED", "mode=${if (direct) "DIRECT" else "8K"} id=$id")
-            return@runCatching false // No changes: avoid unnecessary flash writes.
+            return@runCatching true // Verified unchanged is a successful persisted state.
         }
         groups.put("legacy", analyzer)
         groups.put("monitor", monitor)

@@ -1,3 +1,6 @@
+## v0.5.111
+Setup-Statusanzeige wird aus Repository-Zuordnung sowie Laufzeit-/JSON-Vergleich abgeleitet. Android-Build und Gerätetest ausstehend.
+
 ## v0.5.110 (Quellkandidat)
 MON-Setup-Persistenz: fehlende Modus-Zuordnung wird als Fehler gemeldet, STOP-Button sichert vor STOP, und nach JSON-Speicherung findet ein Rücklese-Vergleich statt. Root-Cause des ursprünglichen MON-Verlusts noch nicht abschließend geräteseitig nachgewiesen. Android-Build/Regression/Gerätetest ausstehend.
 
