@@ -1,3 +1,6 @@
+## v0.5.113 (Quellkandidat)
+Buildfix für v0.5.112: Kotlin-Compile-Fehler LiveAnalyzerScreen.kt Zeile 595 (`return` innerhalb Compose-Kontext) korrigiert. Noch kein erfolgreicher Android-Build bestätigt.
+
 ## v0.5.111
 Setup-Statusanzeige wird aus Repository-Zuordnung sowie Laufzeit-/JSON-Vergleich abgeleitet. Android-Build und Gerätetest ausstehend.
 

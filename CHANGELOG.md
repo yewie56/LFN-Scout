@@ -1,3 +1,8 @@
+## v0.5.113 – Kotlin-Kompilierkorrektur Analyzer-Auswahl
+- In LiveAnalyzerScreen die unzulässige nichtlokale Rückgabe bei angezeigtem Analyzer-Auswahl-Popup durch bedingtes Rendern des Analyzer-Contents ersetzt.
+- Popup-first-Konzept aus v0.5.112 bleibt erhalten; Setup- und Audiofunktionen nicht geändert.
+- GitHub Android-Build und Gerätetest ausstehend.
+
 ## v0.5.111 – Setup-Zustand und Speicherprüfung
 - Setup-Kopfzeile vergleicht nun aktuelle Analyzer- und MON-Parameter mit dem tatsächlich geladenen JSON.
 - Nicht zugeordnet, geändert/nicht gespeichert und Lesefehler werden sichtbar unterschieden.

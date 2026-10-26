@@ -592,8 +592,7 @@ internal fun LiveAnalyzerScreen(
         )
         // Do not compose the 8-kHz-default analyzer panel (including its live status
         // reads and effects) before the user has chosen an actual analyzer mode.
-        if (showModeDialog) return
-        Column(Modifier.fillMaxSize().verticalScroll(screenScroll)
+        if (!showModeDialog) Column(Modifier.fillMaxSize().verticalScroll(screenScroll)
             .padding(horizontal=8.dp, vertical=5.dp)) {
         AnalyzerSetupStatusIndicator(context)
         if (settings) {
