@@ -1,3 +1,11 @@
+
+## v0.5.115 – LFN-FILTER-01 Diagnose
+
+- Rein diagnostische Zähler des 8-kHz-Filterpfads: gültige Filtercallbacks, Zeilen mit/ohne Filterwerte, ungültige Ergebnisse und Alter des letzten Callbacks.
+- Persistenter AUDIO_DIAG_FILTER_PATH-Logeintrag alle ca. 5 Sekunden, abrufbar über den bestehenden Diagnose-ZIP-Export.
+- Bewusst keine Änderung an Filter-DSP, Wasserfall-Interpolation oder fehlenden Daten. Weiterer Fix erst nach Auswertung des Gerätelogs.
+- Android-Build und Gerätetest OFFEN; statische Prüfung ersetzt keine Kotlin-Kompilierung.
+
 ## v0.5.114 – Setup vor Direkt-Mikrofonstart übernehmen
 - AnalyzerNamedSetupStart in vorbereitende STOP-Übernahme und nachgelagerten Controllerstart getrennt.
 - Direkt- und Test-Setups werden nach Freigabe des Rolling-Mikrofons, aber VOR dem Erwerb von `analyzer_48k` übernommen.

@@ -106,6 +106,13 @@ internal object LiveAnalyzerController {
     private var filterAutoRangeStartNs = 0L
     private val filterHistory = java.util.ArrayDeque<FastFilterBank.Levels>()
     private var pendingFilter: FastFilterBank.Levels? = null
+    // LFN-FILTER-01: diagnostic counters only; do not alter DSP or missing-row semantics.
+    private var filterCallbackCount = 0L
+    private var filterRowsWithData = 0L
+    private var filterRowsMissing = 0L
+    private var filterLastCallbackNs = 0L
+    private var filterLastTraceNs = 0L
+    private var filterInvalidCallbacks = 0L
     private var modeBoundaryRows: Int? = null
     private val activeKeys = listOf("decimation_factor", "statistics_min_hz", "statistics_max_hz", "statistics_window_sec",
         "statistics_average_sec", "range_hz", "min_frequency_hz", "fft_size", "fft_window",
@@ -580,6 +587,8 @@ internal object LiveAnalyzerController {
             latestDiag = null; validSignal = false; silentWindows = 0L; lastDiscontinuities = 0L
             lastPcmTraceNs = 0L
             history.clear(); historyEpochMillis.clear(); filterHistory.clear(); pendingFilter=null; clearStatistics(); current = null; floor = doubleArrayOf(); seq = 0L
+            filterCallbackCount=0L; filterRowsWithData=0L; filterRowsMissing=0L
+            filterInvalidCallbacks=0L; filterLastCallbackNs=0L; filterLastTraceNs=0L
             waterfallPhaseSamples = 0; waterfallAccumulator.clear(); waterfallRevision++; modeBoundaryRows = null
             lastAutoNs = 0L
             // The service/recorder is the only microphone owner; AnalyzerLiveSession never opens it.
@@ -885,6 +894,12 @@ internal object LiveAnalyzerController {
                 filterAutoRange=null;filterAutoRangeStartNs=0L
             }
         }
+        filterCallbackCount++
+        filterLastCallbackNs = System.nanoTime()
+        if (level.absoluteDbFs.size != filterBandCount || level.excessDb.size != filterBandCount ||
+            level.absoluteDbFs.any { !it.isFinite() } || level.excessDb.any { !it.isFinite() }) {
+            filterInvalidCallbacks++
+        }
         val old=pendingFilter
         if(old==null) pendingFilter=FastFilterBank.Levels(level.absoluteDbFs.copyOf(), level.excessDb.copyOf())
         else if(old.absoluteDbFs.size==level.absoluteDbFs.size) {
@@ -1165,6 +1180,18 @@ internal object LiveAnalyzerController {
                     // Current: newest FFT; Average: mean LINEAR power; Maximum: binwise maximum.
                     val row = waterfallAccumulator.take(waterfallMode) ?: s.liveDbFs.copyOf()
                     history.addLast(if (direct48k) compressWidebandRow(row) else row)
+                    val hadFilter = pendingFilter != null && pendingFilter!!.absoluteDbFs.isNotEmpty()
+                    if (!direct48k) {
+                        if (hadFilter) filterRowsWithData++ else filterRowsMissing++
+                        val nowNs = System.nanoTime()
+                        if (filterLastTraceNs == 0L || nowNs - filterLastTraceNs >= 5_000_000_000L) {
+                            filterLastTraceNs = nowNs
+                            val ageMs = if (filterLastCallbackNs == 0L) -1L else
+                                (nowNs - filterLastCallbackNs) / 1_000_000L
+                            appContext?.let { AnalyzerAudioTrace.write(it, "FILTER_PATH",
+                                "callbacks=$filterCallbackCount rows_ok=$filterRowsWithData rows_missing=$filterRowsMissing invalid=$filterInvalidCallbacks age_ms=$ageMs bands=$filterBandCount interval_ms=$waterfallIntervalMs") }
+                        }
+                    }
                     filterHistory.addLast(pendingFilter ?: FastFilterBank.Levels(doubleArrayOf(),doubleArrayOf()))
                     pendingFilter=null
                     historyEpochMillis.addLast(System.currentTimeMillis())

@@ -1,3 +1,11 @@
+
+## v0.5.115 – LFN-FILTER-01 Diagnose
+
+- Rein diagnostische Zähler des 8-kHz-Filterpfads: gültige Filtercallbacks, Zeilen mit/ohne Filterwerte, ungültige Ergebnisse und Alter des letzten Callbacks.
+- Persistenter AUDIO_DIAG_FILTER_PATH-Logeintrag alle ca. 5 Sekunden, abrufbar über den bestehenden Diagnose-ZIP-Export.
+- Bewusst keine Änderung an Filter-DSP, Wasserfall-Interpolation oder fehlenden Daten. Weiterer Fix erst nach Auswertung des Gerätelogs.
+- Android-Build und Gerätetest OFFEN; statische Prüfung ersetzt keine Kotlin-Kompilierung.
+
 ## Stand v0.5.114
 Quellkandidat: Startreihenfolge Direktanalyzer für Setup-Übernahme vor `analyzer_48k` korrigiert. Android-Build und Hardwaretest offen. Test v0.5.113: 8-kHz-Start nach Nutzerangabe PASS, Direktstart FAIL (Audio-Ressourcenkonflikt). Nicht als behoben behaupten, bevor Gerätetest PASS.
 

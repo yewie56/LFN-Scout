@@ -1,3 +1,9 @@
+
+## LFN-FILTER-01 (hoch, in Bearbeitung, v0.5.115)
+Schwarze Querbalken im Filterwasserfall bei 40 Bändern/100 ms trotz durchlaufender 8-kHz-PCM-Zählung. Diagnoseinstrumentierung v0.5.115, Ursache noch nicht bewiesen. Fehlerbehebung und deterministischer Impulsnachweis nach Auswertung des FILTER_PATH-Logs. Kein blindes Füllen fehlender Zeilen.
+
+## LFN-SETUP-REWORK-01 (ausdrücklich zurückgestellt)
+Vollständige getrennte benannte JSON-Setups beider Analyzer; klare LastUsed.json; ZIP-freier SAF-Import/-Export inkl. verifizierter Sicherung, Merge B, atomarer Übernahme und Rollback. Nicht implementieren ohne erneuten Auftrag.
 ## 25.10.2026 – MON-Pegel +140 dB (v0.5.105)
 - [ ] v0.5.105: MON-Level in beiden Analyzern bis +140 dB, bisherige Untergrenze −60 dB; Android-Unit- und Gerätetest offen. Sehr hohe Verstärkung kann abrupt laute Wiedergabe verursachen; Ausgangslautstärke vor Tests niedrig halten.
 
