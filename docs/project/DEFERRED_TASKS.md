@@ -1,3 +1,7 @@
+## v0.5.124 – Verifikation offen
+- [ ] GitHub-Build und Smartphone-Layout: Titel/Version/RP exakt eine Zeile, Beschreibung/DevMode exakt zweite Zeile, kein zusaetzlicher Abstand.
+- [ ] Regression v0.5.123: Exit-Popup-Back und 10 schwarze Extension-Buttons bleiben korrekt.
+
 ## 26.10.2026 – v0.5.123 Test offen
 - [ ] Android Build/Regression fuer schwarze Extension-Hintergruende, RP/DevMode-Header, Backtaste=Nein-Stoppen, Speicherfehlerpfad.
 - [ ] RP-Wert auf Hardware bei aktivem Rolling gegen Pufferstaende pruefen.

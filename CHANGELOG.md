@@ -1,3 +1,10 @@
+## v0.5.124 – Kompakter Scout-Titelbereich (versionCode 282)
+- Exakt zwei Kopfzeilen: Titel links, Version unmittelbar rechts auf halber Titelhoehe, RP ganz rechts in derselben Zeile.
+- Zweite Zeile: „Beobachten · bewerten · dokumentieren“ links; DevMode rechtsbuendig.
+- RP-Format `RP:00:00/30:00min` ohne Leerzeichen, unveraenderte echte Rolling-Pufferdaten.
+- Keine Veraenderung von Extension 1–10, schwarzem NOISE-Hintergrund, Analyzer-Exit-Back, Setup-Daten oder Filter-DSP.
+- Quellcodepruefung PASS, Android-GitHub-Build und visueller Geraetetest offen.
+
 ## v0.5.123 – Scout-Hauptpanel, Exit-Back und Extension-Hintergrund (versionCode 281)
 - Scout-Header: Titel LFN-Scout mit kleiner Versionsangabe unmittelbar rechts daneben.
 - Rechtsbuendig und untereinander: RP:mm:ss/30:00min (ohne Leerzeichen; tatsaechlicher Rolling-Fuellstand, sekündlich aktualisiert) und DevMode bei aktivem Entwicklermodus.

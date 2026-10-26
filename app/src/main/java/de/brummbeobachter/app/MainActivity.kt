@@ -3410,6 +3410,7 @@ private fun MainPanelHeader(
     onOpenSeismic: () -> Unit
 ) {
     Column(Modifier.fillMaxWidth()) {
+        // Compact two-row header: version and RP are vertically centered on the title.
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Row(modifier = Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
                 Text("LFN-Scout", fontSize = 25.sp, fontWeight = FontWeight.Bold)
@@ -3417,17 +3418,19 @@ private fun MainPanelHeader(
                 Text("v${BuildConfig.VERSION_NAME}", style = MaterialTheme.typography.labelSmall,
                     maxLines = 1)
             }
-            Column(horizontalAlignment = Alignment.End) {
-                val bufferSeconds = if (rollingEnabled) rollingBufferedSeconds.coerceIn(0, 1800) else 0
-                Text("RP:%d:%02d/30:00min".format(java.util.Locale.US,
-                    bufferSeconds / 60, bufferSeconds % 60), fontSize = 10.sp, maxLines = 1)
-                if (developerModeEnabled) {
-                    Text("DevMode", color = MaterialTheme.colorScheme.secondary,
-                        fontWeight = FontWeight.Bold, fontSize = 10.sp, maxLines = 1)
-                }
+            val bufferSeconds = if (rollingEnabled) rollingBufferedSeconds.coerceIn(0, 1800) else 0
+            Text("RP:%02d:%02d/30:00min".format(java.util.Locale.US,
+                bufferSeconds / 60, bufferSeconds % 60), fontSize = 10.sp, maxLines = 1)
+        }
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween) {
+            Text("Beobachten · bewerten · dokumentieren",
+                style = MaterialTheme.typography.bodySmall)
+            if (developerModeEnabled) {
+                Text("DevMode", color = MaterialTheme.colorScheme.secondary,
+                    fontWeight = FontWeight.Bold, fontSize = 10.sp, maxLines = 1)
             }
         }
-        Text("Beobachten · bewerten · dokumentieren", style = MaterialTheme.typography.bodySmall)
         // Lucide vector glyphs: activity, blocks, settings, waves. Order is mandatory.
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(2.dp)) {
             listOf(

@@ -1,3 +1,10 @@
+## v0.5.124 – Kompakter Scout-Titelbereich (versionCode 282)
+- Exakt zwei Kopfzeilen: Titel links, Version unmittelbar rechts auf halber Titelhoehe, RP ganz rechts in derselben Zeile.
+- Zweite Zeile: „Beobachten · bewerten · dokumentieren“ links; DevMode rechtsbuendig.
+- RP-Format `RP:00:00/30:00min` ohne Leerzeichen, unveraenderte echte Rolling-Pufferdaten.
+- Keine Veraenderung von Extension 1–10, schwarzem NOISE-Hintergrund, Analyzer-Exit-Back, Setup-Daten oder Filter-DSP.
+- Quellcodepruefung PASS, Android-GitHub-Build und visueller Geraetetest offen.
+
 ## 2026-10-26 v0.5.123 – Quellkandidat
 Extension 1–10 schwarz; RP/DevMode rechtsbuendig im Scout-Header; Back im Analyzer-Exit wie Nein-Stoppen. GitHub-Build und Android-Geraetetest offen.
 
