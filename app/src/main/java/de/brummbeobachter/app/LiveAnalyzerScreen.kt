@@ -224,7 +224,7 @@ internal fun LiveAnalyzerScreen(
         state.waterfallMode, state.historySeconds, state.sampleRateHz, state.fftHopSamples,
         state.waterfallIntervalMs, state.minFrequencyHz, state.rangeHz,
         state.minDisplayDb, state.maxDisplayDb, state.direct48k,
-        state.showOriginalWaterfall, state.showFilterWaterfall, expanded,
+        state.showOriginalWaterfall, state.showFilterWaterfall, state.filterPaletteGreen, expanded,
         if (!state.direct48k && state.showFilterWaterfall) state.filterBandCount else 0,
         if (!state.direct48k && state.showFilterWaterfall) state.filterMinHz else 0.0,
         if (!state.direct48k && state.showFilterWaterfall) state.filterMaxHz else 0.0,
@@ -1052,7 +1052,7 @@ internal fun LiveAnalyzerScreen(
                 state.minDisplayDb,state.maxDisplayDb,state.filterDisplayMinDb,state.filterDisplayMaxDb,
                 state.filterRowsDbFs,state.filterRowsExcessDb,
                 state.direct48k || state.showOriginalWaterfall,!state.direct48k && state.showFilterWaterfall,
-                state.filterMinHz,state.filterMaxHz)
+                state.filterMinHz,state.filterMaxHz,state.filterPaletteGreen)
         }
         Box(Modifier.fillMaxWidth().height(waterfallHeight).background(Color(0xFF130C29))
             .clickable { if(!monitoring)expanded=!expanded }
@@ -1185,7 +1185,7 @@ internal fun LiveAnalyzerScreen(
                 }
                 for(i in 0 until 120) {
                     val db=legendMax-(i+0.5)*(legendMax-legendMin)/120.0
-                    drawRect(Color(if(filterOnly) FilterWaterfallRenderer.filterColor(db,legendMin,legendMax)
+                    drawRect(Color(if(filterOnly) FilterWaterfallRenderer.filterColor(db,legendMin,legendMax,state.filterPaletteGreen)
                         else LiveAnalyzerController.color(db,legendMin,legendMax)),
                         Offset(barLeft,top+i/120f*plotH),Size(barRight-barLeft,plotH/120f+0.5f))
                 }
@@ -1430,13 +1430,13 @@ internal fun LiveAnalyzerScreen(
                 }
                 WaterfallSwitchIcon(buttonWidth=buttonWidth,buttonHeight=buttonHeight,
                     longEnabled=state.running && !state.paused && state.validSignal,
-                    original=false,active=state.showFilterWaterfall, onLongPress={
+                    original=false,active=state.showFilterWaterfall,filterPaletteGreen=state.filterPaletteGreen, onLongPress={
                     if (state.running && !state.paused && state.validSignal) {
                         LiveAnalyzerController.startFilterAutoRange()
                         state=LiveAnalyzerController.snapshot()
                     }
                 }) {
-                    LiveAnalyzerController.setWaterfallVisibility(context,state.showOriginalWaterfall,!state.showFilterWaterfall)
+                    LiveAnalyzerController.cycleFilterPalette(context)
                     state=LiveAnalyzerController.snapshot()
                 }
             }
@@ -1565,7 +1565,7 @@ private fun cursorReadout(state: LiveAnalyzerController.Snapshot, hz: Double): S
 private fun makeWaterfall(rows: List<DoubleArray>, freq: DoubleArray, minHz: Int, maxHz: Int, capacity: Int, minDb: Int, maxDb: Int,
     filterMinDb: Int, filterMaxDb: Int,
     filterDb: List<DoubleArray?>, filterExcess: List<DoubleArray?>, original: Boolean, filter: Boolean,
-    filterMin: Double, filterMax: Double): Bitmap? {
+    filterMin: Double, filterMax: Double, green: Boolean): Bitmap? {
     if(rows.isEmpty() || freq.isEmpty() || capacity<=0) return null
     val width=400
     // At 250-ms default waterfall timebase, the 120-s history has 480 rows.
@@ -1589,7 +1589,7 @@ private fun makeWaterfall(rows: List<DoubleArray>, freq: DoubleArray, minHz: Int
             val hz=minHz+x.toDouble()/(width-1)*(maxHz-minHz)
             out[y*width+x]=FilterWaterfallRenderer.colorAt(hz,
                 LiveAnalyzerController.color(row[bin],minDb,maxDb),filterFirst.getOrNull(age),excessFirst.getOrNull(age),
-                original,filter,filterMin,filterMax,minDb,maxDb,filterMinDb,filterMaxDb)
+                original,filter,filterMin,filterMax,minDb,maxDb,filterMinDb,filterMaxDb,green)
         }
     }
     return Bitmap.createBitmap(out,width,height,Bitmap.Config.ARGB_8888)
@@ -1597,9 +1597,9 @@ private fun makeWaterfall(rows: List<DoubleArray>, freq: DoubleArray, minHz: Int
 
 
 /** Two fixed 48-dp icons. ORIGINAL uses exact user-supplied PNG; FILTER retains five
- * symmetric magenta/pink/white bars. Tap toggles visibility; FILTER long-press auto-ranges. */
+ * symmetric magenta/pink/white or green/white bars. Tap cycles OFF/VIOLET/GREEN; FILTER long-press auto-ranges. */
 @Composable
-private fun WaterfallSwitchIcon(buttonWidth: androidx.compose.ui.unit.Dp, buttonHeight: androidx.compose.ui.unit.Dp, original: Boolean, active: Boolean,
+private fun WaterfallSwitchIcon(buttonWidth: androidx.compose.ui.unit.Dp, buttonHeight: androidx.compose.ui.unit.Dp, original: Boolean, active: Boolean, filterPaletteGreen: Boolean = false,
     onLongPress: () -> Unit, longEnabled: Boolean = false, onClick: () -> Unit) {
     val outline=if(active) Color(0xFFE8D9F1) else Color(0xFF48525C)
     Box(Modifier.size(buttonWidth,buttonHeight).padding(1.dp)
@@ -1616,7 +1616,8 @@ private fun WaterfallSwitchIcon(buttonWidth: androidx.compose.ui.unit.Dp, button
             val w=size.width; val h=size.height
             run {
                 val heights=floatArrayOf(.40f,.72f,1.0f,.72f,.40f)
-                val colors=intArrayOf(0xFF9911A9.toInt(),0xFFE348C6.toInt(),0xFFFFFFFF.toInt(),
+                val colors=if(filterPaletteGreen) intArrayOf(0xFF0A9047.toInt(),0xFF5BE879.toInt(),0xFFFFFFFF.toInt(),
+                    0xFF5BE879.toInt(),0xFF0A9047.toInt()) else intArrayOf(0xFF9911A9.toInt(),0xFFE348C6.toInt(),0xFFFFFFFF.toInt(),
                     0xFFE348C6.toInt(),0xFF9911A9.toInt())
                 for(i in 0..4) {
                     val bh=h*heights[i]

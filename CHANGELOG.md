@@ -1,3 +1,7 @@
+## v0.5.117 – Filterbutton AUS → VIOLETT → GRÜN
+- Nur 8-kHz-Filterbutton: Drei-Zustands-Zyklus, Farbe in Live-Wasserfall, Legende und Bildexport konsistent; vorhandenes Original-Wasserfall-PNG bleibt unverändert.
+- Filter-DSP, Pegelgrenzen und Audio nicht verändert. Farbwahl in App-Prefs persistent. Android-Build/Smartphone-Test offen.
+
 ## v0.5.116 – LFN-FILTER-01 zeitlich synchronisierter Datenpfad
 
 - Ursache aus v0.5.115-Gerätediagnose: Ein ~256-ms-PCM-Frame wurde komplett an die Filterbank übergeben und danach komplett FFT-verarbeitet. Der Filtercallback wurde so pro Frame einmal gebündelt, während die FFT mehrere 100-ms-Wasserfallzeilen erzeugte; fehlende Zeilen waren systematisch.

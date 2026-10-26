@@ -71,7 +71,7 @@ internal object LiveAnalyzerController {
         val manualSaveEvent: Long, val manualSaveMessage: String,
         val directInputRateHz: Int, val directSmoothingAlpha: Double, val directPeakMarkers: Int,
         val directSubtractDc: Boolean, val directStayAwake: Boolean,
-        val showOriginalWaterfall: Boolean, val showFilterWaterfall: Boolean,
+        val showOriginalWaterfall: Boolean, val showFilterWaterfall: Boolean, val filterPaletteGreen: Boolean,
         val filterMinHz: Double, val filterMaxHz: Double, val filterBandCount: Int,
         val filterRowsDbFs: List<DoubleArray?>, val filterRowsExcessDb: List<DoubleArray?>,
         val filterDisplayMinDb: Int, val filterDisplayMaxDb: Int,
@@ -95,6 +95,7 @@ internal object LiveAnalyzerController {
     private var directTimeSmoothing = false
     private var showOriginalWaterfall = true
     private var showFilterWaterfall = false
+    private var filterPaletteGreen = false
     private var filterMinHz = 0.0
     private var filterMaxHz = 100.0
     private var filterBandCount = 10
@@ -507,6 +508,7 @@ internal object LiveAnalyzerController {
                 }
                 showOriginalWaterfall=prefs.getBoolean("filter_show_original",true)
                 showFilterWaterfall=prefs.getBoolean("filter_show_filter",false)
+                filterPaletteGreen=prefs.getBoolean("filter_palette_green",false) && showFilterWaterfall
                 filterDisplayMinDb = prefs.getInt("filter_display_min_db",-120)
                 filterDisplayMaxDb = prefs.getInt("filter_display_max_db",-60)
                 if (!isValidDisplayRange(filterDisplayMinDb, filterDisplayMaxDb)) {
@@ -914,9 +916,26 @@ internal object LiveAnalyzerController {
         synchronized(lock) {
             if(direct48k) return
             showOriginalWaterfall=original; showFilterWaterfall=filter
+            if (!filter) filterPaletteGreen = false
             context.getSharedPreferences("lfn_scout_live_analyzer",Context.MODE_PRIVATE).edit()
                 .putBoolean("filter_show_original",original).putBoolean("filter_show_filter",filter).apply()
             waterfallRevision++ // same historical data, no restart
+        }
+    }
+
+    /** Filter button: OFF -> VIOLET -> GREEN -> OFF. No audio/DSP restart. */
+    fun cycleFilterPalette(context: Context) {
+        synchronized(lock) {
+            if (direct48k) return
+            when {
+                !showFilterWaterfall -> { showFilterWaterfall = true; filterPaletteGreen = false }
+                !filterPaletteGreen -> filterPaletteGreen = true
+                else -> { showFilterWaterfall = false; filterPaletteGreen = false }
+            }
+            context.getSharedPreferences("lfn_scout_live_analyzer", Context.MODE_PRIVATE).edit()
+                .putBoolean("filter_show_filter", showFilterWaterfall)
+                .putBoolean("filter_palette_green", filterPaletteGreen).apply()
+            waterfallRevision++
         }
     }
 
@@ -1306,7 +1325,7 @@ internal object LiveAnalyzerController {
             AnalyzerModeCoordinator.mode in listOf(AnalyzerModeCoordinator.Mode.TEST_8K,AnalyzerModeCoordinator.Mode.TEST_48K),
             manualSaveEvent, manualSaveMessage,
             directInputRateHz, directSmoothingAlpha, directPeakMarkers, directSubtractDc, directStayAwake,
-            showOriginalWaterfall, showFilterWaterfall, filterMinHz, filterMaxHz, filterBandCount,
+            showOriginalWaterfall, showFilterWaterfall, filterPaletteGreen, filterMinHz, filterMaxHz, filterBandCount,
             filterHistory.map { it.absoluteDbFs.takeIf { a -> a.isNotEmpty() }?.copyOf() }, filterHistory.map { it.excessDb.takeIf { a -> a.isNotEmpty() }?.copyOf() },
             filterDisplayMinDb,filterDisplayMaxDb,filterAutoRange!=null,
             if(filterAutoRange==null) 0f else ((System.nanoTime()-filterAutoRangeStartNs).toDouble() /
@@ -1388,6 +1407,7 @@ internal object LiveAnalyzerController {
         filterAutoRangeMarginDb = draft.getInt("filter_auto_margin")
         showOriginalWaterfall = draft.getBoolean("filter_show_original")
         showFilterWaterfall = draft.getBoolean("filter_show_filter")
+        if (!showFilterWaterfall) filterPaletteGreen = false
         autoRangeDurationSec = draft.getInt("autorange_duration")
         autoRangeMarginDb = draft.getInt("autorange_margin")
         auto = draft.getBoolean("auto"); imageFormat = im
@@ -1623,7 +1643,7 @@ internal object LiveAnalyzerController {
                         color(row[bin],s.minDisplayDb,s.maxDisplayDb),filterFirst.getOrNull(age),excessFirst.getOrNull(age),
                         s.direct48k || s.showOriginalWaterfall,!s.direct48k && s.showFilterWaterfall,
                         s.filterMinHz,s.filterMaxHz,s.minDisplayDb,s.maxDisplayDb,
-                        s.filterDisplayMinDb,s.filterDisplayMaxDb)
+                        s.filterDisplayMinDb,s.filterDisplayMaxDb,s.filterPaletteGreen)
                 }
             }
             val bitmap=Bitmap.createBitmap(pixel,width,height,Bitmap.Config.ARGB_8888)
@@ -1680,7 +1700,7 @@ internal object LiveAnalyzerController {
         p.textSize = 16f; p.textScaleX = 1f
         for(i in 0 until 120) {
             val db=barMax-(i+0.5)*(barMax-barMin)/120.0
-            p.color=if(filterOnly) FilterWaterfallRenderer.filterColor(db,barMin,barMax)
+            p.color=if(filterOnly) FilterWaterfallRenderer.filterColor(db,barMin,barMax,s.filterPaletteGreen)
                 else color(db,barMin,barMax)
             p.style=Paint.Style.FILL
             val y=wfTop+i/120f*(wfBottom-wfTop)
@@ -1694,9 +1714,16 @@ internal object LiveAnalyzerController {
             label("$db",barL+1f,(y+6f).coerceIn(wfTop+17f,wfBottom-4f),16f,foreground)
         }
         label("Hz",unitX,wfBottom+28f,20f,Color.LTGRAY,Paint.Align.CENTER)
-        if(!s.direct48k && s.showFilterWaterfall)
-            label(if(s.showOriginalWaterfall) "FILTER ΔdB (3…18): Magenta-Overlay" else "FILTER: dBFS (Magenta–Weiß)",
-                left,wfTop-8f,16f,Color.MAGENTA)
+        if(!s.direct48k && s.showFilterWaterfall) {
+            val filterLabel = when {
+                s.showOriginalWaterfall && s.filterPaletteGreen -> "FILTER ΔdB (3…18): Grün-Overlay"
+                s.showOriginalWaterfall -> "FILTER ΔdB (3…18): Magenta-Overlay"
+                s.filterPaletteGreen -> "FILTER: dBFS (Grün–Weiß)"
+                else -> "FILTER: dBFS (Magenta–Weiß)"
+            }
+            label(filterLabel,left,wfTop-8f,16f,
+                if(s.filterPaletteGreen) Color.GREEN else Color.MAGENTA)
+        }
         s.modeBoundaryRows?.let { age ->
             val y = wfTop + age.toFloat() / s.historyCapacity * (wfBottom - wfTop)
             if (y in wfTop..wfBottom) {

@@ -1,3 +1,6 @@
+## 2026-10-26 – v0.5.117 Quellkandidat
+Filterbutton-Zyklus AUS → VIOLETT → GRÜN → AUS; Android-Build und Geräteprüfung offen. v0.5.116 Filter-Synchronisierung vorläufig erfolgreich, Diagnose-ZIP ausstehend. Setup-Import/Export zurückgestellt.
+
 ## v0.5.116 – LFN-FILTER-01 zeitlich synchronisierter Datenpfad
 
 - Ursache aus v0.5.115-Gerätediagnose: Ein ~256-ms-PCM-Frame wurde komplett an die Filterbank übergeben und danach komplett FFT-verarbeitet. Der Filtercallback wurde so pro Frame einmal gebündelt, während die FFT mehrere 100-ms-Wasserfallzeilen erzeugte; fehlende Zeilen waren systematisch.
