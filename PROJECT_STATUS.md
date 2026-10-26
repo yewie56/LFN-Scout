@@ -1,3 +1,10 @@
+## v0.5.116 – LFN-FILTER-01 zeitlich synchronisierter Datenpfad
+
+- Ursache aus v0.5.115-Gerätediagnose: Ein ~256-ms-PCM-Frame wurde komplett an die Filterbank übergeben und danach komplett FFT-verarbeitet. Der Filtercallback wurde so pro Frame einmal gebündelt, während die FFT mehrere 100-ms-Wasserfallzeilen erzeugte; fehlende Zeilen waren systematisch.
+- Die 8-kHz-Verarbeitung führt Filter- und Spektralpfad nun verschachtelt in maximal 400 Rohsamples (= 50 ms) großen Teilschritten aus. Filterbank-DSP und Peak-Max-Hold bleiben unverändert, ebenso Direktanalyzer und Rolling-WAV-Pfad.
+- Filterdiagnose FILTER_PATH bleibt bestehen. Neue Unit-Regression für 10/20/40 Bänder und simulierten Impuls. Keine Interpolation fehlender Filterzeilen.
+- Validierung: Android-GitHub-Build, Verhalten am Gerät und Impulstest noch offen.
+
 
 ## v0.5.115 – LFN-FILTER-01 Diagnose
 

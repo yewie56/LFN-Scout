@@ -1,6 +1,6 @@
 
-## LFN-FILTER-01 (hoch, in Bearbeitung, v0.5.115)
-Schwarze Querbalken im Filterwasserfall bei 40 Bändern/100 ms trotz durchlaufender 8-kHz-PCM-Zählung. Diagnoseinstrumentierung v0.5.115, Ursache noch nicht bewiesen. Fehlerbehebung und deterministischer Impulsnachweis nach Auswertung des FILTER_PATH-Logs. Kein blindes Füllen fehlender Zeilen.
+## LFN-FILTER-01 (hoch, in Bearbeitung, v0.5.116)
+Schwarze Querbalken im Filterwasserfall bei 40 Bändern/100 ms trotz durchlaufender 8-kHz-PCM-Zählung. v0.5.115-Diagnose: ~4 Callbacks/s, ~61 % leere 100-ms-Zeilen. v0.5.116 Quellkandidat: Filter/FFT in 50-ms-Teilschritten verschachtelt, Regression gegen fehlende Filter-Callbacks hinzugefügt. Android-Gerätetest offen. Echte Aussetzer weiter nicht künstlich auffüllen.
 
 ## LFN-SETUP-REWORK-01 (ausdrücklich zurückgestellt)
 Vollständige getrennte benannte JSON-Setups beider Analyzer; klare LastUsed.json; ZIP-freier SAF-Import/-Export inkl. verifizierter Sicherung, Merge B, atomarer Übernahme und Rollback. Nicht implementieren ohne erneuten Auftrag.

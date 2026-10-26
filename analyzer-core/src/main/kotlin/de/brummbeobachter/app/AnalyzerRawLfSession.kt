@@ -80,9 +80,6 @@ class AnalyzerRawLfSession(
             if (value > 0) nonzero++
             sum2 += s.toDouble() * s
         }
-        filterBank?.accept(frame.samples)?.let { levels ->
-            try { onFilter?.invoke(levels) } catch (_: Exception) { errors.incrementAndGet() }
-        }
         val rawRms = sqrt(sum2 / frame.samples.size) // PCM16 counts, not dB SPL
         val down = directDecimator?.accept(frame.samples) ?: decimator?.accept(frame.samples) ?: DoubleArray(frame.samples.size) { frame.samples[it] / 32768.0 }
         var lfPower = 0.0
@@ -101,11 +98,33 @@ class AnalyzerRawLfSession(
             System.nanoTime(),unsupported.get(),nonzero,nonzeroLf)
         last = diag
         try { onDiagnostics(diag) } catch (_: Exception) { errors.incrementAndGet() }
-        core.acceptNormalized(down).forEach { spectrum ->
+        if (filterBank != null) {
+            // Advance the 8-kHz filter and downsampled FFT on the SAME time axis.
+            // A whole PCM frame can span ~250 ms: processing all filter samples first
+            // and all FFT samples afterwards coalesced peaks into one 100-ms row
+            // while leaving the subsequent rows empty.
+            val pcmStep = 400 // 50 ms at 8 kHz; splits evenly for supported decimation 4/8/16.
+            var pcmOffset = 0
+            while (pcmOffset < frame.samples.size) {
+                val count = minOf(pcmStep, frame.samples.size - pcmOffset)
+                val portion = frame.samples.copyOfRange(pcmOffset, pcmOffset + count)
+                filterBank.accept(portion)?.let { levels ->
+                    try { onFilter?.invoke(levels) } catch (_: Exception) { errors.incrementAndGet() }
+                }
+                val start = pcmOffset / decimationFactor
+                val end = minOf(down.size, (pcmOffset + count) / decimationFactor)
+                if (end > start) emitSpectra(down.copyOfRange(start, end))
+                pcmOffset += count
+            }
+        } else emitSpectra(down)
+    }
+    private fun emitSpectra(samples: DoubleArray) {
+        core.acceptNormalized(samples).forEach { spectrum ->
             processed.incrementAndGet()
             try { onSpectrum(spectrum) } catch (_: Exception) { errors.incrementAndGet() }
         }
     }
+
     /** Reset statistical average without flushing 4096-sample FFT buffer or the WAV path. */
     fun resetAveraging() = core.resetAveraging()
     /** Reset only the held spectral maxima; leave FFT timing, averaging and the PCM stream intact. */
