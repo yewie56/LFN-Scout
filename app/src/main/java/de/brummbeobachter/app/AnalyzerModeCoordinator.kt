@@ -43,6 +43,7 @@ internal object AnalyzerModeCoordinator {
             .putString("chosen_mode", chosen.name).commit()
         return try {
             LiveAnalyzerController.stop()
+            LiveAnalyzerController.configureMode(context, chosen in listOf(Mode.DIRECT_48K, Mode.TEST_48K))
             AnalyzerAudioTrace.write(context, "PREPARE_MODE", "chosen=$chosen owner=${MicCaptureArbiter.owner}")
             if (chosen != Mode.ROLLING_8K) {
                 // Discard old rolling contents. We do NOT preserve/continue any uncommitted audio.
@@ -56,6 +57,12 @@ internal object AnalyzerModeCoordinator {
                 }
                 AnalyzerAudioTrace.write(context, "ROLLING_RELEASE_RESULT", "released=$released owner=${MicCaptureArbiter.owner} rolling=${RollingAudioEngine.isRunning}")
                 if (!released) this.error = "8-kHz-Mikrofon wurde nicht freigegeben"
+                if (released) {
+                    // Apply the named setup while the direct microphone is still FREE.
+                    // The strict stopped-port refuses a microphone already owned by analyzer_48k.
+                    AnalyzerNamedSetupStart.prepare(context, chosen in listOf(Mode.DIRECT_48K, Mode.TEST_48K))
+                    AnalyzerAudioTrace.write(context, "SETUP_PREPARED", "chosen=$chosen owner=${MicCaptureArbiter.owner}")
+                }
                 if (released && chosen in listOf(Mode.TEST_8K,Mode.TEST_48K)) {
                     if (!AnalyzerTestSignal.start(context, if (chosen == Mode.TEST_48K)
                         context.getSharedPreferences("lfn_scout_live_analyzer", Context.MODE_PRIVATE)
@@ -90,16 +97,20 @@ internal object AnalyzerModeCoordinator {
                 false
             } else {
                 mode = chosen
-                LiveAnalyzerController.configureMode(context, chosen in listOf(Mode.DIRECT_48K,Mode.TEST_48K))
                 // Save a readable copy of a newly created wideband slot without touching the audio path.
                 if (chosen in listOf(Mode.DIRECT_48K, Mode.TEST_48K)) {
                     runCatching { kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
                         AnalyzerInspectionExport.exportSetups(context)
                     } }.onFailure { AnalyzerAudioTrace.write(context, "SETUP_EXPORT_FAILED", "type=${it.javaClass.simpleName}") }
                 }
-                // Both modes activate their own selected named JSON before starting the analyzer.
-                // Avoid the old DIRECT path that started from stale in-memory/legacy values.
-                AnalyzerNamedSetupStart.start(context, chosen in listOf(Mode.DIRECT_48K, Mode.TEST_48K))
+                // Rolling has an expected rolling microphone owner; prepare only after
+                // Rolling is started. Direct and test paths prepared before audio acquisition.
+                if (chosen == Mode.ROLLING_8K) {
+                    AnalyzerNamedSetupStart.prepare(context, false)
+                    AnalyzerAudioTrace.write(context, "SETUP_PREPARED", "chosen=$chosen owner=${MicCaptureArbiter.owner}")
+                }
+                val checkpoint = LiveAnalyzerController.captureStoppedAnalyzerConfigCheckpoint()
+                LiveAnalyzerController.startFromStoppedConfiguration(context, checkpoint)
                 AnalyzerAudioTrace.write(context, "BEGIN_SUCCESS", "chosen=$chosen owner=${MicCaptureArbiter.owner} rolling=${RollingAudioEngine.isRunning} direct=${AnalyzerDirectAudioService.isCapturing} subscribers=${AnalyzerSessionGateway.rawPcm.activeSubscribers}")
                 true
             }

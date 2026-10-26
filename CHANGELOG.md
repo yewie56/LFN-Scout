@@ -1,3 +1,11 @@
+## v0.5.114 – Setup vor Direkt-Mikrofonstart übernehmen
+- AnalyzerNamedSetupStart in vorbereitende STOP-Übernahme und nachgelagerten Controllerstart getrennt.
+- Direkt- und Test-Setups werden nach Freigabe des Rolling-Mikrofons, aber VOR dem Erwerb von `analyzer_48k` übernommen.
+- 8-kHz-Rolling-Setup wird weiterhin unter zulässigem Rolling-Audio-Owner übernommen.
+- Der Controller startet nach der Audioquellen-Vorbereitung aus dem verifizierten STOP-Checkpoint statt den älteren Preferences.
+- Diagnoseereignis `SETUP_PREPARED` ergänzt; keine Änderung an der benannten JSON-Persistenz.
+- Statische Regression PASS; GitHub-Android-Build und Gerätetest ausstehend.
+
 ## v0.5.113 – Kotlin-Kompilierkorrektur Analyzer-Auswahl
 - In LiveAnalyzerScreen die unzulässige nichtlokale Rückgabe bei angezeigtem Analyzer-Auswahl-Popup durch bedingtes Rendern des Analyzer-Contents ersetzt.
 - Popup-first-Konzept aus v0.5.112 bleibt erhalten; Setup- und Audiofunktionen nicht geändert.

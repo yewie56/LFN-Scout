@@ -1,3 +1,6 @@
+## Stand v0.5.114
+Quellkandidat: Startreihenfolge Direktanalyzer für Setup-Übernahme vor `analyzer_48k` korrigiert. Android-Build und Hardwaretest offen. Test v0.5.113: 8-kHz-Start nach Nutzerangabe PASS, Direktstart FAIL (Audio-Ressourcenkonflikt). Nicht als behoben behaupten, bevor Gerätetest PASS.
+
 ## v0.5.113 (Quellkandidat)
 Buildfix für v0.5.112: Kotlin-Compile-Fehler LiveAnalyzerScreen.kt Zeile 595 (`return` innerhalb Compose-Kontext) korrigiert. Noch kein erfolgreicher Android-Build bestätigt.
 

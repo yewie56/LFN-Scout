@@ -8,11 +8,10 @@ import android.content.Context
  * and its backward-looking audio buffer are neither stopped nor recreated here.
  */
 internal object AnalyzerNamedSetupStart {
-    fun start(context: Context, direct48k: Boolean) {
+    fun prepare(context: Context, direct48k: Boolean) {
         val repository = AnalyzerJsonSetupRepository(context.applicationContext)
         val activeId = repository.selectedForMode(direct48k)
         if (activeId == null) {
-            LiveAnalyzerController.start(context)
             return
         }
         check(!LiveAnalyzerController.snapshot().running) { "Analyzer muss vor Setup-Laden STOP sein" }
@@ -21,7 +20,6 @@ internal object AnalyzerNamedSetupStart {
         if (!AnalyzerModeSetupGuard.compatible(legacy, direct48k)) {
             // Preserve the incompatible JSON; use the controller's validated 8-kHz
             // preferences instead of aborting the complete audio start.
-            LiveAnalyzerController.start(context)
             return
         }
         val monitor = parameters.getJSONObject("monitor")
@@ -29,8 +27,7 @@ internal object AnalyzerNamedSetupStart {
         when (result) {
             AnalyzerSetupSwitchTransaction.Outcome.Applied,
             AnalyzerSetupSwitchTransaction.Outcome.Unchanged -> {
-                val checkpoint = LiveAnalyzerController.captureStoppedAnalyzerConfigCheckpoint()
-                LiveAnalyzerController.startFromStoppedConfiguration(context, checkpoint)
+                // Apply verified stopped draft only; the coordinator starts after audio is ready.
             }
             is AnalyzerSetupSwitchTransaction.Outcome.Rejected ->
                 error("Benanntes Analyzer-Setup konnte nicht geladen werden: ${result.reason}")
