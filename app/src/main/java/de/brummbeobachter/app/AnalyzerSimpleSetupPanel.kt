@@ -51,7 +51,7 @@ internal fun AnalyzerSimpleSetupPanel(context: Context) {
         val result = AnalyzerActiveSetupPersistence.saveOnAnalyzerExit(context)
         if (result.isFailure)
             notice = "Vorheriges Setup konnte nicht gespeichert werden: ${result.exceptionOrNull()?.message ?: "unbekannter Fehler"}"
-        return result.isSuccess
+        return result.isSuccess && result.getOrNull() != null
     }
     fun selectDraft(id: String, savedBeforeSelection: Boolean = false) {
         if (id == currentId()) {

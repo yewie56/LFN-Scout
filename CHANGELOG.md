@@ -1,3 +1,16 @@
+## v0.5.110 – MON-Setup Speichern: Fehlerkontrolle und STOP-Persistenz (Quellkandidat)
+- Fehlt das aktive benannte Setup, wird das Speichern jetzt als Fehler statt als stiller Erfolg gemeldet; kein implizites Erzeugen oder Überschreiben fremder Setups.
+- Der Haupt-STOP-Button sichert das aktive JSON-Setup vor dem Stoppen; bei Fehler bleibt die Messung unverändert und der Fehlerdialog erscheint.
+- Nach tatsächlichen JSON-Schreibvorgängen werden Analyzer- und MON-Parameter erneut von Disk gelesen und vollständig verglichen; Diagnoseereignisse SETUP_SAVE_VERIFIED/SETUP_SAVE_UNCHANGED.
+- STOP bei Setup-Panel-Übergängen bleibt unverändert; kein Eingriff in Rolling/Audio-Engine.
+- Automatisierte Android-Regressions- und Gerätetests sind noch erforderlich; insbesondere muss der reproduzierte Fehler auf einem realen Gerät erneut geprüft werden.
+
+## v0.5.109 – MON Bandwidth/BW und bedingte Shift-Anzeige (Quellkandidat)
+- MON-Anzeige in Direkt- und 8-kHz-Analyzer: BB in BW geändert; Bandbreite in sichtbarer MON-Einstellung in Bandwidth geändert.
+- Shift-Wert ausschließlich anzeigen, wenn SHIFT aktiv ist. Kein Einfluss auf gespeicherte Shift-Einstellung.
+- Bestehende Audio- und Setup-Persistenz unverändert; bekannter Persistenzfehler offen.
+- Android-Build und Smartphone-Test ausstehend.
+
 ## v0.5.108 – MON-Anzeige BB und Shift (Quellkandidat)
 - In beiden Analyzer-Betriebsarten zeigt das MON-Overlay neben Mittenfrequenz und Gain nun die aktuelle BB-Bandbreite und den eingestellten Frequenz-Shift in Hz auf einer zweiten Zeile.
 - Der aktive SHIFT-Zustand wird durch „(AN)“ gekennzeichnet; der eingestellte Shiftwert ist auch bei ausgeschaltetem Shift sichtbar.

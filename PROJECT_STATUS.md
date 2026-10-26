@@ -1,3 +1,6 @@
+## v0.5.110 (Quellkandidat)
+MON-Setup-Persistenz: fehlende Modus-Zuordnung wird als Fehler gemeldet, STOP-Button sichert vor STOP, und nach JSON-Speicherung findet ein Rücklese-Vergleich statt. Root-Cause des ursprünglichen MON-Verlusts noch nicht abschließend geräteseitig nachgewiesen. Android-Build/Regression/Gerätetest ausstehend.
+
 ## v0.5.107 – Zwischenversion / Diagnose-Layout
 - Diagnose-Texte kompakter und LF-RMS auf eigener Zeile. Keine Änderung an MON-Setup-Speicherung, Audioverarbeitung oder Systemtestlogik.
 - Android-Build und Gerätetest noch offen. Bekannter MON-Persistenzfehler weiterhin offen.

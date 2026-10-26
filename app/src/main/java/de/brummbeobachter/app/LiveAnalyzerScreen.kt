@@ -641,7 +641,7 @@ internal fun LiveAnalyzerScreen(
                 onValueChange={ monitorCenter=it.toDouble(); AnalyzerMonitor.setCenter(context,it.toDouble()) },
                 valueRange=centerMin..centerMax,
                 onValueChangeFinished={ AnalyzerMonitor.persistTouchSettings(context) })
-            Text("Bandbreite: ${monitorWidth.toInt()} Hz",color=white,fontSize=12.sp)
+            Text("Bandwidth: ${monitorWidth.toInt()} Hz",color=white,fontSize=12.sp)
             Slider(value=monitorWidth,onValueChange={ monitorWidth=it },valueRange=0.5f..maxMonitorWidth,
                 onValueChangeFinished={ AnalyzerMonitor.setBandwidth(context,monitorWidth.toDouble()); monitorCenter=AnalyzerMonitor.centerHz })
             Text("Frequenzverschiebung: +${monitorShiftHz.toInt()} Hz",color=white,fontSize=12.sp)
@@ -712,8 +712,11 @@ internal fun LiveAnalyzerScreen(
                 }
                 OutlinedButton(onClick={
                     if (state.running) {
-                        AnalyzerModeCoordinator.stopMeasurement(context)
-                        state=LiveAnalyzerController.snapshot()
+                        // Save the live named setup while MON/controller values are still present.
+                        if (persistBeforeExit()) {
+                            AnalyzerModeCoordinator.stopMeasurement(context)
+                            state=LiveAnalyzerController.snapshot()
+                        }
                     } else if (AnalyzerModeCoordinator.mode != null) {
                         modeScope.launch {
                             if (!AnalyzerModeCoordinator.restartMeasurement(context)) modeError=AnalyzerModeCoordinator.error
@@ -1216,7 +1219,8 @@ internal fun LiveAnalyzerScreen(
             }
             if(monitoring) Text(
                 "MON ${"%.0f".format(Locale.US,monitorCenter)} Hz · ${"%.0f".format(Locale.US,monitorLevel)} dB" +
-                    "\nBB ${"%.1f".format(Locale.US,AnalyzerMonitor.bandwidthHz)} Hz · Shift ${"%.0f".format(Locale.US,AnalyzerMonitor.shiftHz)} Hz${if(monitoringShift) " (AN)" else ""}",
+                    "\nBW ${"%.1f".format(Locale.US,AnalyzerMonitor.bandwidthHz)} Hz" +
+                    (if(monitoringShift) " · Shift ${"%.0f".format(Locale.US,AnalyzerMonitor.shiftHz)} Hz" else ""),
                 modifier=Modifier.align(Alignment.TopEnd).padding(end=plotRightDp + 4.dp,top=plotTopDp + 4.dp)
                     .background(Color(0xD9081016),RoundedCornerShape(4.dp)).padding(horizontal=4.dp,vertical=2.dp),
                 color=if(monitoringShift)Color(0xFFFFCF65) else cyan,fontSize=10.sp,lineHeight=12.sp)

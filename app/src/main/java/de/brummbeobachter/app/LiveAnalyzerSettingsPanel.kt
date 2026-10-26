@@ -367,7 +367,7 @@ internal fun LiveAnalyzerSettingsPanel(
                         }) { Text("Filter übernehmen") }
                         if(filterError.isNotBlank()) SettingNote(filterError)
                         SettingNote("Filterbänder: ${(state.filterMaxHz-state.filterMinHz)/state.filterBandCount} Hz nominell. " +
-                            "Filterreaktion und Ringing hängen von Bandbreite und Frequenz ab. Keine garantierte 5-ms-Onset-Genauigkeit.")
+                            "Filterreaktion und Ringing hängen von Bandwidth und Frequenz ab. Keine garantierte 5-ms-Onset-Genauigkeit.")
                         SettingNote("FILTER allein: digitale Band-RMS-Pegel (dBFS); eigene Farbskala. GEMISCHT: transienter relativer Pegelüberschuss (dB).")
                         SettingCaption("FILTER-Pegelbereich (nur Farbdarstellung): ${state.filterDisplayMinDb}…${state.filterDisplayMaxDb} dBFS")
                         var filterLowDb by remember(state.filterDisplayMinDb) { mutableStateOf(state.filterDisplayMinDb.toString()) }

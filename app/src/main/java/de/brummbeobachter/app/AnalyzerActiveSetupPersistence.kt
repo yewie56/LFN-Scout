@@ -11,7 +11,8 @@ internal object AnalyzerActiveSetupPersistence {
     fun saveOnAnalyzerExit(context: Context): Result<Boolean> = runCatching {
         val repository = AnalyzerJsonSetupRepository(context.applicationContext)
         val direct = LiveAnalyzerController.snapshot().direct48k
-        val id = repository.selectedForMode(direct) ?: return@runCatching false
+        val id = repository.selectedForMode(direct)
+            ?: error("Kein aktives benanntes JSON-Setup für ${if (direct) "Direktanalyzer" else "8-kHz-Analyzer"} zugeordnet")
         val oldLegacy = repository.load(id).getJSONObject("parameters").getJSONObject("legacy")
         check(AnalyzerModeSetupGuard.compatible(oldLegacy, direct)) {
             "Automatisches Speichern verhindert: Inkompatibles Setup " +
@@ -26,12 +27,23 @@ internal object AnalyzerActiveSetupPersistence {
         if (previousAnalyzer != null && previousMonitor != null &&
             previousAnalyzer.toString() == analyzer.toString() &&
             previousMonitor.toString() == monitor.toString()) {
+            AnalyzerAudioTrace.write(context, "SETUP_SAVE_UNCHANGED", "mode=${if (direct) "DIRECT" else "8K"} id=$id")
             return@runCatching false // No changes: avoid unnecessary flash writes.
         }
         groups.put("legacy", analyzer)
         groups.put("monitor", monitor)
         doc.put("parameters", groups)
         repository.save(doc) // AtomicFile write; never truncate the old copy on failure.
+        // Read back from disk; comparing with the live MON state catches silent loss.
+        val saved = repository.load(id).getJSONObject("parameters")
+        check(AnalyzerSetupExactComparison.sameComplete(analyzer, saved.getJSONObject("legacy"))) {
+            "Analyzer-Werte nach Speichern nicht identisch"
+        }
+        check(AnalyzerSetupExactComparison.sameComplete(monitor, saved.getJSONObject("monitor"))) {
+            "MON-Werte nach Speichern nicht identisch"
+        }
+        AnalyzerAudioTrace.write(context, "SETUP_SAVE_VERIFIED",
+            "mode=${if (direct) "DIRECT" else "8K"} id=$id max_gain=${monitor.optDouble("max_gain")} level=${monitor.optDouble("level")}")
         true
     }
 }

@@ -411,3 +411,7 @@ Die Kennzeichnung **R01–R07, O01–O08 und A01–A05** können wir künftig al
 ## 25.10.2026 – v0.5.104 MON-Gain-Swipe (Quellkandidat)
 - Beide Analyzer: Drag auf der linken MON-Gain-Leiste im Spektrum regelt denselben Gain wie der Wasserfall; vertikaler dB-Maßstab auf die Wasserfallhöhe normiert.
 - Zusätzlicher JUnit-Test vorhanden; Android-Build und Gerätetest stehen aus. Kein Eingriff in MON-Audiopipeline, Setups oder GitHub-Workflow.
+
+### v0.5.110 – Fortbestehende Nachweise
+- MON-Setup-Speicherverlust: STOP-/Verlassen-/Setupwechsel-Pfade mit realen Gerätetests und exportierter Diagnose verifizieren; v0.5.110 fügt Fehlerkontrolle und Rücklesevergleich hinzu, behebt aber nicht nachweislich alle Ursachen.
+- Vollständiger ZIP-freier Setup-Export/-Import beider Analyzer einschließlich LastUsed (Zusammenführen, Vorab-Backup, transaktionsähnlich) ist weiterhin ausstehend.
