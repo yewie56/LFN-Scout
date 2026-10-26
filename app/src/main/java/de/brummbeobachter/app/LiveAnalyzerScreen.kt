@@ -648,7 +648,16 @@ internal fun LiveAnalyzerScreen(
             Slider(value=monitorShiftHz,onValueChange={ monitorShiftHz=it },valueRange=20f..400f,
                 onValueChangeFinished={ AnalyzerMonitor.setShift(context,monitorShiftHz.toDouble()) })
             Text("Ausgangsdynamik · nur Mithörzweig",color=cyan,fontSize=14.sp)
-            Text("Mithör-Gain: −60 bis +140 dB · per Wasserfall-Swipe",color=white,fontSize=12.sp)
+            var maxMonGain by remember { mutableStateOf(AnalyzerMonitor.maxGainDb.toFloat()) }
+            LaunchedEffect(settingsSection) { maxMonGain=AnalyzerMonitor.maxGainDb.toFloat() }
+            Text("Maximale MON-Verstärkung: +${maxMonGain.toInt()} dB",color=white,fontSize=12.sp)
+            Slider(value=maxMonGain.coerceIn(0f,200f), onValueChange={
+                maxMonGain=it
+                AnalyzerMonitor.setMaxGain(context,it.toDouble())
+                monitorLevel=AnalyzerMonitor.levelDb
+            }, valueRange=0f..200f,
+                onValueChangeFinished={AnalyzerMonitor.persistTouchSettings(context)})
+            Text("Mithör-Gain: −60 bis +${maxMonGain.toInt()} dB · Swipe im Wasserfall oder auf MON-Anzeige",color=white,fontSize=12.sp)
             var compOn by remember { mutableStateOf(AnalyzerMonitor.compressorEnabled) }
             var limitOn by remember { mutableStateOf(AnalyzerMonitor.limiterEnabled) }
             Text("KOMPRESSOR · Dynamikregelung",color=cyan,fontSize=15.sp,fontWeight=FontWeight.Bold)
@@ -837,7 +846,7 @@ internal fun LiveAnalyzerScreen(
                     onDrag = { change, delta ->
                         if (draggingMonGain) {
                             AnalyzerMonitor.setLevel(context, MonGainSwipe.nextLevel(
-                                AnalyzerMonitor.levelDb, delta.y.toDouble(), waterfallHeight.toPx().toDouble()))
+                                AnalyzerMonitor.levelDb, delta.y.toDouble(), waterfallHeight.toPx().toDouble(), AnalyzerMonitor.maxGainDb))
                             monitorLevel = AnalyzerMonitor.levelDb
                             change.consume()
                         } else {
@@ -876,7 +885,7 @@ internal fun LiveAnalyzerScreen(
                     val gainL=3.dp.toPx(); val gainR=20.dp.toPx()
                     val meterL=24.dp.toPx();val meterR=30.dp.toPx()
                     drawRect(Color(0xFF213445),Offset(gainL,top),Size(gainR-gainL,plotH))
-                    val gainFrac=((monitorLevel+60)/200).coerceIn(0.0,1.0).toFloat()
+                    val gainFrac=((monitorLevel+60)/(AnalyzerMonitor.maxGainDb+60)).coerceIn(0.0,1.0).toFloat()
                     drawRect(cyan.copy(alpha=0.8f),Offset(gainL,bottom-plotH*gainFrac),Size(gainR-gainL,plotH*gainFrac))
                     // Three separate 90° counterclockwise labels, clipped INSIDE the gain bar.
                     // For rotated text, glyph height (font bounds) determines horizontal fit.
@@ -892,7 +901,7 @@ internal fun LiveAnalyzerScreen(
                     }
                     val gainX=(gainL+gainR)/2f
                     val labels=listOf(
-                        "+140 dB",
+                        "+${AnalyzerMonitor.maxGainDb.toInt()} dB",
                         "${"%.0f".format(Locale.US,monitorLevel)} dB",
                         "−60 dB"
                     )
@@ -1083,7 +1092,7 @@ internal fun LiveAnalyzerScreen(
                         monitorCenter=AnalyzerMonitor.centerHz
                     } else {
                         AnalyzerMonitor.setLevel(context, MonGainSwipe.nextLevel(
-                            AnalyzerMonitor.levelDb, delta.y.toDouble(), size.height.toDouble()))
+                            AnalyzerMonitor.levelDb, delta.y.toDouble(), size.height.toDouble(), AnalyzerMonitor.maxGainDb))
                         monitorLevel=AnalyzerMonitor.levelDb
                     }
                     change.consume()

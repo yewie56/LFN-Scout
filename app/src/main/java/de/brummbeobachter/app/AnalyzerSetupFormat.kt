@@ -37,7 +37,7 @@ internal object AnalyzerSetupFormat {
     )
     private val stringFields = allowedLegacy - integerFields - floatFields - booleanFields
     private val monitorNumbers = setOf(
-        "center", "level", "width", "shift", "comp_thr", "comp_ratio",
+        "center", "level", "max_gain", "width", "shift", "comp_thr", "comp_ratio",
         "comp_attack", "comp_release", "comp_knee", "comp_makeup",
         "limit_ceiling", "limit_attack", "limit_release", "fade"
     )

@@ -13,6 +13,9 @@ import kotlin.math.*
 internal object AnalyzerMonitor {
     private const val PREFS = "lfn_analyzer_monitor_049"
     private const val OUTPUT_RATE = 48000
+    const val DEFAULT_MAX_GAIN_DB = 160.0
+    const val MIN_GAIN_DB = -60.0
+    const val MAX_CONFIGURABLE_GAIN_DB = 200.0
     private const val MON_MAX_HZ = 48000.0 // setup validation ceiling; live selection comes from the analyzer range
     private var rangeMinHz = 0.0
     private var rangeMaxHz = 4000.0
@@ -37,6 +40,7 @@ internal object AnalyzerMonitor {
 
     @Volatile var centerHz = 20.0; private set
     @Volatile var levelDb = -24.0; private set
+    @Volatile var maxGainDb = DEFAULT_MAX_GAIN_DB; private set
     @Volatile var bandwidthHz = 12.0; private set
     /** Desired width survives edge squeezing and subsequent drag gestures. */
     @Volatile var gestureTargetWidthHz = 12.0; private set
@@ -85,7 +89,7 @@ internal object AnalyzerMonitor {
     /** Read current effective MON values, without changing storage or runtime. */
     fun snapshotSetupParameters(): JSONObject = synchronized(lock) {
         JSONObject().put("center", centerHz).put("level", levelDb)
-            .put("width", bandwidthHz).put("shift", shiftHz)
+            .put("width", bandwidthHz).put("shift", shiftHz).put("max_gain", maxGainDb)
             .put("comp_on", compressorEnabled).put("comp_thr", compressorThresholdDb)
             .put("comp_ratio", compressorRatio).put("comp_attack", compressorAttackMs)
             .put("comp_release", compressorReleaseMs).put("comp_knee", compressorKneeDb)
@@ -98,14 +102,16 @@ internal object AnalyzerMonitor {
     fun applySetupDraft(values: JSONObject) = synchronized(lock) {
         val copy = JSONObject(values.toString())
         AnalyzerSetupFormat.validate(JSONObject().put("monitor", copy))
+        // Earlier named setups do not contain this field. Upgrade in memory without losing settings.
+        if (!copy.has("max_gain")) copy.put("max_gain", DEFAULT_MAX_GAIN_DB)
         val expected = setOf("center", "level", "width", "shift", "comp_on", "comp_thr",
             "comp_ratio", "comp_attack", "comp_release", "comp_knee", "comp_makeup",
-            "limit_on", "limit_ceiling", "limit_attack", "limit_release", "fade")
+            "limit_on", "limit_ceiling", "limit_attack", "limit_release", "fade", "max_gain")
         require(copy.length() == expected.size && expected.all { copy.has(it) && !copy.isNull(it) }) {
             "MON setup draft is incomplete; legacy values would otherwise leak into the selected setup"
         }
         // Validate numeric ranges before mutating any runtime field.
-        val limits = mapOf("center" to (0.0..MON_MAX_HZ), "level" to (-60.0..140.0),
+        val limits = mapOf("center" to (0.0..MON_MAX_HZ), "level" to (MIN_GAIN_DB..MAX_CONFIGURABLE_GAIN_DB), "max_gain" to (0.0..MAX_CONFIGURABLE_GAIN_DB),
             "width" to (0.5..MON_MAX_HZ), "shift" to (20.0..400.0),
             "comp_thr" to (-60.0..0.0), "comp_ratio" to (1.0..20.0),
             "comp_attack" to (1.0..200.0), "comp_release" to (20.0..2000.0),
@@ -113,7 +119,8 @@ internal object AnalyzerMonitor {
             "limit_ceiling" to (-30.0..-1.0), "limit_attack" to (0.1..20.0),
             "limit_release" to (10.0..1000.0), "fade" to (0.2..5.0))
         for ((key, range) in limits) require(copy.getDouble(key) in range) { "MON parameter out of range: $key" }
-        centerHz=copy.getDouble("center");levelDb=copy.getDouble("level")
+        require(copy.getDouble("level") <= copy.getDouble("max_gain")) { "MON gain exceeds setup maximum" }
+        centerHz=copy.getDouble("center");maxGainDb=copy.getDouble("max_gain");levelDb=copy.getDouble("level")
         bandwidthHz=copy.getDouble("width");gestureTargetWidthHz=bandwidthHz;shiftHz=copy.getDouble("shift")
         compressorEnabled=copy.getBoolean("comp_on");compressorThresholdDb=copy.getDouble("comp_thr")
         compressorRatio=copy.getDouble("comp_ratio");compressorAttackMs=copy.getDouble("comp_attack")
@@ -169,7 +176,8 @@ internal object AnalyzerMonitor {
         if (setupDraftActive) return@synchronized
         val p = context.getSharedPreferences(PREFS,Context.MODE_PRIVATE)
         centerHz=p.getFloat("center",20f).toDouble().coerceIn(0.0,MON_MAX_HZ)
-        levelDb=p.getFloat("level",-24f).toDouble().coerceIn(-60.0,140.0)
+        maxGainDb=p.getFloat("max_gain", DEFAULT_MAX_GAIN_DB.toFloat()).toDouble().coerceIn(0.0,MAX_CONFIGURABLE_GAIN_DB)
+        levelDb=p.getFloat("level",-24f).toDouble().coerceIn(MIN_GAIN_DB,maxGainDb)
         bandwidthHz=p.getFloat("width",12f).toDouble().coerceIn(0.5,MON_MAX_HZ)
         gestureTargetWidthHz=p.getFloat("gesture_target_width",bandwidthHz.toFloat()).toDouble().coerceIn(bandwidthHz,MON_MAX_HZ)
         shiftHz=p.getFloat("shift",100f).toDouble().coerceIn(20.0,400.0)
@@ -225,7 +233,13 @@ internal object AnalyzerMonitor {
         initialized = false
     }
     fun setLevel(context:Context,db:Double) {
-        levelDb=db.coerceIn(-60.0,140.0)
+        if (db.isFinite()) levelDb=db.coerceIn(MIN_GAIN_DB,maxGainDb)
+    }
+    fun setMaxGain(context:Context,db:Double)=synchronized(lock) {
+        if (!db.isFinite()) return@synchronized
+        maxGainDb=db.coerceIn(0.0,MAX_CONFIGURABLE_GAIN_DB)
+        levelDb=levelDb.coerceIn(MIN_GAIN_DB,maxGainDb)
+        persistIfLegacy(context)
     }
     /** Persist once on touch release; never perform SharedPreferences I/O per move event. */
     fun persistTouchSettings(context:Context) = synchronized(lock) { persistIfLegacy(context) }
@@ -256,7 +270,7 @@ internal object AnalyzerMonitor {
     }
     private fun save(context: Context) {
         context.getSharedPreferences(PREFS,Context.MODE_PRIVATE).edit()
-            .putFloat("center",centerHz.toFloat()).putFloat("level",levelDb.toFloat())
+            .putFloat("center",centerHz.toFloat()).putFloat("level",levelDb.toFloat()).putFloat("max_gain",maxGainDb.toFloat())
             .putFloat("width",bandwidthHz.toFloat()).putFloat("gesture_target_width",gestureTargetWidthHz.toFloat()).putFloat("shift",shiftHz.toFloat())
             .putBoolean("comp_on",compressorEnabled).putFloat("comp_thr",compressorThresholdDb.toFloat())
             .putFloat("comp_ratio",compressorRatio.toFloat()).putFloat("comp_attack",compressorAttackMs.toFloat())

@@ -18,11 +18,13 @@ class MonGainSwipeTest {
         assertEquals(-15.0, MonGainSwipe.nextLevel(start, delta, height), 1e-9)
     }
     @Test fun limitsAreEnforced() {
-        assertEquals(140.0, MonGainSwipe.nextLevel(130.0, -300.0, 600.0), 0.0)
+        assertEquals(160.0, MonGainSwipe.nextLevel(130.0, -300.0, 600.0), 0.0)
         assertEquals(-60.0, MonGainSwipe.nextLevel(-55.0, 300.0, 600.0), 0.0)
     }
     @Test fun upperLimitIsReachable() {
-        assertEquals(140.0, MonGainSwipe.nextLevel(120.0, -100.0, 600.0), 0.0)
+        assertEquals(150.0, MonGainSwipe.nextLevel(120.0, -100.0, 600.0), 0.0)
+        assertEquals(160.0, MonGainSwipe.nextLevel(130.0, -100.0, 600.0), 0.0)
+        assertEquals(90.0, MonGainSwipe.nextLevel(80.0, -100.0, 600.0, 90.0), 0.0)
     }
     @Test fun invalidHeightDoesNotChangeGain() {
         assertEquals(-24.0, MonGainSwipe.nextLevel(-24.0, 10.0, 0.0), 0.0)

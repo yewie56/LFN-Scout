@@ -1,3 +1,10 @@
+## v0.5.106 – Einstellbare maximale MON-Verstärkung (Quellkandidat)
+- Ein gemeinsamer Parameter `max_gain` im benannten MON-JSON-Setup, Standard +160 dB; Einstellbereich für die Obergrenze 0 bis +200 dB, Untergrenze −60 dB unverändert.
+- MON & Audio zeigt den Regler in beiden Analyzern; MON-Swipe im Wasserfall und am Pegelbalken sowie MON-Audiogain nutzen dieselbe Obergrenze.
+- Frühere MON-Setups ohne `max_gain` werden beim Laden inhaltlich auf den neuen Standard +160 dB ergänzt; bei erneuter Speicherung wird der Parameter mitgespeichert.
+- EQ-Einzelband-Gains bleiben eigenständig und unverändert.
+- Android-Build und Gerätetest ausstehend.
+
 ## v0.5.105 – MON-Gain −60 bis +140 dB (Quellkandidat)
 - Gemeinsamer MON-Lautstärkepegel in 8-kHz- und Direktanalyzer: Obergrenze +140 statt +120 dB.
 - Grenzvalidierung, Persistenz-Ladebegrenzung, Wasserfall-/Balken-Swipe und Skalenbeschriftung angepasst.
