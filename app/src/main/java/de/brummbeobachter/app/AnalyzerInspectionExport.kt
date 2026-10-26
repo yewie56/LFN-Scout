@@ -53,7 +53,8 @@ internal object AnalyzerInspectionExport {
         "filter_bands" to "filterBank", "filter_display_min" to "filterBank",
         "filter_display_max" to "filterBank", "filter_auto_duration" to "filterBank",
         "filter_auto_margin" to "filterBank", "filter_show_original" to "filterBank",
-        "filter_show_filter" to "filterBank",
+        "filter_show_filter" to "filterBank", "filter_impulse_mode" to "filterBank",
+        "filter_impulse_threshold" to "filterBank",
         "autorange_duration" to "automations", "autorange_margin" to "automations",
         "auto" to "automations", "image_format" to "automations", "jpg_quality" to "automations"
     )

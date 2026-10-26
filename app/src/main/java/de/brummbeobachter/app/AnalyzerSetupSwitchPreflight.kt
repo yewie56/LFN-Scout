@@ -10,7 +10,8 @@ internal object AnalyzerSetupSwitchPreflight {
     private val displayOnly = setOf(
         "display_min", "display_max", "autorange_duration", "autorange_margin",
         "current", "average", "max_hold", "floor", "filter_display_min",
-        "filter_display_max", "filter_auto_duration", "filter_auto_margin"
+        "filter_display_max", "filter_auto_duration", "filter_auto_margin",
+        "filter_impulse_mode", "filter_impulse_threshold"
     )
     private val requiresStop = setOf(
         "direct_sample_rate", "direct_audio_source", "decimation_factor", "fft_size",

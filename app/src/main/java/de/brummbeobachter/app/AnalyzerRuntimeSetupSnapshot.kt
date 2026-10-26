@@ -53,6 +53,10 @@ internal object AnalyzerRuntimeSetupSnapshot {
         put("filter_auto_margin", state.filterAutoRangeMarginDb)
         put("filter_show_original", state.showOriginalWaterfall)
         put("filter_show_filter", state.showFilterWaterfall)
+        if (!state.direct48k) {
+            put("filter_impulse_mode", state.impulseMode)
+            put("filter_impulse_threshold", state.impulseThresholdDb)
+        }
         put("autorange_duration", state.autoRangeDurationSec)
         put("autorange_margin", state.autoRangeMarginDb)
         put("auto", state.autoSave)

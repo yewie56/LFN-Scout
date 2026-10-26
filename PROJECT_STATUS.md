@@ -1,3 +1,15 @@
+## v0.5.119 – Quellkandidat, Build offen
+
+- Extension-Leiste zehn Plätze (seit v0.5.118), 1 Supabase-Test; 2 NOISE mit unverändertem Kurz-/Langdruck; 3 Diag mit Originaldiagnose; 4–10 frei.
+- Die frei gewordenen NOISE/DIAG-Hauptleistenplätze im 8-kHz-Analyzer sind ALGO (RMS/IMP) und IMP SET (Exzess-Schwelle 0–20 dB).
+- Direktanalyzer ohne Filterwasserfallbutton, ALGO und IMP SET. Kein neuer Filterparameter im Direkt-Setup.
+- RMS-DSP unverändert. IMP verwendet den bereits vorhandenen Exzesskanal der Filterbank (FAST-SLOW/relativ zum Hintergrund), abzüglich einstellbarer Schwelle. Es handelt sich noch nicht um einen zusätzlichen unabhängig validierten Impulsdetektor. Bewusst keine 50-dB-PCM-Verstärkung.
+- Benannte 8-kHz-JSON-Setups können beide neuen Felder optional speichern; alte JSON ohne die Felder bleiben gültig und erhalten Defaults; direkte Setups enthalten sie nicht.
+- Android-GitHub-Build und Gerätetest OFFEN.
+
+## v0.5.118 (Quellkandidat; Build offen)
+Extension-Popup: 10 Plätze scrollbar, 1 belegt, 2–10 unbesetzt; Umzug NOISE/Diag und Impuls-ALGO noch offen.
+
 ## 2026-10-26 – v0.5.117 Quellkandidat
 Filterbutton-Zyklus AUS → VIOLETT → GRÜN → AUS; Android-Build und Geräteprüfung offen. v0.5.116 Filter-Synchronisierung vorläufig erfolgreich, Diagnose-ZIP ausstehend. Setup-Import/Export zurückgestellt.
 

@@ -14,7 +14,7 @@ internal object AnalyzerSetupFormat {
         "display_max", "history_seconds", "water_interval", "water_mode", "stat_min", "stat_max",
         "stat_window", "stat_average", "filter_min_hz", "filter_max_hz", "filter_bands",
         "filter_display_min", "filter_display_max", "filter_auto_duration", "filter_auto_margin",
-        "filter_show_original", "filter_show_filter", "autorange_duration", "autorange_margin",
+        "filter_show_original", "filter_show_filter", "filter_impulse_mode", "filter_impulse_threshold", "autorange_duration", "autorange_margin",
         "auto", "image_format", "jpg_quality"
     )
     fun isLegacyField(field: String): Boolean = field in allowedLegacy
@@ -24,7 +24,7 @@ internal object AnalyzerSetupFormat {
         "direct_sample_rate", "gain", "display_min", "display_max", "history_seconds",
         "water_interval", "stat_min", "stat_max", "stat_window", "filter_min_hz", "filter_max_hz",
         "filter_bands", "filter_display_min", "filter_display_max", "filter_auto_duration",
-        "filter_auto_margin", "autorange_duration", "autorange_margin", "jpg_quality"
+        "filter_auto_margin", "filter_impulse_threshold", "autorange_duration", "autorange_margin", "jpg_quality"
     )
     private val floatFields = setOf(
 "smoothing_time", "direct_smoothing_alpha", "direct_test1_hz",
@@ -33,7 +33,7 @@ internal object AnalyzerSetupFormat {
     private val booleanFields = setOf(
 "smoothing_enabled", "direct_time_smoothing", "current",
         "average", "floor", "max_hold", "direct_stay_awake", "direct_subtract_dc",
-        "direct_test1_on", "direct_test2_on", "filter_show_original", "filter_show_filter", "auto"
+        "direct_test1_on", "direct_test2_on", "filter_show_original", "filter_show_filter", "filter_impulse_mode", "auto"
     )
     private val stringFields = allowedLegacy - integerFields - floatFields - booleanFields
     private val monitorNumbers = setOf(

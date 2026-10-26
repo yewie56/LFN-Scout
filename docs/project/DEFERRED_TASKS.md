@@ -1,3 +1,8 @@
+## v0.5.119 – noch zu validieren
+- Extension 1/2/3 und 10er-Scroll, NOISE Langdruck, Diag, ALGO RMS/IMP nur bei 8 kHz, JSON-Wiederladen und Export testen.
+- Echte neue DSP-Impulserkennung mit konfigurierbaren FAST/SLOW-Zeitkonstanten und Ringing-Unterdrückung bleibt als weitergehende Aufgabe offen; v0.5.119 nutzt bestehenden Exzesskanal der Filterbank.
+- LFN-SETUP-REWORK-01 bleibt zurückgestellt.
+
 
 ## LFN-FILTER-01 (hoch, in Bearbeitung, v0.5.116)
 Schwarze Querbalken im Filterwasserfall bei 40 Bändern/100 ms trotz durchlaufender 8-kHz-PCM-Zählung. v0.5.115-Diagnose: ~4 Callbacks/s, ~61 % leere 100-ms-Zeilen. v0.5.116 Quellkandidat: Filter/FFT in 50-ms-Teilschritten verschachtelt, Regression gegen fehlende Filter-Callbacks hinzugefügt. Android-Gerätetest offen. Echte Aussetzer weiter nicht künstlich auffüllen.
@@ -421,3 +426,7 @@ Die Kennzeichnung **R01–R07, O01–O08 und A01–A05** können wir künftig al
 ### v0.5.110 – Fortbestehende Nachweise
 - MON-Setup-Speicherverlust: STOP-/Verlassen-/Setupwechsel-Pfade mit realen Gerätetests und exportierter Diagnose verifizieren; v0.5.110 fügt Fehlerkontrolle und Rücklesevergleich hinzu, behebt aber nicht nachweislich alle Ursachen.
 - Vollständiger ZIP-freier Setup-Export/-Import beider Analyzer einschließlich LastUsed (Zusammenführen, Vorab-Backup, transaktionsähnlich) ist weiterhin ausstehend.
+
+
+## LFN-EXT-01 (Stand v0.5.118)
+Extension-Leiste von fünf auf zehn scrollbar erreichbare Positionen erweitert. Slot 1 bisheriger Supabase-Test. Vorgesehene, NICHT implementierte Umlegung: Slot 2 NOISE (gleiche Darstellung/Bedienung inklusive Langdruck), Slot 3 Diag. Andere Plätze 4–10 reserviert. Geplanter ALGO RMS/IMPULS-Umschalter separat; RMS unverändert bewahren.

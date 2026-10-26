@@ -28,10 +28,13 @@ internal object FilterWaterfallRenderer {
     }
     fun colorAt(hz: Double, base: Int, db: DoubleArray?, excess: DoubleArray?,
                 original: Boolean, filter: Boolean, minHz: Double, maxHz: Double,
-                minDb: Int, maxDb: Int, filterMinDb: Int, filterMaxDb: Int, green: Boolean = false): Int {
+                minDb: Int, maxDb: Int, filterMinDb: Int, filterMaxDb: Int, green: Boolean = false,
+                impulseMode: Boolean = false, impulseThresholdDb: Int = 3): Int {
         if(!filter || db==null || excess==null) return if(original)base else Color.rgb(19,12,41)
         val b=bandIndex(hz,minHz,maxHz,db.size) ?: return if(original)base else Color.rgb(19,12,41)
-        if(!original) return filterColor(db[b],filterMinDb,filterMaxDb,green)
+        if(!original) return if(impulseMode)
+            filterColor(FilterImpulseExcessPolicy.displayExcess(excess[b],impulseThresholdDb),0,20,green)
+            else filterColor(db[b],filterMinDb,filterMaxDb,green)
         // Show only transients above the slow adaptive baseline; preserve stable thin SLOW lines.
         val alpha=((excess[b]-3.0)/15.0).coerceIn(0.0,0.85)
         return blend(base,filterColor(db[b],filterMinDb,filterMaxDb,green),alpha)

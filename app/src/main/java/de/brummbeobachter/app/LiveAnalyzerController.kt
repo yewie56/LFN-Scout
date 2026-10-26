@@ -72,6 +72,7 @@ internal object LiveAnalyzerController {
         val directInputRateHz: Int, val directSmoothingAlpha: Double, val directPeakMarkers: Int,
         val directSubtractDc: Boolean, val directStayAwake: Boolean,
         val showOriginalWaterfall: Boolean, val showFilterWaterfall: Boolean, val filterPaletteGreen: Boolean,
+        val impulseMode: Boolean, val impulseThresholdDb: Int,
         val filterMinHz: Double, val filterMaxHz: Double, val filterBandCount: Int,
         val filterRowsDbFs: List<DoubleArray?>, val filterRowsExcessDb: List<DoubleArray?>,
         val filterDisplayMinDb: Int, val filterDisplayMaxDb: Int,
@@ -96,6 +97,8 @@ internal object LiveAnalyzerController {
     private var showOriginalWaterfall = true
     private var showFilterWaterfall = false
     private var filterPaletteGreen = false
+    private var impulseMode = false
+    private var impulseThresholdDb = 3
     private var filterMinHz = 0.0
     private var filterMaxHz = 100.0
     private var filterBandCount = 10
@@ -125,7 +128,8 @@ internal object LiveAnalyzerController {
         "direct_subtract_dc", "direct_stay_awake", "direct_test1_on", "direct_test2_on",
         "direct_test1_hz", "direct_test2_hz", "direct_time_smoothing",
         "filter_min_hz", "filter_max_hz", "filter_bands", "filter_show_original", "filter_show_filter",
-        "filter_display_min_db", "filter_display_max_db", "filter_autorange_duration_sec", "filter_autorange_margin_db")
+        "filter_display_min_db", "filter_display_max_db", "filter_autorange_duration_sec", "filter_autorange_margin_db",
+        "filter_impulse_mode", "filter_impulse_threshold")
 
     /** 48-kHz parameters have a separate persisted copy, never overwrite LF setup slots 1–3. */
     fun configureMode(context: Context, wide: Boolean) {
@@ -509,6 +513,8 @@ internal object LiveAnalyzerController {
                 showOriginalWaterfall=prefs.getBoolean("filter_show_original",true)
                 showFilterWaterfall=prefs.getBoolean("filter_show_filter",false)
                 filterPaletteGreen=prefs.getBoolean("filter_palette_green",false) && showFilterWaterfall
+                impulseMode=prefs.getBoolean("filter_impulse_mode",false)
+                impulseThresholdDb=prefs.getInt("filter_impulse_threshold",3).coerceIn(0,20)
                 filterDisplayMinDb = prefs.getInt("filter_display_min_db",-120)
                 filterDisplayMaxDb = prefs.getInt("filter_display_max_db",-60)
                 if (!isValidDisplayRange(filterDisplayMinDb, filterDisplayMaxDb)) {
@@ -923,6 +929,22 @@ internal object LiveAnalyzerController {
         }
     }
 
+    /** Separate 8-kHz-only display algorithm selection; original filter RMS remains intact. */
+    fun setImpulseMode(context: Context, enabled: Boolean) = synchronized(lock) {
+        if (direct48k) return@synchronized
+        impulseMode=enabled
+        context.getSharedPreferences("lfn_scout_live_analyzer",Context.MODE_PRIVATE).edit()
+            .putBoolean("filter_impulse_mode",enabled).apply()
+        waterfallRevision++
+    }
+    fun setImpulseThreshold(context: Context, threshold: Int) = synchronized(lock) {
+        if (direct48k) return@synchronized
+        impulseThresholdDb=threshold.coerceIn(0,20)
+        context.getSharedPreferences("lfn_scout_live_analyzer",Context.MODE_PRIVATE).edit()
+            .putInt("filter_impulse_threshold",impulseThresholdDb).apply()
+        waterfallRevision++
+    }
+
     /** Filter button: OFF -> VIOLET -> GREEN -> OFF. No audio/DSP restart. */
     fun cycleFilterPalette(context: Context) {
         synchronized(lock) {
@@ -1325,7 +1347,9 @@ internal object LiveAnalyzerController {
             AnalyzerModeCoordinator.mode in listOf(AnalyzerModeCoordinator.Mode.TEST_8K,AnalyzerModeCoordinator.Mode.TEST_48K),
             manualSaveEvent, manualSaveMessage,
             directInputRateHz, directSmoothingAlpha, directPeakMarkers, directSubtractDc, directStayAwake,
-            showOriginalWaterfall, showFilterWaterfall, filterPaletteGreen, filterMinHz, filterMaxHz, filterBandCount,
+            showOriginalWaterfall, showFilterWaterfall, filterPaletteGreen,
+            if(direct48k) false else impulseMode, if(direct48k) 3 else impulseThresholdDb,
+            filterMinHz, filterMaxHz, filterBandCount,
             filterHistory.map { it.absoluteDbFs.takeIf { a -> a.isNotEmpty() }?.copyOf() }, filterHistory.map { it.excessDb.takeIf { a -> a.isNotEmpty() }?.copyOf() },
             filterDisplayMinDb,filterDisplayMaxDb,filterAutoRange!=null,
             if(filterAutoRange==null) 0f else ((System.nanoTime()-filterAutoRangeStartNs).toDouble() /
@@ -1375,6 +1399,8 @@ internal object LiveAnalyzerController {
         val fmax = draft.getDouble("filter_max_hz")
         val fbands = draft.getInt("filter_bands")
         if (!direct48k) FastFilterBank.Config(fmin, fmax, fbands)
+        if (draft.has("filter_impulse_mode")) require(!direct48k && draft.get("filter_impulse_mode") is Boolean)
+        if (draft.has("filter_impulse_threshold")) require(!direct48k && draft.getInt("filter_impulse_threshold") in 0..20)
         val displayMin = draft.getInt("display_min")
         val displayMax = draft.getInt("display_max")
         require(isValidDisplayRange(displayMin, displayMax))
@@ -1407,6 +1433,10 @@ internal object LiveAnalyzerController {
         filterAutoRangeMarginDb = draft.getInt("filter_auto_margin")
         showOriginalWaterfall = draft.getBoolean("filter_show_original")
         showFilterWaterfall = draft.getBoolean("filter_show_filter")
+        if (!direct48k) {
+            impulseMode = draft.optBoolean("filter_impulse_mode",false)
+            impulseThresholdDb = draft.optInt("filter_impulse_threshold",3).coerceIn(0,20)
+        }
         if (!showFilterWaterfall) filterPaletteGreen = false
         autoRangeDurationSec = draft.getInt("autorange_duration")
         autoRangeMarginDb = draft.getInt("autorange_margin")
@@ -1643,7 +1673,8 @@ internal object LiveAnalyzerController {
                         color(row[bin],s.minDisplayDb,s.maxDisplayDb),filterFirst.getOrNull(age),excessFirst.getOrNull(age),
                         s.direct48k || s.showOriginalWaterfall,!s.direct48k && s.showFilterWaterfall,
                         s.filterMinHz,s.filterMaxHz,s.minDisplayDb,s.maxDisplayDb,
-                        s.filterDisplayMinDb,s.filterDisplayMaxDb,s.filterPaletteGreen)
+                        s.filterDisplayMinDb,s.filterDisplayMaxDb,s.filterPaletteGreen,
+                        s.impulseMode,s.impulseThresholdDb)
                 }
             }
             val bitmap=Bitmap.createBitmap(pixel,width,height,Bitmap.Config.ARGB_8888)
@@ -1718,6 +1749,7 @@ internal object LiveAnalyzerController {
             val filterLabel = when {
                 s.showOriginalWaterfall && s.filterPaletteGreen -> "FILTER ΔdB (3…18): Grün-Overlay"
                 s.showOriginalWaterfall -> "FILTER ΔdB (3…18): Magenta-Overlay"
+                s.impulseMode -> "FILTER: EXCESS dB (Schwelle ${s.impulseThresholdDb} dB)"
                 s.filterPaletteGreen -> "FILTER: dBFS (Grün–Weiß)"
                 else -> "FILTER: dBFS (Magenta–Weiß)"
             }

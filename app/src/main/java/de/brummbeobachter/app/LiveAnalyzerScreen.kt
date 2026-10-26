@@ -192,6 +192,8 @@ internal fun LiveAnalyzerScreen(
     var chosenInputId by remember { mutableStateOf(-1) }
     var monitoring by remember { mutableStateOf(false) }
     var multiOpen by remember { mutableStateOf(false) }
+    var diagnosticOpen by remember { mutableStateOf(false) }
+    var impulseSettingsOpen by remember { mutableStateOf(false) }
     var keyTestOpen by remember { mutableStateOf(false) }
     var keyTestBusy by remember { mutableStateOf(false) }
     var keyTestResult by remember { mutableStateOf("Noch kein Test durchgeführt") }
@@ -1047,12 +1049,13 @@ internal fun LiveAnalyzerScreen(
         }
         // Waterfall is directly below the spectrum; tapping it toggles expanded mode.
         val waterfall=remember(state.waterfallRevision,state.rangeHz,state.minFrequencyHz,
-            state.minDisplayDb,state.maxDisplayDb,state.filterDisplayMinDb,state.filterDisplayMaxDb){
+            state.minDisplayDb,state.maxDisplayDb,state.filterDisplayMinDb,state.filterDisplayMaxDb,
+            state.impulseMode,state.impulseThresholdDb){
             makeWaterfall(state.rows,state.waterfallFrequencyHz,state.minFrequencyHz,state.rangeHz,state.historyCapacity,
                 state.minDisplayDb,state.maxDisplayDb,state.filterDisplayMinDb,state.filterDisplayMaxDb,
                 state.filterRowsDbFs,state.filterRowsExcessDb,
                 state.direct48k || state.showOriginalWaterfall,!state.direct48k && state.showFilterWaterfall,
-                state.filterMinHz,state.filterMaxHz,state.filterPaletteGreen)
+                state.filterMinHz,state.filterMaxHz,state.filterPaletteGreen,state.impulseMode,state.impulseThresholdDb)
         }
         Box(Modifier.fillMaxWidth().height(waterfallHeight).background(Color(0xFF130C29))
             .clickable { if(!monitoring)expanded=!expanded }
@@ -1113,8 +1116,8 @@ internal fun LiveAnalyzerScreen(
                 val barLeft=3.dp.toPx()
                 // The color ramp consumes only the width of its widest signed label.
                 val filterOnly=!state.direct48k && state.showFilterWaterfall && !state.showOriginalWaterfall
-                val legendMin=if(filterOnly) state.filterDisplayMinDb else state.minDisplayDb
-                val legendMax=if(filterOnly) state.filterDisplayMaxDb else state.maxDisplayDb
+                val legendMin=if(filterOnly && state.impulseMode) 0 else if(filterOnly) state.filterDisplayMinDb else state.minDisplayDb
+                val legendMax=if(filterOnly && state.impulseMode) 20 else if(filterOnly) state.filterDisplayMaxDb else state.maxDisplayDb
                 val labelWidth = AnalyzerDisplayTicks.db(legendMin,legendMax)
                     .maxOf { db -> NativePaint(NativePaint.ANTI_ALIAS_FLAG).apply {
                         textSize=7.sp.toPx(); textScaleX=0.86f
@@ -1440,32 +1443,33 @@ internal fun LiveAnalyzerScreen(
                     state=LiveAnalyzerController.snapshot()
                 }
             }
-            // Noise and DIAG follow both waterfall toggles; MULTI stays at far right.
-            Box(Modifier.size(buttonWidth,buttonHeight).border(BorderStroke(1.dp,
-                if (noiseState.enabled) cyan else muted), RoundedCornerShape(6.dp))
-                .pointerInput(state.running,state.paused,noiseState.capturing) { detectTapGestures(
-                    onTap = { noiseMessage=LiveAnalyzerController.toggleNoiseCalibration(); noiseState=NoiseFloorReference.state() },
-                    onLongPress = { if(state.running && !state.paused && !noiseState.capturing) {
-                        noiseMessage=LiveAnalyzerController.startNoiseCalibration(); noiseState=NoiseFloorReference.state()
-                    } }
-                ) }, contentAlignment=Alignment.Center) {
-                Column(horizontalAlignment=Alignment.CenterHorizontally) {
-                    Text("NOISE", color=if (noiseState.enabled) cyan else white, fontSize=10.sp, lineHeight=12.sp)
-                    Text(if (noiseState.capturing) "${noiseState.progress}%" else if (noiseMessage.startsWith("Analyzer muss") ||
-                        noiseMessage.contains("Fehler", ignoreCase=true)) "FEHLER"
-                        else when(noiseState.mode) { "MEASURED" -> "MESS"; "MODEL" -> "1/f"; else -> "AUS" },
-                        color=if(noiseMessage.startsWith("Analyzer muss") || noiseMessage.contains("Fehler", ignoreCase=true)) Color(0xFFFF6655)
-                            else if(noiseState.enabled) cyan else muted,
-                        fontSize=11.sp, lineHeight=12.sp, maxLines=1)
+            // Dedicated 8-kHz-only algorithm controls in slots freed by NOISE/DIAG.
+            if (!state.direct48k) {
+                Box(Modifier.size(buttonWidth,buttonHeight)
+                    .border(BorderStroke(1.dp,if(state.impulseMode) Color(0xFF55E87D) else muted),RoundedCornerShape(6.dp))
+                    .clickable { LiveAnalyzerController.setImpulseMode(context,!state.impulseMode); state=LiveAnalyzerController.snapshot() },contentAlignment=Alignment.Center) {
+                    Column(horizontalAlignment=Alignment.CenterHorizontally) {
+                        Text("ALGO",color=white,fontSize=10.sp)
+                        Text(if(state.impulseMode) "IMP" else "RMS",color=if(state.impulseMode) Color(0xFF55E87D) else cyan,fontSize=11.sp)
+                    }
                 }
-                LongPressMark(show=state.running && !state.paused && !noiseState.capturing)
+                Box(Modifier.size(buttonWidth,buttonHeight)
+                    .border(BorderStroke(1.dp,muted),RoundedCornerShape(6.dp))
+                    .clickable { impulseSettingsOpen=true },contentAlignment=Alignment.Center) {
+                    Text("IMP SET",color=cyan,fontSize=10.sp)
+                }
             }
-
-            var diagnosticOpen by remember { mutableStateOf(false) }
-            Box(Modifier.size(buttonWidth,buttonHeight)
-                .border(BorderStroke(1.dp,muted),RoundedCornerShape(6.dp))
-                .clickable { diagnosticOpen=true },contentAlignment=Alignment.Center) {
-                Text("DIAG",color=cyan,fontSize=12.sp)
+            if(impulseSettingsOpen && !state.direct48k) {
+                AlertDialog(onDismissRequest={impulseSettingsOpen=false},
+                    title={Text("8-kHz-Impulsdetektor")},
+                    text={Column(verticalArrangement=Arrangement.spacedBy(8.dp)) {
+                        Text("FAST/EXCESS: Bandpegel gegenüber der langsamen Hintergrundreferenz. Der bisherige RMS-Algorithmus bleibt unverändert.")
+                        Text("Exzess-Schwelle: ${state.impulseThresholdDb} dB")
+                        Slider(value=state.impulseThresholdDb.toFloat(),onValueChange={ v ->
+                            LiveAnalyzerController.setImpulseThreshold(context,v.toInt());state=LiveAnalyzerController.snapshot()
+                        },valueRange=0f..20f,steps=19)
+                        Text("Nur für den 8-kHz-Analyzer; keine Verstärkung der Audiodaten.")
+                    }},confirmButton={TextButton(onClick={impulseSettingsOpen=false}) {Text("Schließen")}})
             }
             if(diagnosticOpen) {
                 AlertDialog(onDismissRequest={diagnosticOpen=false},
@@ -1511,9 +1515,42 @@ internal fun LiveAnalyzerScreen(
                 if(multiOpen) Popup(alignment=Alignment.TopStart,
                     offset=IntOffset(0,with(LocalDensity.current){(-(buttonHeight * 5 + 4.dp * 5)).roundToPx()}),
                     properties=PopupProperties(focusable=false)) {
-                    Column(verticalArrangement=Arrangement.spacedBy(4.dp)) {
-                        for(n in 1..5) {
-                            Box(Modifier.size(buttonWidth,buttonHeight).border(BorderStroke(1.dp,muted),RoundedCornerShape(6.dp))
+                    // Ten stable extension slots; scroll within the original five-button
+                    // footprint so the popup stays usable on narrow Android screens.
+                    Column(
+                        modifier=Modifier.heightIn(max=buttonHeight * 5 + 4.dp * 4)
+                            .verticalScroll(rememberScrollState()),
+                        verticalArrangement=Arrangement.spacedBy(4.dp)
+                    ) {
+                        for(n in 1..10) {
+                            if(n==2) {
+                                Box(Modifier.size(buttonWidth,buttonHeight).border(BorderStroke(1.dp,
+                if (noiseState.enabled) cyan else muted), RoundedCornerShape(6.dp))
+                .pointerInput(state.running,state.paused,noiseState.capturing) { detectTapGestures(
+                    onTap = { noiseMessage=LiveAnalyzerController.toggleNoiseCalibration(); noiseState=NoiseFloorReference.state(); multiOpen=false },
+                    onLongPress = { if(state.running && !state.paused && !noiseState.capturing) {
+                        noiseMessage=LiveAnalyzerController.startNoiseCalibration(); noiseState=NoiseFloorReference.state(); multiOpen=false
+                    } }
+                ) }, contentAlignment=Alignment.Center) {
+                Column(horizontalAlignment=Alignment.CenterHorizontally) {
+                    Text("NOISE", color=if (noiseState.enabled) cyan else white, fontSize=10.sp, lineHeight=12.sp)
+                    Text(if (noiseState.capturing) "${noiseState.progress}%" else if (noiseMessage.startsWith("Analyzer muss") ||
+                        noiseMessage.contains("Fehler", ignoreCase=true)) "FEHLER"
+                        else when(noiseState.mode) { "MEASURED" -> "MESS"; "MODEL" -> "1/f"; else -> "AUS" },
+                        color=if(noiseMessage.startsWith("Analyzer muss") || noiseMessage.contains("Fehler", ignoreCase=true)) Color(0xFFFF6655)
+                            else if(noiseState.enabled) cyan else muted,
+                        fontSize=11.sp, lineHeight=12.sp, maxLines=1)
+                }
+                LongPressMark(show=state.running && !state.paused && !noiseState.capturing)
+            }
+
+                            } else if(n==3) {
+                                Box(Modifier.size(buttonWidth,buttonHeight).border(BorderStroke(1.dp,muted),RoundedCornerShape(6.dp))
+                                    .background(bg,RoundedCornerShape(6.dp))
+                                    .clickable {multiOpen=false;diagnosticOpen=true},contentAlignment=Alignment.Center) {
+                                    Text("Diag",color=cyan,fontSize=12.sp)
+                                }
+                            } else Box(Modifier.size(buttonWidth,buttonHeight).border(BorderStroke(1.dp,muted),RoundedCornerShape(6.dp))
                                 .background(bg,RoundedCornerShape(6.dp))
                                 .clickable {
                                     multiOpen=false
@@ -1537,7 +1574,7 @@ internal fun LiveAnalyzerScreen(
                                         }
                                     }
                                 },contentAlignment=Alignment.Center) {
-                                Text("$n",color=white,fontSize=16.sp)
+                                Text(if(n==1) "1" else "$n · frei",color=if(n==1) white else muted,fontSize=if(n==1) 16.sp else 9.sp)
                             }
                         }
                     }
@@ -1565,7 +1602,7 @@ private fun cursorReadout(state: LiveAnalyzerController.Snapshot, hz: Double): S
 private fun makeWaterfall(rows: List<DoubleArray>, freq: DoubleArray, minHz: Int, maxHz: Int, capacity: Int, minDb: Int, maxDb: Int,
     filterMinDb: Int, filterMaxDb: Int,
     filterDb: List<DoubleArray?>, filterExcess: List<DoubleArray?>, original: Boolean, filter: Boolean,
-    filterMin: Double, filterMax: Double, green: Boolean): Bitmap? {
+    filterMin: Double, filterMax: Double, green: Boolean, impulseMode: Boolean, impulseThresholdDb: Int): Bitmap? {
     if(rows.isEmpty() || freq.isEmpty() || capacity<=0) return null
     val width=400
     // At 250-ms default waterfall timebase, the 120-s history has 480 rows.
@@ -1589,7 +1626,7 @@ private fun makeWaterfall(rows: List<DoubleArray>, freq: DoubleArray, minHz: Int
             val hz=minHz+x.toDouble()/(width-1)*(maxHz-minHz)
             out[y*width+x]=FilterWaterfallRenderer.colorAt(hz,
                 LiveAnalyzerController.color(row[bin],minDb,maxDb),filterFirst.getOrNull(age),excessFirst.getOrNull(age),
-                original,filter,filterMin,filterMax,minDb,maxDb,filterMinDb,filterMaxDb,green)
+                original,filter,filterMin,filterMax,minDb,maxDb,filterMinDb,filterMaxDb,green,impulseMode,impulseThresholdDb)
         }
     }
     return Bitmap.createBitmap(out,width,height,Bitmap.Config.ARGB_8888)

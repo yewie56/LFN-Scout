@@ -1,3 +1,17 @@
+## v0.5.119 (2026-10-26) – Extension NOISE/Diag und 8-kHz-Impulsanzeige
+- Extension 1 Supabase-Test, 2 NOISE inklusive bisherigem Langdruck, 3 Diag mit vollständiger bestehender Diagnose, 4–10 frei.
+- Nur 8 kHz: ALGO RMS/IMP und IMP SET Exzess-Schwelle (0–20 dB).
+- RMS unverändert; IMP zeigt vorhandene FAST/SLOW-Exzess-Daten anders an, kein neues analoges/digitales Gain.
+- Neue optionale benannte JSON-Felder `filter_impulse_mode`, `filter_impulse_threshold` ausschließlich in 8-kHz-Snapshots.
+- Android-Build/Gerätetest offen.
+
+## v0.5.118 – Zehn scrollbar erreichbare Extension-Buttons (versionCode 276)
+- Extension-Popup besitzt nun zehn durchnummerierte Plätze (1–10), in der bisherigen kompakten Höhe mit vertikalem Scrollen.
+- Platz 1 führt weiterhin den vorhandenen Supabase-Teilnehmerschlüsseltest aus; Plätze 2–10 sind noch nicht funktional belegt.
+- Vorgemerkte spätere Belegung: Platz 2 NOISE (bisherige Optik und Funktionen), Platz 3 Diag. Die bisherigen NOISE-/DIAG-Buttons werden in dieser Version bewusst nicht verschoben.
+- Kein Eingriff in Filterbank, Wasserfälle, Farbzyklus, Start-/Setup-Persistenz oder Cloud-Protokoll.
+- Statische Strukturtests PASS; Android-Build und Geräteprüfung noch OFFEN.
+
 ## v0.5.117 – Filterbutton AUS → VIOLETT → GRÜN
 - Nur 8-kHz-Filterbutton: Drei-Zustands-Zyklus, Farbe in Live-Wasserfall, Legende und Bildexport konsistent; vorhandenes Original-Wasserfall-PNG bleibt unverändert.
 - Filter-DSP, Pegelgrenzen und Audio nicht verändert. Farbwahl in App-Prefs persistent. Android-Build/Smartphone-Test offen.
