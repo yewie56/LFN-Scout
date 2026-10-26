@@ -77,7 +77,7 @@ internal object AnalyzerSetupSwitchTransaction {
         val current = try { AnalyzerSetupSwitchPreflight.assess(saved, live, false, false) }
             catch (t: Exception) { return@synchronized Outcome.Rejected("Validierung: ${t.message}") }
         if (current.missingOrNull.isNotEmpty() || current.unsupported.isNotEmpty())
-            return@synchronized Outcome.Rejected("Unvollständige oder nicht unterstützte Parameter")
+            return@synchronized Outcome.Rejected("Unvollständige Parameter: ${current.missingOrNull.joinToString(", ")}; nicht unterstützt: ${current.unsupported.joinToString(", ")}")
         // No production controller port opts in until it can prove a complete,
         // preference-free STOP apply and restore under the same hardware lock.
         if (current.stopRequired.isNotEmpty() && !port.supportsAtomicStoppedApply)

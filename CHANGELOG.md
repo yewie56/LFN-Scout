@@ -1,3 +1,11 @@
+## v0.5.121 – Kompatibilitätsfix für ältere 8-kHz-Setups (versionCode 279)
+- Beim Laden eines alten benannten 8-kHz-Setups werden fehlende `filter_impulse_mode` und `filter_impulse_threshold` nur im Arbeitsspeicher mit RMS/3 dB ergänzt.
+- Originale JSON-Datei wird nicht verändert; explizit gespeicherte Werte bleiben unverändert.
+- Direktanalyzer erhält weiterhin keine neuen Filteralgorithmus-Parameter.
+- Diagnose bei fehlenden/nicht unterstützten Feldern nennt Feldnamen.
+- Regressionstest für Altdaten und Modustrennung ergänzt.
+- Android-Cloud-Build und Gerätetest noch ausstehend.
+
 ## v0.5.120 (2026-10-26) – Kotlin-Buildfix Extension-Popup
 - `heightIn`-Import für 10-Button-Extension-Popup ergänzt (`LiveAnalyzerScreen.kt`).
 - Keine weiteren Funktionsänderungen gegenüber v0.5.119.

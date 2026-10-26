@@ -16,7 +16,9 @@ internal object AnalyzerNamedSetupStart {
         }
         check(!LiveAnalyzerController.snapshot().running) { "Analyzer muss vor Setup-Laden STOP sein" }
         val parameters = repository.load(activeId).getJSONObject("parameters")
-        val legacy = parameters.getJSONObject("legacy")
+        val originalLegacy = parameters.getJSONObject("legacy")
+        // Backward-compatible in-memory migration; NEVER rewrite the named JSON file.
+        val legacy = AnalyzerLegacyImpulseDefaults.forMode(originalLegacy, direct48k)
         if (!AnalyzerModeSetupGuard.compatible(legacy, direct48k)) {
             // Preserve the incompatible JSON; use the controller's validated 8-kHz
             // preferences instead of aborting the complete audio start.
