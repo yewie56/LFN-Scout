@@ -6,6 +6,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import java.io.OutputStreamWriter
 import android.view.InputDevice
 import android.view.KeyEvent
+import android.view.MotionEvent
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -27,13 +28,16 @@ internal object BluetoothRemoteDiagnostic {
     private val downTimes = mutableMapOf<Pair<Int, Int>, Long>()
     private val lastUps = mutableMapOf<Pair<Int, Int>, Long>()
     private const val LIMIT = 120
+    private val lastMotionTimes = mutableMapOf<Int, Long>()
+    private val previousCoordinates = mutableMapOf<Int, Pair<Float, Float>>()
+    private val motionCounters = mutableMapOf<Int, Int>()
 
     private fun exportText(): String = buildString {
-        appendLine("LFN-Scout v0.5.126 – Bluetooth Remote Diagnose")
+        appendLine("LFN-Scout v0.5.128 – Bluetooth Remote Diagnose")
         appendLine("Export: " + SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.GERMANY).format(Date()))
         appendLine("Status beim Export: " + if (listening) "Test aktiv" else "Test gestoppt")
         appendLine("Geräte (${devices.size}):")
-        if (devices.isEmpty()) appendLine("Keine Tastatur-/DPAD-Geräte erkannt")
+        if (devices.isEmpty()) appendLine("Keine unterstützten Eingabegeräte erkannt")
         devices.forEach { appendLine(it) }
         appendLine()
         appendLine("Ereignisse (${events.size}, älteste zuerst; maximal 120 im Speicher):")
@@ -46,19 +50,24 @@ internal object BluetoothRemoteDiagnostic {
         events.clear()
         downTimes.clear()
         lastUps.clear()
+        lastMotionTimes.clear()
+        previousCoordinates.clear()
+        motionCounters.clear()
         refreshDevices(context)
         listening = true
         log("Test gestartet. Ereignisse werden ausschließlich bei Android-Zustellung erfasst.")
     }
 
-    fun stop() { listening = false; downTimes.clear() }
+    fun stop() { listening = false; downTimes.clear(); previousCoordinates.clear() }
 
     fun refreshDevices(context: Context) {
         devices.clear()
         InputDevice.getDeviceIds().map { id -> InputDevice.getDevice(id) }.filterNotNull().forEach { device ->
             val source = device.sources
             if (source and InputDevice.SOURCE_KEYBOARD == InputDevice.SOURCE_KEYBOARD ||
-                source and InputDevice.SOURCE_DPAD == InputDevice.SOURCE_DPAD) {
+                source and InputDevice.SOURCE_DPAD == InputDevice.SOURCE_DPAD ||
+                source and InputDevice.SOURCE_MOUSE == InputDevice.SOURCE_MOUSE ||
+                source and InputDevice.SOURCE_TOUCHPAD == InputDevice.SOURCE_TOUCHPAD) {
                 devices.add("${device.name} | id=${device.id} | descriptor=${device.descriptor} | sources=$source")
             }
         }
@@ -87,6 +96,45 @@ internal object BluetoothRemoteDiagnostic {
         log("$action | ${dev?.name ?: "unbekannt"} | device=${event.deviceId} | key=${event.keyCode} (${KeyEvent.keyCodeToString(event.keyCode)}) | scan=${event.scanCode} | repeat=${event.repeatCount}$suffix")
         // Never steal system, volume, media or navigation keys; observing only.
         return false
+    }
+
+    /** Observe externally delivered pointer events without consuming them.
+     * Mouse movement can be very frequent; movement-only records are throttled,
+     * whereas action transitions and button changes are always retained.
+     */
+    fun onMotion(event: MotionEvent, entryPoint: String) {
+        if (!listening) return
+        val device = InputDevice.getDevice(event.deviceId) ?: return
+        if (!device.isExternal) return
+        if (!event.isFromSource(InputDevice.SOURCE_MOUSE) &&
+            !event.isFromSource(InputDevice.SOURCE_TOUCHPAD)) return
+        val id = event.deviceId
+        val action = event.actionMasked
+        val movement = action == MotionEvent.ACTION_MOVE || action == MotionEvent.ACTION_HOVER_MOVE
+        val previous = previousCoordinates[id]
+        val dx = if (previous == null) 0f else event.x - previous.first
+        val dy = if (previous == null) 0f else event.y - previous.second
+        previousCoordinates[id] = event.x to event.y
+        motionCounters[id] = (motionCounters[id] ?: 0) + 1
+        val previousTime = lastMotionTimes[id] ?: 0L
+        if (movement && event.eventTime - previousTime < 100L) return
+        lastMotionTimes[id] = event.eventTime
+        val actionName = when (action) {
+            MotionEvent.ACTION_MOVE -> "MOVE"
+            MotionEvent.ACTION_HOVER_MOVE -> "HOVER_MOVE"
+            MotionEvent.ACTION_DOWN -> "DOWN"
+            MotionEvent.ACTION_UP -> "UP"
+            MotionEvent.ACTION_BUTTON_PRESS -> "BUTTON_PRESS"
+            MotionEvent.ACTION_BUTTON_RELEASE -> "BUTTON_RELEASE"
+            MotionEvent.ACTION_SCROLL -> "SCROLL"
+            else -> "ACTION_$action"
+        }
+        val xRelative = event.getAxisValue(MotionEvent.AXIS_RELATIVE_X)
+        val yRelative = event.getAxisValue(MotionEvent.AXIS_RELATIVE_Y)
+        log("MOTION $actionName | $entryPoint | ${device.name} | device=$id | " +
+            "source=${event.source} | x=${event.x} y=${event.y} | dx=$dx dy=$dy | " +
+            "relX=$xRelative relY=$yRelative | buttons=${event.buttonState} " +
+            "actionButton=${event.actionButton} | count=${motionCounters[id]}")
     }
 
     private fun log(message: String) {
@@ -122,18 +170,18 @@ internal object BluetoothRemoteDiagnostic {
             title = { Text("Bluetooth Remote · Testmodus") },
             text = {
                 Column(Modifier.fillMaxWidth().heightIn(max = 510.dp).verticalScroll(rememberScrollState())) {
-                    Text("Nur Diagnose: Keine Taste löst eine Scout-Funktion aus.")
+                    Text("Diagnose für Tastatur und Maus/Zeiger (S18). Mausbewegungen werden gedrosselt protokolliert. Die normale Eingabeverarbeitung bleibt aktiv.")
                     Spacer(Modifier.height(8.dp))
                     Text("Status: " + if (listening) "Empfangstest aktiv" else "Gestoppt")
                     Text("Display gesperrt/aus: nicht bestätigt. Android stellt normale HID-Tasten dabei möglicherweise nicht an diese Activity zu.", style = MaterialTheme.typography.bodySmall)
                     Spacer(Modifier.height(8.dp))
                     Text("Erkannte Eingabegeräte", style = MaterialTheme.typography.titleSmall)
-                    if (devices.isEmpty()) Text("Keine Tastatur-/DPAD-Geräte erkannt")
+                    if (devices.isEmpty()) Text("Keine unterstützten Eingabegeräte erkannt")
                     devices.forEach { Text(it, style = MaterialTheme.typography.bodySmall) }
                     Spacer(Modifier.height(8.dp))
                     exportError?.let { Text(it, color = MaterialTheme.colorScheme.error) }
                     if (exportSuccess) Text("Protokoll gespeichert.", color = MaterialTheme.colorScheme.primary)
-                    Text("Empfangene Tastenereignisse (max. 120)", style = MaterialTheme.typography.titleSmall)
+                    Text("Empfangene Tasten- und Mausereignisse (max. 120)", style = MaterialTheme.typography.titleSmall)
                     if (events.isEmpty()) Text("Noch keine Ereignisse")
                     events.forEach { Text(it, style = MaterialTheme.typography.bodySmall) }
                 }

@@ -106,6 +106,16 @@ import java.util.UUID
 import kotlin.math.abs
 
 class MainActivity : ComponentActivity() {
+    override fun dispatchGenericMotionEvent(event: android.view.MotionEvent): Boolean {
+        BluetoothRemoteDiagnostic.onMotion(event, "generic")
+        return super.dispatchGenericMotionEvent(event)
+    }
+
+    override fun dispatchTouchEvent(event: android.view.MotionEvent): Boolean {
+        BluetoothRemoteDiagnostic.onMotion(event, "touch")
+        return super.dispatchTouchEvent(event)
+    }
+
     override fun dispatchKeyEvent(event: android.view.KeyEvent): Boolean {
         BluetoothRemoteDiagnostic.onKey(event)
         if (BluetoothRemoteControl.onKey(this, event)) return true
