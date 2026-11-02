@@ -97,6 +97,12 @@ internal fun ImpulseDiagnosticCard() {
             Text("Quelle: ${snapshot.source ?: "–"}")
             Spacer(Modifier.height(8.dp))
             Text("Empfindlichkeitsprofil: ${selectedPreset?.label ?: "Manuell"}")
+            // Presets change BOTH existing parameters, rather than introducing a third setting.
+            // Reuse their stable identifiers (threshold 10006, noise multiplier 10007).
+            Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                ParameterNumber.AutoMarker(10006)
+                ParameterNumber.AutoMarker(10007)
+            }
             Row(horizontalArrangement = Arrangement.spacedBy(4.dp), modifier = Modifier.fillMaxWidth()) {
                 ImpulseSensitivityPreset.entries.forEach { preset ->
                     OutlinedButton(
@@ -106,16 +112,16 @@ internal fun ImpulseDiagnosticCard() {
                 }
             }
             Text("Analyzer-Gain: +${gainDb} dB (nur Diagnose, WAV unverändert)")
-            Slider(value = gainDb.toFloat(), onValueChange = { updateSettings(gain = it.roundToInt()) },
-                onValueChangeFinished = { persistSettings() }, valueRange = 0f..50f, steps = 49)
+            ParameterNumber.Decorated(10005) { Slider(value = gainDb.toFloat(), onValueChange = { updateSettings(gain = it.roundToInt()) },
+                onValueChangeFinished = { persistSettings() }, valueRange = 0f..50f, steps = 49) }
             Text("Mindestschwelle VOR Gain: ${minPeakPcm} PCM (50–3000; kleiner = empfindlicher)")
-            Slider(value = minPeakPcm.toFloat(), onValueChange = {
+            ParameterNumber.Decorated(10006) { Slider(value = minPeakPcm.toFloat(), onValueChange = {
                 updateSettings(minimum = (it / 50.0f).roundToInt() * 50)
-            }, onValueChangeFinished = { persistSettings() }, valueRange = 50f..3000f, steps = 58)
+            }, onValueChangeFinished = { persistSettings() }, valueRange = 50f..3000f, steps = 58) }
             Text("Rauschfaktor: ×${"%.1f".format(Locale.US, noiseMultiplier)} (1,5–12; kleiner = empfindlicher)")
-            Slider(value = noiseMultiplier.toFloat(), onValueChange = {
+            ParameterNumber.Decorated(10007) { Slider(value = noiseMultiplier.toFloat(), onValueChange = {
                 updateSettings(noise = ((it * 2.0f).roundToInt() / 2.0).coerceIn(1.5, 12.0))
-            }, onValueChangeFinished = { persistSettings() }, valueRange = 1.5f..12f, steps = 20)
+            }, onValueChangeFinished = { persistSettings() }, valueRange = 1.5f..12f, steps = 20) }
             Spacer(Modifier.height(8.dp))
             Text("Letzter Block-Peak: ${snapshot.blockPeak} PCM · Max-Peak seit Start: ${snapshot.samplePeak} / 32768")
             Text("Analyse-Peak-Äquivalent: ${"%.1f".format(Locale.US, snapshot.analysisPeak)} PCM (ohne 16-Bit-Clipping)")

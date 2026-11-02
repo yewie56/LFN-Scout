@@ -45,45 +45,45 @@ internal fun LocalAudioSaveSettingsDialog(context: Context, onClose: (LocalAudio
     AlertDialog(onDismissRequest = { onClose(null) }, title = { Text("Audio / Statistik lokal") },
         text = {
             Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
-                OutlinedTextField(duration, { duration = it }, label = { Text("WAV-Dauer (30–600 s)") }, modifier = Modifier.fillMaxWidth())
-                OutlinedTextField(min, { min = it }, label = { Text("Statistik MIN (1–199 Hz)") }, modifier = Modifier.fillMaxWidth())
-                OutlinedTextField(max, { max = it }, label = { Text("Statistik MAX (2–200 Hz)") }, modifier = Modifier.fillMaxWidth())
+                ParameterNumber.Decorated(10043) { OutlinedTextField(duration, { duration = it }, label = { Text("WAV-Dauer (30–600 s)") }, modifier = Modifier.fillMaxWidth()) }
+                ParameterNumber.Decorated(10044) { OutlinedTextField(min, { min = it }, label = { Text("Statistik MIN (1–199 Hz)") }, modifier = Modifier.fillMaxWidth()) }
+                ParameterNumber.Decorated(10045) { OutlinedTextField(max, { max = it }, label = { Text("Statistik MAX (2–200 Hz)") }, modifier = Modifier.fillMaxWidth()) }
                 Row {
-                    Checkbox(checked = exportFilterCsv, onCheckedChange = { exportFilterCsv = it })
+                    ParameterNumber.Decorated(10046) { Checkbox(checked = exportFilterCsv, onCheckedChange = { exportFilterCsv = it }) }
                     Text("WAV-Filterstatistik als CSV exportieren (je WAV)", modifier = Modifier.padding(top = 12.dp))
                 }
                 Text("Rollingbuffer – Halbstundenstatistik")
                 Row {
-                    Checkbox(checked = rollingEnabled, onCheckedChange = { rollingEnabled = it })
+                    ParameterNumber.Decorated(10047) { Checkbox(checked = rollingEnabled, onCheckedChange = { rollingEnabled = it }) }
                     Text("30-Minuten-Statistik aktivieren", modifier = Modifier.padding(top = 12.dp))
                 }
-                OutlinedTextField(rollingMin, { rollingMin = it }, label = { Text("Rolling-Statistik MIN (Hz)") }, modifier = Modifier.fillMaxWidth())
-                OutlinedTextField(rollingMax, { rollingMax = it }, label = { Text("Rolling-Statistik MAX (Hz)") }, modifier = Modifier.fillMaxWidth())
+                ParameterNumber.Decorated(10048) { OutlinedTextField(rollingMin, { rollingMin = it }, label = { Text("Rolling-Statistik MIN (Hz)") }, modifier = Modifier.fillMaxWidth()) }
+                ParameterNumber.Decorated(10049) { OutlinedTextField(rollingMax, { rollingMax = it }, label = { Text("Rolling-Statistik MAX (Hz)") }, modifier = Modifier.fillMaxWidth()) }
                 Row {
-                    Checkbox(checked = overallCsv, onCheckedChange = { overallCsv = it })
+                    ParameterNumber.Decorated(10050) { Checkbox(checked = overallCsv, onCheckedChange = { overallCsv = it }) }
                     Text("Halbstunden-Gesamtwerte als CSV (Downloads)", modifier = Modifier.padding(top = 12.dp))
                 }
                 Row {
-                    Checkbox(checked = filterEnabled, onCheckedChange = { filterEnabled = it }, enabled = rollingEnabled)
+                    ParameterNumber.Decorated(10051) { Checkbox(checked = filterEnabled, onCheckedChange = { filterEnabled = it }, enabled = rollingEnabled) }
                     Text("FFT-Frequenzbandstatistik für CSV aktivieren", modifier = Modifier.padding(top = 12.dp))
                 }
-                OutlinedTextField(filterMin, { filterMin = it }, label = { Text("Rolling-FILTER MIN (Hz; Standard 0)") }, modifier = Modifier.fillMaxWidth(), enabled = false)
-                OutlinedTextField(filterMax, { filterMax = it }, label = { Text("Rolling-FILTER MAX (Hz; Standard 100)") }, modifier = Modifier.fillMaxWidth(), enabled = false)
-                OutlinedTextField(filterCount, { filterCount = it }, label = { Text("Filterbänder (10 oder 20)") }, modifier = Modifier.fillMaxWidth(), enabled = false)
+                ParameterNumber.Decorated(10052) { OutlinedTextField(filterMin, { filterMin = it }, label = { Text("Rolling-FILTER MIN (Hz; Standard 0)") }, modifier = Modifier.fillMaxWidth(), enabled = false) }
+                ParameterNumber.Decorated(10053) { OutlinedTextField(filterMax, { filterMax = it }, label = { Text("Rolling-FILTER MAX (Hz; Standard 100)") }, modifier = Modifier.fillMaxWidth(), enabled = false) }
+                ParameterNumber.Decorated(10054) { OutlinedTextField(filterCount, { filterCount = it }, label = { Text("Filterbänder (10 oder 20)") }, modifier = Modifier.fillMaxWidth(), enabled = false) }
                 Text("Legacy-PCM-Filterbank stillgelegt: Einstellungen bleiben gespeichert und sind ausgegraut; aktuelle CSV-Bänder stammen aus FFT-Leistungsdaten.")
                 RollingFilterHalfHourStatistics.Method.entries.forEach { method ->
                     Row {
-                        RadioButton(selected = csvFilterMethod == method,
-                            onClick = { csvFilterMethod = method }, enabled = false)
+                        ParameterNumber.Decorated(10055) { RadioButton(selected = csvFilterMethod == method,
+                            onClick = { csvFilterMethod = method }, enabled = false) }
                         Text(method.label, modifier = Modifier.padding(top = 12.dp))
                     }
                 }
                 Row {
-                    Checkbox(checked = filterCsv, onCheckedChange = { filterCsv = it }, enabled = false)
+                    ParameterNumber.Decorated(10056) { Checkbox(checked = filterCsv, onCheckedChange = { filterCsv = it }, enabled = false) }
                     Text("Halbstunden-FFT-Bandwerte als CSV (Downloads)", modifier = Modifier.padding(top = 12.dp))
                 }
                 Row {
-                    Checkbox(checked = epochCsv, onCheckedChange = { epochCsv = it }, enabled = rollingEnabled)
+                    ParameterNumber.Decorated(10057) { Checkbox(checked = epochCsv, onCheckedChange = { epochCsv = it }, enabled = rollingEnabled) }
                     Text("Sekundenwerte-CSV (Gesamt + optionale Filter; Standard AUS)", modifier = Modifier.padding(top = 12.dp))
                 }
                 Text("CSV wird blockweise im Downloads-Ordner geschrieben. Neue Einstellungen gelten nach Neustart des Rollingbuffers.")

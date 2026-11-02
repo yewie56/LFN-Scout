@@ -78,7 +78,7 @@ internal fun AudioCommentDialog(
                     }
                 )
                 Spacer(Modifier.height(FaceliftLayoutPolicy.FIELD_GAP_DP.dp))
-                OutlinedTextField(
+                ParameterNumber.Decorated(10003) { OutlinedTextField(
                     value = comment,
                     onValueChange = { value ->
                         if (!interacted) onInteraction(commentTimeoutSeconds)
@@ -91,7 +91,7 @@ internal fun AudioCommentDialog(
                     maxLines = 6,
                     enabled = !busy,
                     modifier = Modifier.fillMaxWidth()
-                )
+                ) }
                 Text(
                     "${comment.length} / ${AudioArchive.MAX_COMMENT_LENGTH}",
                     style = MaterialTheme.typography.bodySmall

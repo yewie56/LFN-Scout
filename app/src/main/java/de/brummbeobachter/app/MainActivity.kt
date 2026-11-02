@@ -2171,12 +2171,12 @@ fun generateWaterfall(
             text = {
                 Column {
                     Text("Optionaler Kommentar; wird in der gleichnamigen JSON-Datei gespeichert.")
-                    OutlinedTextField(
+                    ParameterNumber.Decorated(10058) { OutlinedTextField(
                         value = rollingComment,
                         onValueChange = { rollingComment = it.take(AudioArchive.MAX_COMMENT_LENGTH) },
                         modifier = Modifier.fillMaxWidth(),
                         label = { Text("Kommentar") }
-                    )
+                    ) }
                     Text("${rollingComment.length} / ${AudioArchive.MAX_COMMENT_LENGTH}", style = MaterialTheme.typography.bodySmall)
                 }
             },
@@ -3277,6 +3277,9 @@ private fun LFNScoutScreen(
                 compact = true
             ) {
 
+                // One parameter (rating 0..5), presented in two rows.
+                ParameterNumber.AutoMarker(10100)
+
                 val selected =
                     if (pendingRating in 0..5) {
                         pendingRating
@@ -3303,7 +3306,7 @@ private fun LFNScoutScreen(
                 if (pendingRating in 0..5) {
                     Spacer(Modifier.height(FaceliftLayoutPolicy.MAIN_SECTION_GAP_DP.dp))
 
-                    OutlinedTextField(
+                    ParameterNumber.Decorated(10059) { OutlinedTextField(
                         value = pendingComment,
                         onValueChange = onPendingCommentChange,
                         modifier = Modifier.fillMaxWidth(),
@@ -3315,7 +3318,7 @@ private fun LFNScoutScreen(
                         },
                         minLines = 1,
                         maxLines = 3
-                    )
+                    ) }
 
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -4305,7 +4308,7 @@ private fun AudioRecordingCard(
             )
         }
 
-        Slider(
+        ParameterNumber.Decorated(10060) { Slider(
             value = gainDb.toFloat(),
             onValueChange = {
                 gainDb =
@@ -4325,7 +4328,7 @@ private fun AudioRecordingCard(
                 !isRecording &&
                     !countdownVisible &&
                     pendingAudio == null
-        )
+        ) }
 
         Text(
             "Audio heute: " +
@@ -4822,7 +4825,7 @@ private fun ReminderSettingsScreen(
                     Text(
                         "Passwort eingeben. Es wird nicht gespeichert."
                     )
-                    OutlinedTextField(
+                    ParameterNumber.Decorated(10061) { OutlinedTextField(
                         value = developerPassword,
                         onValueChange = {
                             developerPassword = it
@@ -4840,7 +4843,7 @@ private fun ReminderSettingsScreen(
                                 keyboardType =
                                     KeyboardType.Ascii
                             )
-                    )
+                    ) }
                     if (
                         developerPasswordError
                             .isNotBlank()
@@ -4980,17 +4983,17 @@ private fun ReminderSettingsScreen(
                             style = MaterialTheme.typography.bodySmall
                         )
                     }
-                    Switch(
+                    ParameterNumber.Decorated(10062) { Switch(
                         checked = settings.enabled,
                         onCheckedChange = { enabled ->
                             if (enabled) onEnable() else onDisable()
                         }
-                    )
+                    ) }
                 }
 
                 Spacer(Modifier.height(FaceliftLayoutPolicy.FIELD_GAP_DP.dp))
 
-                OutlinedTextField(
+                ParameterNumber.Decorated(10063) { OutlinedTextField(
                     value = intervalInput,
                     onValueChange = onIntervalInputChange,
                     modifier = Modifier.fillMaxWidth(),
@@ -4999,7 +5002,7 @@ private fun ReminderSettingsScreen(
                     keyboardOptions = KeyboardOptions(
                         keyboardType = KeyboardType.Number
                     )
-                )
+                ) }
 
                 val shownInterval =
                     intervalInput.toIntOrNull()
@@ -5040,6 +5043,7 @@ private fun ReminderSettingsScreen(
                                 "Auffällig"
                             }
                         )
+                        ParameterNumber.AutoMarker(10099)
                     }
 
                     Button(
@@ -5055,6 +5059,7 @@ private fun ReminderSettingsScreen(
                                 "Wecker"
                             }
                         )
+                        ParameterNumber.AutoMarker(10099)
                     }
                 }
 
@@ -5068,7 +5073,7 @@ private fun ReminderSettingsScreen(
                     style = MaterialTheme.typography.bodySmall
                 )
 
-                Slider(
+                ParameterNumber.Decorated(10064) { Slider(
                     value =
                         alarmVolumePercent
                             .toFloat(),
@@ -5086,7 +5091,7 @@ private fun ReminderSettingsScreen(
                     },
                     valueRange = 0f..100f,
                     steps = 19
-                )
+                ) }
 
                 OutlinedButton(
                     onClick = onChooseSound,
@@ -5143,23 +5148,23 @@ SectionCard(title = "Audioaufnahme") {
                 style = MaterialTheme.typography.bodySmall
             )
         }
-        Switch(
+        ParameterNumber.Decorated(10065) { Switch(
             checked = settings.rollingBufferEnabled,
             onCheckedChange = onRollingBufferEnabledChange
-        )
+        ) }
     }
 
     var rollingMaxHoursInput by remember(settings.rollingMaxOperationHours) {
         mutableStateOf(settings.rollingMaxOperationHours.toString())
     }
-    OutlinedTextField(
+    ParameterNumber.Decorated(10066) { OutlinedTextField(
         value = rollingMaxHoursInput,
         onValueChange = { rollingMaxHoursInput = it.filter(Char::isDigit).take(3) },
         modifier = Modifier.fillMaxWidth(),
         singleLine = true,
         label = { Text("Max. Rollingbuffer-Betriebsdauer (Stunden; 1–168)") },
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-    )
+    ) }
     OutlinedButton(
         enabled = rollingMaxHoursInput.toIntOrNull()?.let { it in 1..168 } == true,
         onClick = { rollingMaxHoursInput.toIntOrNull()?.let(onRollingMaxOperationHoursChange) },
@@ -5206,6 +5211,7 @@ SectionCard(title = "Audioaufnahme") {
                         Text(
                             mode.displayName()
                         )
+                        ParameterNumber.AutoMarker(10085)
                     },
                     onClick = {
                         audioSourceMode =
@@ -5215,6 +5221,7 @@ SectionCard(title = "Audioaufnahme") {
                         onAudioSourceModeChange(
                             mode
                         )
+
                     }
                 )
             }
@@ -5257,6 +5264,7 @@ SectionCard(title = "Audioaufnahme") {
                 Text(
                     "Auto · Android wählt Eingang"
                 )
+                ParameterNumber.AutoMarker(10086)
             },
             onClick = {
                 audioInputDeviceId =
@@ -5278,6 +5286,7 @@ SectionCard(title = "Audioaufnahme") {
                         Text(
                             "${input.label} · ID ${input.deviceId}"
                         )
+                        ParameterNumber.AutoMarker(10086)
                     },
                     onClick = {
                         audioInputDeviceId =
@@ -5381,6 +5390,7 @@ SectionCard(title = "Audioaufnahme") {
                 DropdownMenuItem(
                     text = {
                         Text(format.displayName)
+                        ParameterNumber.AutoMarker(10087)
                     },
                     onClick = {
                         waterfallOutputMenuExpanded = false
@@ -5437,10 +5447,10 @@ SectionCard(title = "Berechtigungen & System") {
                         "App nach Aktion automatisch\nin den Hintergrund",
                         modifier = Modifier.weight(1f)
                     )
-                    Switch(
+                    ParameterNumber.Decorated(10067) { Switch(
                         checked = settings.autoBackgroundAfterAction,
                         onCheckedChange = onAutoBackgroundChange
-                    )
+                    ) }
                 }
             }
 
@@ -5455,10 +5465,10 @@ SectionCard(title = "Berechtigungen & System") {
                         "2h-Auswertung nach Bewertung anzeigen",
                         modifier = Modifier.weight(1f)
                     )
-                    Switch(
+                    ParameterNumber.Decorated(10068) { Switch(
                         checked = settings.radiusAnalysisEnabled,
                         onCheckedChange = onRadiusAnalysisEnabledChange
-                    )
+                    ) }
                 }
 
                 Text(
@@ -5466,7 +5476,7 @@ SectionCard(title = "Berechtigungen & System") {
                     style = MaterialTheme.typography.bodySmall
                 )
 
-                OutlinedTextField(
+                ParameterNumber.Decorated(10069) { OutlinedTextField(
                     value = radiusKmInput,
                     onValueChange = onRadiusKmInputChange,
                     label = { Text("Radius in km") },
@@ -5475,7 +5485,7 @@ SectionCard(title = "Berechtigungen & System") {
                     ),
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth()
-                )
+                ) }
 
                 OutlinedButton(
                     onClick = onSaveRadiusKm,
@@ -5493,7 +5503,7 @@ SectionCard(title = "Berechtigungen & System") {
             Spacer(Modifier.height(FaceliftLayoutPolicy.SECTION_GAP_DP.dp))
 
             SectionCard(title = "Teilnehmerschlüssel") {
-                OutlinedTextField(
+                ParameterNumber.Decorated(10070) { OutlinedTextField(
                     value = keyInput,
                     onValueChange = onKeyInputChange,
                     modifier = Modifier.fillMaxWidth(),
@@ -5502,7 +5512,7 @@ SectionCard(title = "Berechtigungen & System") {
                         capitalization = KeyboardCapitalization.Characters,
                         keyboardType = KeyboardType.Ascii
                     )
-                )
+                ) }
 
                 Button(
                     onClick = onSaveKey,
@@ -5568,7 +5578,7 @@ SectionCard(title = "Berechtigungen & System") {
                         )
                     }
 
-                    Switch(
+                    ParameterNumber.Decorated(10071) { Switch(
                         checked =
                             settings
                                 .developerModeEnabled,
@@ -5583,7 +5593,7 @@ SectionCard(title = "Berechtigungen & System") {
                                 )
                             }
                         }
-                    )
+                    ) }
                 }
 
                 if (
@@ -5596,7 +5606,7 @@ SectionCard(title = "Berechtigungen & System") {
                             FontWeight.SemiBold
                     )
 
-                    OutlinedTextField(
+                    ParameterNumber.Decorated(10072) { OutlinedTextField(
                         value =
                             dailyLimitInput,
                         onValueChange = {
@@ -5613,7 +5623,7 @@ SectionCard(title = "Berechtigungen & System") {
                             ),
                         modifier =
                             Modifier.fillMaxWidth()
-                    )
+                    ) }
 
                     OutlinedButton(
                         onClick = {
@@ -5642,14 +5652,14 @@ SectionCard(title = "Berechtigungen & System") {
 
                     Spacer(Modifier.height(FaceliftLayoutPolicy.FIELD_GAP_DP.dp))
                     Text("Näheplot-Messwertverstärkung", fontWeight = FontWeight.SemiBold)
-                    OutlinedTextField(
+                    ParameterNumber.Decorated(10073) { OutlinedTextField(
                         value = nearPlotGainInput,
                         onValueChange = { nearPlotGainInput = it.filter(Char::isDigit) },
                         label = { Text("Faktor 1–20") },
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         modifier = Modifier.fillMaxWidth()
-                    )
+                    ) }
                     OutlinedButton(
                         onClick = { onNearPlotGainChange(nearPlotGainInput.toIntOrNull() ?: SeismicPlotUiPolicy.DEFAULT_NEAR_PLOT_GAIN) },
                         modifier = Modifier.fillMaxWidth()
@@ -5662,7 +5672,7 @@ SectionCard(title = "Berechtigungen & System") {
                             Text("Wasserfall-Pegelbereich automatisch", fontWeight = FontWeight.SemiBold)
                             Text("Ein: Automatik. Aus: manuelle gain-korrigierte dBFS-Grenzen.", style = MaterialTheme.typography.bodySmall)
                         }
-                        Switch(
+                        ParameterNumber.Decorated(10074) { Switch(
                             checked = settings.waterfallLevelAuto,
                             onCheckedChange = { enabled ->
                                 onWaterfallLevelSettingsChange(
@@ -5671,10 +5681,11 @@ SectionCard(title = "Berechtigungen & System") {
                                     waterfallLevelMaxInput.toIntOrNull() ?: WaterfallLevelPolicy.DEFAULT_MAX_DB_AT_50
                                 )
                             }
-                        )
+                        ) }
                     }
                     if (!settings.waterfallLevelAuto) {
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            ParameterNumber.AutoMarker(10075)
                             OutlinedTextField(
                                 value = waterfallLevelMinInput,
                                 onValueChange = { value -> waterfallLevelMinInput = value.filter { ch -> ch.isDigit() || ch == '-' } },
@@ -5683,6 +5694,7 @@ SectionCard(title = "Berechtigungen & System") {
                                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                                 modifier = Modifier.weight(1f)
                             )
+                            ParameterNumber.AutoMarker(10076)
                             OutlinedTextField(
                                 value = waterfallLevelMaxInput,
                                 onValueChange = { value -> waterfallLevelMaxInput = value.filter { ch -> ch.isDigit() || ch == '-' } },
@@ -5722,6 +5734,7 @@ SectionCard(title = "Berechtigungen & System") {
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
+                        ParameterNumber.AutoMarker(10077)
                         OutlinedTextField(
                             value = waterfallStatsMinInput,
                             onValueChange = { waterfallStatsMinInput = it.filter(Char::isDigit) },
@@ -5730,6 +5743,7 @@ SectionCard(title = "Berechtigungen & System") {
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                             modifier = Modifier.weight(1f)
                         )
+                        ParameterNumber.AutoMarker(10078)
                         OutlinedTextField(
                             value = waterfallStatsMaxInput,
                             onValueChange = { waterfallStatsMaxInput = it.filter(Char::isDigit) },
@@ -5759,11 +5773,15 @@ SectionCard(title = "Berechtigungen & System") {
                     Text("Kommentar-Timeouts [s]", fontWeight = FontWeight.SemiBold)
                     Text("Die hier gespeicherten Werte gelten auch im Normalmodus.", style = MaterialTheme.typography.bodySmall)
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        ParameterNumber.AutoMarker(10079)
                         OutlinedTextField(value = ratingNoCommentTimeoutInput, onValueChange = { ratingNoCommentTimeoutInput = it.filter(Char::isDigit) }, label = { Text("Bewertung Start") }, singleLine = true, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), modifier = Modifier.weight(1f))
+                        ParameterNumber.AutoMarker(10080)
                         OutlinedTextField(value = ratingCommentTimeoutInput, onValueChange = { ratingCommentTimeoutInput = it.filter(Char::isDigit) }, label = { Text("Bewertung Eingabe") }, singleLine = true, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), modifier = Modifier.weight(1f))
                     }
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        ParameterNumber.AutoMarker(10081)
                         OutlinedTextField(value = audioNoCommentTimeoutInput, onValueChange = { audioNoCommentTimeoutInput = it.filter(Char::isDigit) }, label = { Text("Audio Start") }, singleLine = true, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), modifier = Modifier.weight(1f))
+                        ParameterNumber.AutoMarker(10082)
                         OutlinedTextField(value = audioCommentTimeoutInput, onValueChange = { audioCommentTimeoutInput = it.filter(Char::isDigit) }, label = { Text("Audio Eingabe") }, singleLine = true, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), modifier = Modifier.weight(1f))
                     }
                     OutlinedButton(onClick = { onCommentTimeoutsChange(ratingNoCommentTimeoutInput.toIntOrNull() ?: 5, ratingCommentTimeoutInput.toIntOrNull() ?: 5, audioNoCommentTimeoutInput.toIntOrNull() ?: 60, audioCommentTimeoutInput.toIntOrNull() ?: 10) }, modifier = Modifier.fillMaxWidth()) { Text("Kommentar-Timeouts speichern") }

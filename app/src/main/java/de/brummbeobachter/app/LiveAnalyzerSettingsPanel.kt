@@ -346,16 +346,18 @@ internal fun LiveAnalyzerSettingsPanel(
                         var count by remember { mutableStateOf(state.filterBandCount.toString()) }
                         var filterError by remember { mutableStateOf("") }
                         Row(horizontalArrangement=Arrangement.spacedBy(5.dp)) {
+                            ParameterNumber.AutoMarker(10017)
                             OutlinedTextField(value=minimum,onValueChange={minimum=it},label={Text("FILTER MIN Hz")},
                                 singleLine=true,keyboardOptions=KeyboardOptions(keyboardType=KeyboardType.Number),
                                 textStyle=TextStyle(color=white),modifier=Modifier.weight(1f))
+                            ParameterNumber.AutoMarker(10018)
                             OutlinedTextField(value=maximum,onValueChange={maximum=it},label={Text("FILTER MAX Hz")},
                                 singleLine=true,keyboardOptions=KeyboardOptions(keyboardType=KeyboardType.Number),
                                 textStyle=TextStyle(color=white),modifier=Modifier.weight(1f))
                         }
-                        OutlinedTextField(value=count,onValueChange={count=it},label={Text("Anzahl Filter 2–40 (Standard 10)")},
+                        ParameterNumber.Decorated(10019) { OutlinedTextField(value=count,onValueChange={count=it},label={Text("Anzahl Filter 2–40 (Standard 10)")},
                             singleLine=true,keyboardOptions=KeyboardOptions(keyboardType=KeyboardType.Number),
-                            textStyle=TextStyle(color=white))
+                            textStyle=TextStyle(color=white)) }
                         // Analyzer is automatically stopped when this panel opens.
                         // The controller still guards against unexpected RUN races.
                         if(state.running) SettingNote("Analyzer wird für Filterkonfiguration angehalten.")
@@ -374,9 +376,11 @@ internal fun LiveAnalyzerSettingsPanel(
                         var filterHighDb by remember(state.filterDisplayMaxDb) { mutableStateOf(state.filterDisplayMaxDb.toString()) }
                         var filterRangeError by remember { mutableStateOf("") }
                         Row(horizontalArrangement=Arrangement.spacedBy(5.dp)) {
+                            ParameterNumber.AutoMarker(10020)
                             OutlinedTextField(value=filterLowDb,onValueChange={filterLowDb=it},label={Text("FILTER Min dBFS")},
                                 singleLine=true,keyboardOptions=KeyboardOptions(keyboardType=KeyboardType.Number),
                                 textStyle=TextStyle(color=white),modifier=Modifier.weight(1f))
+                            ParameterNumber.AutoMarker(10021)
                             OutlinedTextField(value=filterHighDb,onValueChange={filterHighDb=it},label={Text("FILTER Max dBFS")},
                                 singleLine=true,keyboardOptions=KeyboardOptions(keyboardType=KeyboardType.Number),
                                 textStyle=TextStyle(color=white),modifier=Modifier.weight(1f))
@@ -415,11 +419,13 @@ internal fun LiveAnalyzerSettingsPanel(
                         }
                     }
                     Row(Modifier.fillMaxWidth(), horizontalArrangement=Arrangement.spacedBy(6.dp)) {
+                        ParameterNumber.AutoMarker(10022)
                         OutlinedTextField(value=minFreqText,onValueChange={minFreqText=it;frequencyError=""},
                             label={Text("Min Hz")},singleLine=true,
                             keyboardOptions=KeyboardOptions(keyboardType=KeyboardType.Number),
                             textStyle=TextStyle(color=white),modifier=Modifier.weight(1f)
                                 .onFocusChanged { frequencyEditing=it.isFocused })
+                        ParameterNumber.AutoMarker(10023)
                         OutlinedTextField(value=maxFreqText,onValueChange={maxFreqText=it;frequencyError=""},
                             label={Text("Max Hz")},singleLine=true,
                             keyboardOptions=KeyboardOptions(keyboardType=KeyboardType.Number),
@@ -494,10 +500,10 @@ internal fun LiveAnalyzerSettingsPanel(
                     var transformText by remember(state.fftHopSamples,state.sampleRateHz) {
                         mutableStateOf(String.format(Locale.US,"%.2f",state.fftHopSamples*1000.0/state.sampleRateHz)) }
                     var transformError by remember { mutableStateOf("") }
-                    OutlinedTextField(value=transformText,onValueChange={transformText=it;transformError=""},
+                    ParameterNumber.Decorated(10024) { OutlinedTextField(value=transformText,onValueChange={transformText=it;transformError=""},
                         label={Text("Gewünschtes Intervall in ms")},singleLine=true,
                         keyboardOptions=KeyboardOptions(keyboardType=KeyboardType.Decimal),
-                        textStyle=TextStyle(color=white))
+                        textStyle=TextStyle(color=white)) }
                     OutlinedButton(onClick={
                         val requested=transformText.replace(',','.').toDoubleOrNull()
                         if (requested == null || !requested.isFinite() || requested<=0.0)
@@ -533,11 +539,11 @@ internal fun LiveAnalyzerSettingsPanel(
                         }
                         SettingCaption("Exponential Smoothing α: ${String.format(Locale.US,"%.2f",state.directSmoothingAlpha)}")
                         var directAlpha by remember(state.directSmoothingAlpha) { mutableStateOf(state.directSmoothingAlpha.toFloat()) }
-                        Slider(value=directAlpha,onValueChange={directAlpha=it},onValueChangeFinished={
+                        ParameterNumber.Decorated(10025) { Slider(value=directAlpha,onValueChange={directAlpha=it},onValueChangeFinished={
                             LiveAnalyzerController.setDirectOptions(context,
                                 (kotlin.math.round(directAlpha*100)/100.0),state.directPeakMarkers,
                                 state.directSubtractDc,state.directStayAwake);onRefresh()
-                        },valueRange=0f..1f,steps=99)
+                        },valueRange=0f..1f,steps=99) }
                         SettingNote("α=0: letzten Mittelwert halten, α=1: keine Mittelung.")
                         SettingCaption("Peak Markers")
                         Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(5.dp)) {
@@ -561,10 +567,10 @@ internal fun LiveAnalyzerSettingsPanel(
                         mutableStateOf(String.format(Locale.US,"%.3f",state.smoothingTimeSeconds)) }
                     var alphaText by remember(alpha) { mutableStateOf(String.format(Locale.US,"%.5f",alpha)) }
                     var smoothingError by remember { mutableStateOf("") }
-                    OutlinedTextField(value=tauText,onValueChange={tauText=it;smoothingError=""},
+                    ParameterNumber.Decorated(10026) { OutlinedTextField(value=tauText,onValueChange={tauText=it;smoothingError=""},
                         label={Text("Zeitkonstante τ in s (0,01…60)")},singleLine=true,
                         keyboardOptions=KeyboardOptions(keyboardType=KeyboardType.Decimal),
-                        textStyle=TextStyle(color=white))
+                        textStyle=TextStyle(color=white)) }
                     OutlinedButton(onClick={
                         val tau=tauText.replace(',','.').toDoubleOrNull()
                         if(tau==null || !tau.isFinite() || tau !in 0.01..60.0)
@@ -572,10 +578,10 @@ internal fun LiveAnalyzerSettingsPanel(
                         else {LiveAnalyzerController.setDsp(context,state.fftSize,state.windowType,state.smoothingEnabled,tau)
                             onRefresh();smoothingError="Übernommen"}
                     }) { Text("Zeitkonstante übernehmen",color=white,fontSize=11.sp) }
-                    OutlinedTextField(value=alphaText,onValueChange={alphaText=it;smoothingError=""},
+                    ParameterNumber.Decorated(10027) { OutlinedTextField(value=alphaText,onValueChange={alphaText=it;smoothingError=""},
                         label={Text("Alternativ: Faktor α (0…1)")},singleLine=true,
                         keyboardOptions=KeyboardOptions(keyboardType=KeyboardType.Decimal),
-                        textStyle=TextStyle(color=white))
+                        textStyle=TextStyle(color=white)) }
                     OutlinedButton(onClick={
                         val a=alphaText.replace(',','.').toDoubleOrNull()
                         if(a==null || !a.isFinite() || a<=0.0 || a>1.0)
@@ -605,11 +611,11 @@ internal fun LiveAnalyzerSettingsPanel(
                             mutableStateOf(String.format(Locale.US,"%.3f",state.smoothingTimeSeconds))
                         }
                         var directTauError by remember { mutableStateOf("") }
-                        OutlinedTextField(value=directTau,onValueChange={directTau=it;directTauError=""},
+                        ParameterNumber.Decorated(10028) { OutlinedTextField(value=directTau,onValueChange={directTau=it;directTauError=""},
                             enabled=state.directTimeSmoothing,
                             label={Text("Zeitkonstante τ in s (0,01…60)")},singleLine=true,
                             keyboardOptions=KeyboardOptions(keyboardType=KeyboardType.Decimal),
-                            textStyle=TextStyle(color=white))
+                            textStyle=TextStyle(color=white)) }
                         OutlinedButton(enabled=state.directTimeSmoothing,onClick={
                             val tau=directTau.replace(',','.').toDoubleOrNull()
                             if(tau==null || !tau.isFinite() || tau !in 0.01..60.0)
@@ -684,11 +690,11 @@ internal fun LiveAnalyzerSettingsPanel(
                         var toneError by remember { mutableStateOf("") }
                         SettingCaption("Testsignal 1 / 2 · ausschließlich digitale TEST-Betriebsart")
                         SettingToggle("Testsignal 1 EIN",on1) { on1=it }
-                        OutlinedTextField(value=tone1,onValueChange={tone1=it;toneError=""},label={Text("Testsignal 1 Hz")},singleLine=true,
-                            keyboardOptions=KeyboardOptions(keyboardType=KeyboardType.Decimal),textStyle=TextStyle(color=white))
+                        ParameterNumber.Decorated(10029) { OutlinedTextField(value=tone1,onValueChange={tone1=it;toneError=""},label={Text("Testsignal 1 Hz")},singleLine=true,
+                            keyboardOptions=KeyboardOptions(keyboardType=KeyboardType.Decimal),textStyle=TextStyle(color=white)) }
                         SettingToggle("Testsignal 2 EIN",on2) { on2=it }
-                        OutlinedTextField(value=tone2,onValueChange={tone2=it;toneError=""},label={Text("Testsignal 2 Hz")},singleLine=true,
-                            keyboardOptions=KeyboardOptions(keyboardType=KeyboardType.Decimal),textStyle=TextStyle(color=white))
+                        ParameterNumber.Decorated(10030) { OutlinedTextField(value=tone2,onValueChange={tone2=it;toneError=""},label={Text("Testsignal 2 Hz")},singleLine=true,
+                            keyboardOptions=KeyboardOptions(keyboardType=KeyboardType.Decimal),textStyle=TextStyle(color=white)) }
                         OutlinedButton(onClick={
                             val a=tone1.replace(',','.').toFloatOrNull();val b=tone2.replace(',','.').toFloatOrNull()
                             val nyquist=state.directInputRateHz/2f
@@ -719,9 +725,9 @@ internal fun LiveAnalyzerSettingsPanel(
                     }
                     SettingCaption("Analysegain: +${state.analysisGainDb} dB (unabhängig vom Recorder)")
                     var gain by remember(state.analysisGainDb) { mutableStateOf(state.analysisGainDb.toFloat()) }
-                    Slider(value=gain,onValueChange={gain=it},onValueChangeFinished={
+                    ParameterNumber.Decorated(10031) { Slider(value=gain,onValueChange={gain=it},onValueChangeFinished={
                         LiveAnalyzerController.setAnalysisGain(context,gain.toInt().coerceIn(0,50));onRefresh()
-                    },valueRange=0f..50f,steps=49)
+                    },valueRange=0f..50f,steps=49) }
                     SettingNote("Rohquelle: ${state.diagnostics?.sourceLabel ?: "–"}; ${state.diagnostics?.sourceRateHz ?: 0} Hz. " +
                         if(state.direct48k) "Exklusiver ${state.directInputRateHz}-Hz-Eingang, Rolling ausgeschaltet." else "Gemeinsamer 8-kHz-Eingang.")
                     if(AnalyzerModeCoordinator.mode == AnalyzerModeCoordinator.Mode.TEST_8K) {
@@ -732,13 +738,13 @@ internal fun LiveAnalyzerSettingsPanel(
                         var dual by remember { mutableStateOf(testPrefs.getBoolean("dual",false)) }
                         var testError by remember { mutableStateOf("") }
                         SettingCaption("Digitaler Testgenerator · nur Analyzer · KEINE MESSUNG")
-                        OutlinedTextField(value=f1,onValueChange={f1=it;testError=""},label={Text("Frequenz 1 (Hz), z. B. 50")},singleLine=true,
-                            keyboardOptions=KeyboardOptions(keyboardType=KeyboardType.Decimal),textStyle=TextStyle(color=white))
+                        ParameterNumber.Decorated(10032) { OutlinedTextField(value=f1,onValueChange={f1=it;testError=""},label={Text("Frequenz 1 (Hz), z. B. 50")},singleLine=true,
+                            keyboardOptions=KeyboardOptions(keyboardType=KeyboardType.Decimal),textStyle=TextStyle(color=white)) }
                         SettingToggle("Zweiten Sinus zuschalten",dual){dual=it}
-                        if(dual) OutlinedTextField(value=f2,onValueChange={f2=it;testError=""},label={Text("Frequenz 2 (Hz), z. B. 195")},singleLine=true,
-                            keyboardOptions=KeyboardOptions(keyboardType=KeyboardType.Decimal),textStyle=TextStyle(color=white))
-                        OutlinedTextField(value=db,onValueChange={db=it;testError=""},label={Text("Digitaler Spitzenpegel −100…−1 dBFS")},singleLine=true,
-                            keyboardOptions=KeyboardOptions(keyboardType=KeyboardType.Text),textStyle=TextStyle(color=white))
+                        if(dual) ParameterNumber.Decorated(10033) { OutlinedTextField(value=f2,onValueChange={f2=it;testError=""},label={Text("Frequenz 2 (Hz), z. B. 195")},singleLine=true,
+                            keyboardOptions=KeyboardOptions(keyboardType=KeyboardType.Decimal),textStyle=TextStyle(color=white)) }
+                        ParameterNumber.Decorated(10034) { OutlinedTextField(value=db,onValueChange={db=it;testError=""},label={Text("Digitaler Spitzenpegel −100…−1 dBFS")},singleLine=true,
+                            keyboardOptions=KeyboardOptions(keyboardType=KeyboardType.Text),textStyle=TextStyle(color=white)) }
                         Button(onClick={
                             val a=f1.replace(',','.').toFloatOrNull()
                             val b=f2.replace(',','.').toFloatOrNull()
@@ -779,11 +785,13 @@ internal fun LiveAnalyzerSettingsPanel(
                     CompositionLocalProvider(LocalTextSelectionColors provides TextSelectionColors(
                         handleColor=cyan, backgroundColor=cyan.copy(alpha=0.35f))) {
                     Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(6.dp)) {
+                        ParameterNumber.AutoMarker(10035)
                         OutlinedTextField(value=minText,onValueChange={minText=it;rangeError=""},
                             label={Text("Minimum dBFS")},singleLine=true,
                             keyboardOptions=KeyboardOptions(keyboardType=KeyboardType.Text),
                             textStyle=TextStyle(color=white,fontSize=16.sp),colors=fieldColors,
                             modifier=Modifier.weight(1f).onFocusChanged { editingMin=it.isFocused })
+                        ParameterNumber.AutoMarker(10036)
                         OutlinedTextField(value=maxText,onValueChange={maxText=it;rangeError=""},
                             label={Text("Maximum dBFS")},singleLine=true,
                             keyboardOptions=KeyboardOptions(keyboardType=KeyboardType.Text),
@@ -814,10 +822,10 @@ internal fun LiveAnalyzerSettingsPanel(
                     SettingCaption("Wasserfall-Zeitdauer (Sekunden, freie Eingabe)")
                     var historyText by remember(state.historySeconds) { mutableStateOf(state.historySeconds.toString()) }
                     var historyError by remember { mutableStateOf("") }
-                    OutlinedTextField(value=historyText,onValueChange={historyText=it;historyError=""},
+                    ParameterNumber.Decorated(10037) { OutlinedTextField(value=historyText,onValueChange={historyText=it;historyError=""},
                         label={Text("Dauer in Sekunden")},singleLine=true,
                         keyboardOptions=KeyboardOptions(keyboardType=KeyboardType.Number),
-                        textStyle=TextStyle(color=white))
+                        textStyle=TextStyle(color=white)) }
                     OutlinedButton(onClick={
                         val seconds=historyText.toIntOrNull()
                         if (seconds == null || seconds !in 10..AnalyzerTiming.MAX_HISTORY_SECONDS ||
@@ -860,19 +868,21 @@ internal fun LiveAnalyzerSettingsPanel(
                     var statAverageText by remember(state.statisticsAverageSec) { mutableStateOf(state.statisticsAverageSec.toString()) }
                     var statError by remember { mutableStateOf("") }
                     Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(5.dp)) {
+                        ParameterNumber.AutoMarker(10038)
                         OutlinedTextField(value=statMinText,onValueChange={statMinText=it;statError=""},
                             label={Text("Min Hz")},singleLine=true,keyboardOptions=KeyboardOptions(keyboardType=KeyboardType.Number),
                             textStyle=TextStyle(color=white),modifier=Modifier.weight(1f))
+                        ParameterNumber.AutoMarker(10039)
                         OutlinedTextField(value=statMaxText,onValueChange={statMaxText=it;statError=""},
                             label={Text("Max Hz")},singleLine=true,keyboardOptions=KeyboardOptions(keyboardType=KeyboardType.Number),
                             textStyle=TextStyle(color=white),modifier=Modifier.weight(1f))
                     }
-                    OutlinedTextField(value=statWindowText,onValueChange={statWindowText=it;statError=""},
+                    ParameterNumber.Decorated(10040) { OutlinedTextField(value=statWindowText,onValueChange={statWindowText=it;statError=""},
                         label={Text("Statistik-Zeitfenster (s)")},singleLine=true,
-                        keyboardOptions=KeyboardOptions(keyboardType=KeyboardType.Number),textStyle=TextStyle(color=white))
-                    OutlinedTextField(value=statAverageText,onValueChange={statAverageText=it;statError=""},
+                        keyboardOptions=KeyboardOptions(keyboardType=KeyboardType.Number),textStyle=TextStyle(color=white)) }
+                    ParameterNumber.Decorated(10041) { OutlinedTextField(value=statAverageText,onValueChange={statAverageText=it;statError=""},
                         label={Text("Statistik Average Time (s)")},singleLine=true,
-                        keyboardOptions=KeyboardOptions(keyboardType=KeyboardType.Decimal),textStyle=TextStyle(color=white))
+                        keyboardOptions=KeyboardOptions(keyboardType=KeyboardType.Decimal),textStyle=TextStyle(color=white)) }
                     Button(onClick={
                         val lo=statMinText.toIntOrNull();val hi=statMaxText.toIntOrNull()
                         val window=statWindowText.toIntOrNull()
@@ -1031,6 +1041,6 @@ private fun SettingChoice(value: String, selected: Boolean, action: () -> Unit) 
 private fun SettingToggle(label: String, checked: Boolean, change: (Boolean) -> Unit) {
     Row(Modifier.fillMaxWidth().padding(vertical=3.dp),verticalAlignment=Alignment.CenterVertically) {
         Text(label,color=Color(0xFFF1F6F8),fontSize=11.sp,modifier=Modifier.weight(1f))
-        Switch(checked=checked,onCheckedChange=change)
+        ParameterNumber.Decorated(10042) { Switch(checked=checked,onCheckedChange=change) }
     }
 }

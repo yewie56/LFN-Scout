@@ -278,8 +278,8 @@ internal fun AnalyzerJsonSetupBrowser(context: Context) {
         Text("Slots 1–4 bleiben für den restlichen Analyzer maßgeblich. MON wird ausschließlich nach Bestätigung als Entwurf geladen. Änderungen schreiben erst bei 'MON speichern' in JSON.",
             color = Color(0xFFABB8C0), fontSize = 12.sp)
         Text("Eigene JSON-Setups verwalten (unabhängig von den alten Slots)", color = Color.White, fontSize = 13.sp)
-        OutlinedTextField(value = newName, onValueChange = { newName = it.take(120) },
-            label = { Text("Neues Setup: Name") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
+        ParameterNumber.Decorated(10000) { OutlinedTextField(value = newName, onValueChange = { newName = it.take(120) },
+            label = { Text("Neues Setup: Name") }, modifier = Modifier.fillMaxWidth(), singleLine = true) }
         OutlinedButton(onClick = {
             runCatching {
                 require(newName.isNotBlank()) { "Bitte einen Namen eingeben" }
@@ -323,8 +323,8 @@ internal fun AnalyzerJsonSetupBrowser(context: Context) {
             }
             if (inspectedId != null) {
                 Text(details, color = Color.White, fontSize = 12.sp)
-                OutlinedTextField(value = editName, onValueChange = { editName = it.take(120) },
-                    label = { Text("Neuer Name (optional)") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
+                ParameterNumber.Decorated(10001) { OutlinedTextField(value = editName, onValueChange = { editName = it.take(120) },
+                    label = { Text("Neuer Name (optional)") }, modifier = Modifier.fillMaxWidth(), singleLine = true) }
                 Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
                     OutlinedButton(onClick = {
                         runCatching {

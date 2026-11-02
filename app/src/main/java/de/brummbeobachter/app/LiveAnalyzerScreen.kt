@@ -46,6 +46,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -568,12 +569,12 @@ internal fun LiveAnalyzerScreen(
                 text = {
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Text("Der Wasserfall ist bereits eingefroren. Der Kommentar wird unten in das gespeicherte Bild eingeblendet.")
-                        OutlinedTextField(
+                        ParameterNumber.Decorated(10008) { OutlinedTextField(
                             value = imageComment,
                             onValueChange = { imageComment = it.take(400) },
                             label = { Text("Kommentar (optional)") },
                             minLines = 3, maxLines = 6, modifier = Modifier.fillMaxWidth()
-                        )
+                        ) }
                         Text("${imageComment.length}/400", fontSize = 11.sp, color = muted)
                     }
                 },
@@ -697,39 +698,51 @@ internal fun LiveAnalyzerScreen(
             var monitorShiftHz by remember { mutableStateOf(AnalyzerMonitor.shiftHz.toFloat()) }
             Text("Mithören · steilflankiger Bandpass",color=cyan,fontSize=14.sp)
             Text("Filtermitte: ${monitorCenter.toInt()} Hz (MON ${monRangeMin.toInt()}–${monRangeMax.toInt()} Hz)", color=white, fontSize=12.sp)
-            Slider(value=monitorCenter.toFloat().coerceIn(centerMin,centerMax),
+            ParameterNumber.Decorated(10009) { Slider(value=monitorCenter.toFloat().coerceIn(centerMin,centerMax),
                 onValueChange={ monitorCenter=it.toDouble(); AnalyzerMonitor.setCenter(context,it.toDouble()) },
                 valueRange=centerMin..centerMax,
-                onValueChangeFinished={ AnalyzerMonitor.persistTouchSettings(context) })
+                onValueChangeFinished={ AnalyzerMonitor.persistTouchSettings(context) }) }
             Text("Bandwidth: ${monitorWidth.toInt()} Hz",color=white,fontSize=12.sp)
-            Slider(value=monitorWidth,onValueChange={ monitorWidth=it },valueRange=0.5f..maxMonitorWidth,
-                onValueChangeFinished={ AnalyzerMonitor.setBandwidth(context,monitorWidth.toDouble()); monitorCenter=AnalyzerMonitor.centerHz })
+            ParameterNumber.Decorated(10010) { Slider(value=monitorWidth,onValueChange={ monitorWidth=it },valueRange=0.5f..maxMonitorWidth,
+                onValueChangeFinished={ AnalyzerMonitor.setBandwidth(context,monitorWidth.toDouble()); monitorCenter=AnalyzerMonitor.centerHz }) }
             Text("Frequenzverschiebung: +${monitorShiftHz.toInt()} Hz",color=white,fontSize=12.sp)
-            Slider(value=monitorShiftHz,onValueChange={ monitorShiftHz=it },valueRange=20f..400f,
-                onValueChangeFinished={ AnalyzerMonitor.setShift(context,monitorShiftHz.toDouble()) })
+            ParameterNumber.Decorated(10011) { Slider(value=monitorShiftHz,onValueChange={ monitorShiftHz=it },valueRange=20f..400f,
+                onValueChangeFinished={ AnalyzerMonitor.setShift(context,monitorShiftHz.toDouble()) }) }
             Text("Ausgangsdynamik · nur Mithörzweig",color=cyan,fontSize=14.sp)
             var maxMonGain by remember { mutableStateOf(AnalyzerMonitor.maxGainDb.toFloat()) }
             LaunchedEffect(settingsSection) { maxMonGain=AnalyzerMonitor.maxGainDb.toFloat() }
             Text("Maximale MON-Verstärkung: +${maxMonGain.toInt()} dB",color=white,fontSize=12.sp)
-            Slider(value=maxMonGain.coerceIn(0f,200f), onValueChange={
+            ParameterNumber.Decorated(10012) { Slider(value=maxMonGain.coerceIn(0f,200f), onValueChange={
                 maxMonGain=it
                 AnalyzerMonitor.setMaxGain(context,it.toDouble())
                 monitorLevel=AnalyzerMonitor.levelDb
             }, valueRange=0f..200f,
-                onValueChangeFinished={AnalyzerMonitor.persistTouchSettings(context)})
+                onValueChangeFinished={AnalyzerMonitor.persistTouchSettings(context)}) }
             Text("Mithör-Gain: −60 bis +${maxMonGain.toInt()} dB · Swipe im Wasserfall oder auf MON-Anzeige",color=white,fontSize=12.sp)
             var compOn by remember { mutableStateOf(AnalyzerMonitor.compressorEnabled) }
             var limitOn by remember { mutableStateOf(AnalyzerMonitor.limiterEnabled) }
             Text("KOMPRESSOR · Dynamikregelung",color=cyan,fontSize=15.sp,fontWeight=FontWeight.Bold)
             Row(verticalAlignment=Alignment.CenterVertically) {
                 Text("Kompressor",color=white,modifier=Modifier.weight(1f))
-                Switch(checked=compOn,onCheckedChange={ compOn=it;AnalyzerMonitor.setDynamicsEnabled(context,compressor=it) })
+                ParameterNumber.Decorated(10013) { Switch(checked=compOn,onCheckedChange={ compOn=it;AnalyzerMonitor.setDynamicsEnabled(context,compressor=it) }) }
             }
             @Composable fun DynamicsSetting(label:String,key:String,initial:Double,limits:ClosedFloatingPointRange<Float>,unit:String="") {
                 var setting by remember(key) { mutableStateOf(initial.toFloat()) }
                 Text("$label: ${"%.1f".format(Locale.US,setting)} $unit",color=white,fontSize=11.sp)
-                Slider(value=setting,onValueChange={setting=it},valueRange=limits,
-                    onValueChangeFinished={AnalyzerMonitor.setDynamics(context,key,setting.toDouble())})
+                ParameterNumber.Decorated(when(key) {
+                    "comp_thr" -> 10014
+                    "comp_ratio" -> 10101
+                    "comp_attack" -> 10102
+                    "comp_release" -> 10103
+                    "comp_knee" -> 10104
+                    "comp_makeup" -> 10105
+                    "limit_ceiling" -> 10106
+                    "limit_attack" -> 10107
+                    "limit_release" -> 10108
+                    "fade" -> 10109
+                    else -> error("Missing parameter number for $key")
+                }) { Slider(value=setting,onValueChange={setting=it},valueRange=limits,
+                    onValueChangeFinished={AnalyzerMonitor.setDynamics(context,key,setting.toDouble())}) }
             }
             DynamicsSetting("Threshold","comp_thr",AnalyzerMonitor.compressorThresholdDb,-60f..0f,"dBFS")
             DynamicsSetting("Ratio","comp_ratio",AnalyzerMonitor.compressorRatio,1f..20f,":1")
@@ -741,7 +754,7 @@ internal fun LiveAnalyzerScreen(
             Text("LIMITER · Spitzenbegrenzung",color=cyan,fontSize=15.sp,fontWeight=FontWeight.Bold)
             Row(verticalAlignment=Alignment.CenterVertically) {
                 Text("Limiter",color=white,modifier=Modifier.weight(1f))
-                Switch(checked=limitOn,onCheckedChange={ limitOn=it;AnalyzerMonitor.setDynamicsEnabled(context,limiter=it) })
+                ParameterNumber.Decorated(10015) { Switch(checked=limitOn,onCheckedChange={ limitOn=it;AnalyzerMonitor.setDynamicsEnabled(context,limiter=it) }) }
             }
             DynamicsSetting("Limiter-Grenze","limit_ceiling",AnalyzerMonitor.limiterCeilingDb,-30f..-1f,"dBFS")
             DynamicsSetting("Limiter Attack","limit_attack",AnalyzerMonitor.limiterAttackMs,0.1f..20f,"ms")
@@ -756,7 +769,7 @@ internal fun LiveAnalyzerScreen(
                 LiveAnalyzerController.resetSpectrumMaxHold()
                 state=LiveAnalyzerController.snapshot()
             }) { Text("MAX HOLD zurücksetzen") }
-            Row(verticalAlignment=Alignment.CenterVertically) { Text("MON-Aufnahme nur lokal speichern (Standard EIN)",modifier=Modifier.weight(1f)); Switch(checked=monLocalOnly,onCheckedChange={ v -> monLocalOnly=v; context.getSharedPreferences("mon_rec_053",Context.MODE_PRIVATE).edit().putBoolean("only_local",v).apply() }) }
+            Row(verticalAlignment=Alignment.CenterVertically) { Text("MON-Aufnahme nur lokal speichern (Standard EIN)",modifier=Modifier.weight(1f)); ParameterNumber.Decorated(10083) { Switch(checked=monLocalOnly,onCheckedChange={ v -> monLocalOnly=v; context.getSharedPreferences("mon_rec_053",Context.MODE_PRIVATE).edit().putBoolean("only_local",v).apply() }) } }
             Text("440 Hz mit festem niedrigem Pegel prüft nur die Audio-Ausgabe (ohne Mikrofon, MON-Filter oder Gain).",
                 color=muted,fontSize=11.sp)
             Text("Mithörpegel und Mittenfrequenz: Wischen im Wasserfall, solange MON aktiv ist. " +
@@ -1278,6 +1291,22 @@ internal fun LiveAnalyzerScreen(
                     if (y in top..bottom) drawLine(cyan,Offset(left,y),Offset(right,y),strokeWidth=1.dp.toPx())
                 }
             }
+            // Gestures have no native Slider label: show stable parameter identifiers
+            // on their active touch surface without changing hit-testing.
+            if (monitoring && eqMode && state.direct48k) {
+                Row(Modifier.align(Alignment.BottomCenter).fillMaxWidth()
+                    .padding(start=plotLeftDp, end=plotRightDp, bottom=plotBottomDp + 19.dp),
+                    horizontalArrangement=Arrangement.SpaceEvenly) {
+                    for (band in 0 until 8) ParameterNumber.AutoMarker(10091 + band)
+                }
+            } else if (monitoring) {
+                Row(Modifier.align(Alignment.BottomCenter)
+                    .padding(bottom=plotBottomDp + 18.dp),
+                    horizontalArrangement=Arrangement.spacedBy(7.dp)) {
+                    ParameterNumber.AutoMarker(10009) // MON center, also set by horizontal drag
+                    ParameterNumber.AutoMarker(10088) // MON level, set by vertical drag
+                }
+            }
             if(monitoring) Text(
                 "MON ${"%.0f".format(Locale.US,monitorCenter)} Hz · ${"%.0f".format(Locale.US,monitorLevel)} dB" +
                     "\nBW ${"%.1f".format(Locale.US,AnalyzerMonitor.bandwidthHz)} Hz" +
@@ -1470,6 +1499,7 @@ internal fun LiveAnalyzerScreen(
                         color=white,fontSize=8.sp,lineHeight=10.sp)
                 }
                 LongPressMark(show=monitoring)
+                Box(Modifier.align(Alignment.TopEnd)) { ParameterNumber.AutoMarker(10097) }
             }
             if (state.direct48k) {
                 Box(Modifier.size(buttonWidth,buttonHeight)
@@ -1480,6 +1510,7 @@ internal fun LiveAnalyzerScreen(
                         eqGainsUi=AnalyzerMonitor.eqGainSnapshot()
                     }, contentAlignment=Alignment.Center) {
                     Text(if(eqMode) "EQ" else "F",color=if(eqMode) Color(0xFF48ED87) else white,fontSize=15.sp)
+                    Box(Modifier.align(Alignment.TopEnd)) { ParameterNumber.AutoMarker(10098) }
                 }
             }
             if(!state.direct48k) {
@@ -1521,9 +1552,9 @@ internal fun LiveAnalyzerScreen(
                     text={Column(verticalArrangement=Arrangement.spacedBy(8.dp)) {
                         Text("FAST/EXCESS: Bandpegel gegenüber der langsamen Hintergrundreferenz. Der bisherige RMS-Algorithmus bleibt unverändert.")
                         Text("Exzess-Schwelle: ${state.impulseThresholdDb} dB")
-                        Slider(value=state.impulseThresholdDb.toFloat(),onValueChange={ v ->
+                        ParameterNumber.Decorated(10016) { Slider(value=state.impulseThresholdDb.toFloat(),onValueChange={ v ->
                             LiveAnalyzerController.setImpulseThreshold(context,v.toInt());state=LiveAnalyzerController.snapshot()
-                        },valueRange=0f..20f,steps=19)
+                        },valueRange=0f..20f,steps=19) }
                         Text("Nur für den 8-kHz-Analyzer; keine Verstärkung der Audiodaten.")
                     }},confirmButton={TextButton(onClick={impulseSettingsOpen=false}) {Text("Schließen")}})
             }

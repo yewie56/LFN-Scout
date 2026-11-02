@@ -188,7 +188,7 @@ internal fun AnalyzerSimpleSetupPanel(context: Context) {
         }
         DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
             data?.entries?.forEach { entry ->
-                DropdownMenuItem(text = { Text(entry.name) }, onClick = {
+                DropdownMenuItem(text = { Row { Text(entry.name); ParameterNumber.AutoMarker(10084) } }, onClick = {
                     menuOpen = false
                     selectDraft(entry.id)
                 })
@@ -205,10 +205,10 @@ internal fun AnalyzerSimpleSetupPanel(context: Context) {
                 }
             }
         }
-        OutlinedTextField(
+        ParameterNumber.Decorated(10002) { OutlinedTextField(
             value = createName, onValueChange = { createName = it.take(120) },
             label = { Text("Aktuelle Einstellungen speichern unter …") }, modifier = Modifier.fillMaxWidth(), singleLine = true
-        )
+        ) }
         Button(onClick = {
             runCatching {
                 require(createName.isNotBlank()) { "Name fehlt" }
