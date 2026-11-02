@@ -5009,8 +5009,9 @@ private fun ReminderSettingsScreen(
             if (remoteDiagnosticOpen) {
                 BluetoothRemoteDiagnostic.Dialog(onDismiss = { remoteDiagnosticOpen = false })
             }
+            val remoteDiagnosticContext = LocalContext.current
             OutlinedButton(onClick = {
-                BluetoothRemoteDiagnostic.start(this@MainActivity)
+                BluetoothRemoteDiagnostic.start(remoteDiagnosticContext)
                 remoteDiagnosticOpen = true
             }, modifier = Modifier.fillMaxWidth()) {
                 Text("Bluetooth Remote · Testmodus")
