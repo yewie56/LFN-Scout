@@ -4948,6 +4948,24 @@ private fun ReminderSettingsScreen(
             }, modifier = Modifier.fillMaxWidth()) {
                 Text("Bluetooth Remote · Testmodus")
             }
+            var exportingPrivateFiles by remember { mutableStateOf(false) }
+            var privateExportResult by remember { mutableStateOf("Noch kein Export durchgeführt") }
+            val exportScope = rememberCoroutineScope()
+            OutlinedButton(
+                enabled = !exportingPrivateFiles,
+                onClick = {
+                    exportingPrivateFiles = true
+                    exportScope.launch {
+                        privateExportResult = try {
+                            val result = withContext(Dispatchers.IO) { PrivateFilesExporter.export(appContext) }
+                            "Export: ${result.copied} Dateien, ${result.failed} Fehler, ${result.bytes} Bytes\n${result.folder}" +
+                                if (result.failed != 0) "\nUNVOLLSTÄNDIG – siehe EXPORT_MANIFEST.txt" else "\nAbgeschlossen"
+                        } catch (e: Exception) { "Export fehlgeschlagen: ${e.message}" }
+                        exportingPrivateFiles = false
+                    }
+                }, modifier = Modifier.fillMaxWidth()
+            ) { Text(if (exportingPrivateFiles) "App-Dateien werden exportiert …" else "Alle App-Dateien exportieren") }
+            Text(privateExportResult, style = MaterialTheme.typography.bodySmall)
             Spacer(Modifier.height(FaceliftLayoutPolicy.FIELD_GAP_DP.dp))
 
             SectionCard(title = "Erinnerungen") {

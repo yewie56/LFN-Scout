@@ -15,6 +15,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 
 /** User-configured HID keys. Activity-delivered events only; not a BLE GATT listener. */
 internal object BluetoothRemoteControl {
@@ -190,11 +192,14 @@ internal object BluetoothRemoteControl {
     @Composable fun SettingsDialog(context: Context, developerModeEnabled: Boolean, onDismiss: () -> Unit) {
         var active by remember { mutableStateOf(enabled(context)) }
         var revision by remember { mutableIntStateOf(0) }
-        AlertDialog(onDismissRequest = { stopLearning(); onDismiss() },
-            title = { Text("Bluetooth Remote · Tastenbelegung") },
-            text = {
+        Dialog(onDismissRequest = { stopLearning(); onDismiss() }, properties = DialogProperties(usePlatformDefaultWidth = false)) {
+          Surface(modifier = Modifier.fillMaxWidth(0.94f).fillMaxHeight(0.88f), shape = MaterialTheme.shapes.large, tonalElevation = 6.dp) {
+           Column(Modifier.padding(18.dp)) {
+           Text("Bluetooth Remote · Tastenbelegung", style=MaterialTheme.typography.titleLarge)
+           Spacer(Modifier.height(8.dp))
+            Box(Modifier.weight(1f)) {
                 ObserveSettingsDialog(context)
-                Column(Modifier.fillMaxWidth().heightIn(max=500.dp).verticalScroll(rememberScrollState())) {
+                Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
                     Text("S18: OBEN, UNTEN, LINKS, RECHTS, MITTE durch Bewegung erkennbar. Erst eine Funktion auf 'Anlernen' setzen, dann S18-Taste drücken.", style=MaterialTheme.typography.bodySmall)
                     if (developerModeEnabled) {
                         Text(recognizedS18, style=MaterialTheme.typography.bodySmall)
@@ -202,13 +207,13 @@ internal object BluetoothRemoteControl {
                         Text(recognizedS18.substringBefore(" ("), style=MaterialTheme.typography.bodySmall)
                     }
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                        Text("Fernbedienung aktiviert")
+                        Column { Text("Fernbedienung aktiviert"); ParameterNumber.Marker(9001, developerModeEnabled) }
                         Switch(checked=active, onCheckedChange={ active=it; setEnabled(context,it) })
                     }
                     Text("Nur von Android an die App zugestellte externe Tastensignale. Bei gesperrtem Display nicht für jedes Gerät garantiert.", style=MaterialTheme.typography.bodySmall)
                     Spacer(Modifier.height(8.dp))
                     commands.forEach { command ->
-                        Text(label(command), style=MaterialTheme.typography.titleSmall)
+                        Row { Text(label(command), style=MaterialTheme.typography.titleSmall); ParameterNumber.Marker(when(command) { "PAUSE" -> 9002; "SCREEN" -> 9003; "AUDIO" -> 9004; else -> 9005 }, developerModeEnabled) }
                         val assigned = mapping(context,command)
                         // Re-read mappings when learning completes (latestKey changes).
                         @Suppress("UNUSED_VARIABLE") val refreshToken = revision to latestKey
@@ -230,6 +235,10 @@ internal object BluetoothRemoteControl {
                     if (isLearning()) Text("Anlernen aktiv – Taste drücken, danach Dialog erneut öffnen, um Belegung zu prüfen.")
                     Text(lastTrigger, style=MaterialTheme.typography.bodySmall)
                 }
-            }, confirmButton = { TextButton(onClick={ stopLearning(); onDismiss() }) { Text("Schließen") } })
+            }
+            TextButton(onClick={ stopLearning(); onDismiss() }) { Text("Schließen") }
+           }
+          }
+        }
     }
 }
