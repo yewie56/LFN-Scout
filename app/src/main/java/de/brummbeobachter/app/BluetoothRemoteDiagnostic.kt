@@ -24,6 +24,7 @@ import java.util.Locale
 
 /** Read-only diagnostic. No analyzer, recording or screenshot commands are dispatched. */
 internal object BluetoothRemoteDiagnostic {
+    private var appContext: Context? = null
     var listening by mutableStateOf(false)
         private set
     private val events = mutableStateListOf<String>()
@@ -36,7 +37,7 @@ internal object BluetoothRemoteDiagnostic {
     private val motionCounters = mutableMapOf<Int, Int>()
 
     private fun exportText(): String = buildString {
-        appendLine("LFN-Scout v0.5.129 – Bluetooth Remote Diagnose")
+        appendLine("LFN-Scout v0.5.130 – Bluetooth Remote Diagnose")
         appendLine("Export: " + SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.GERMANY).format(Date()))
         appendLine("Status beim Export: " + if (listening) "Test aktiv" else "Test gestoppt")
         appendLine("Geräte (${devices.size}):")
@@ -50,6 +51,7 @@ internal object BluetoothRemoteDiagnostic {
     }
 
     fun start(context: Context) {
+        appContext = context.applicationContext
         events.clear()
         downTimes.clear()
         lastUps.clear()
@@ -106,6 +108,9 @@ internal object BluetoothRemoteDiagnostic {
      * whereas action transitions and button changes are always retained.
      */
     fun onMotion(event: MotionEvent, entryPoint: String) {
+        // Route the same S18 stream to the independent learner/command dispatcher.
+        // The diagnostic logger remains read-only and never consumes events.
+        if (entryPoint.startsWith("dialog")) appContext?.let { BluetoothRemoteControl.onMotion(it, event) }
         if (!listening) return
         val device = InputDevice.getDevice(event.deviceId) ?: return
         if (!device.isExternal) return

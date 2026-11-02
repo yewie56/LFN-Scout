@@ -3,6 +3,11 @@ package de.brummbeobachter.app
 import android.content.Context
 import android.view.InputDevice
 import android.view.KeyEvent
+import android.view.MotionEvent
+import android.view.Window
+import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.window.DialogWindowProvider
+import kotlin.math.abs
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -24,7 +29,69 @@ internal object BluetoothRemoteControl {
     var pendingAction by mutableStateOf("")
         private set
     private var learning = false
+    private var settingsVisible = false
     private var lastActivation = 0L
+    private data class S18Stroke(val x: Float, val y: Float, var lastX: Float, var lastY: Float,
+                                 var maxDx: Float = 0f, var maxDy: Float = 0f)
+    private val strokes = mutableMapOf<Int, S18Stroke>()
+    private const val S18_DESCRIPTOR = "1f9732f291ce3e3ddc26c59de5cc9968625367d8"
+    private fun s18Key(direction: String) = "$S18_DESCRIPTOR|S18:$direction"
+    /** Interpret only the known S18 pointer signals, not local screen touches.
+      * Gesture classification is intentionally conservative: ambiguous swipes are ignored.
+      * Does not consume MotionEvents, so Android pointer behavior stays unchanged.
+      */
+    fun onMotion(context: Context, event: MotionEvent) {
+        val device = InputDevice.getDevice(event.deviceId) ?: return
+        if (!device.isExternal || device.descriptor != S18_DESCRIPTOR ||
+            (!event.isFromSource(InputDevice.SOURCE_MOUSE) &&
+             !event.isFromSource(InputDevice.SOURCE_TOUCHPAD))) return
+        val id = event.deviceId
+        when (event.actionMasked) {
+            MotionEvent.ACTION_DOWN -> strokes[id] = S18Stroke(event.x,event.y,event.x,event.y)
+            MotionEvent.ACTION_MOVE -> strokes[id]?.let { stroke ->
+                stroke.lastX = event.x; stroke.lastY = event.y
+                stroke.maxDx = maxOf(stroke.maxDx, abs(event.x - stroke.x))
+                stroke.maxDy = maxOf(stroke.maxDy, abs(event.y - stroke.y))
+            }
+            MotionEvent.ACTION_UP -> {
+                val stroke = strokes.remove(id) ?: return
+                val dx = event.x - stroke.x
+                val dy = event.y - stroke.y
+                val direction = when {
+                    // Center sends a brief DOWN/UP near the reported fixed center.
+                    stroke.maxDx < 35f && stroke.maxDy < 35f &&
+                        abs(stroke.x - 402f) < 90f && abs(stroke.y - 995f) < 120f -> "MITTE"
+                    abs(dx) < 80f && abs(dy) < 80f -> null
+                    abs(dx) >= 90f && abs(dx) > abs(dy) * 1.6f -> if (dx > 0) "RECHTS" else "LINKS"
+                    abs(dy) >= 90f && abs(dy) > abs(dx) * 1.6f -> if (dy > 0) "UNTEN" else "OBEN"
+                    else -> null
+                } ?: return
+                recognizedS18 = "S18: $direction (dx=${dx.toInt()}, dy=${dy.toInt()})"
+                val key = s18Key(direction)
+                if (learning) {
+                    learning = false
+                    val edit = prefs(context).edit()
+                    commands.forEach { if (mapping(context,it) == key) edit.remove(it) }
+                    edit.putString(learnCommand,key).apply()
+                    latestKey = recognizedS18
+                } else if (enabled(context) && !BluetoothRemoteDiagnostic.listening && !settingsVisible) {
+                    dispatchCommand(context, key, event.eventTime)
+                }
+            }
+            MotionEvent.ACTION_CANCEL -> strokes.remove(id)
+        }
+    }
+    var recognizedS18 by mutableStateOf("Noch keine S18-Richtung erkannt")
+        private set
+    private fun dispatchCommand(context: Context, key: String, whenMs: Long): Boolean {
+        val command = commands.firstOrNull { mapping(context,it) == key } ?: return false
+        if (whenMs - lastActivation < 280L) return true
+        lastActivation = whenMs
+        pendingAction = command
+        actionNumber += 1
+        if (command == "TRIGGER") lastTrigger = "Trigger empfangen: ${System.currentTimeMillis()} ms (Systemzeit)"
+        return true
+    }
 
     private fun prefs(context: Context) = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
     private fun keyId(event: KeyEvent): String {
@@ -61,16 +128,7 @@ internal object BluetoothRemoteControl {
             return true
         }
         if (!enabled(context) || BluetoothRemoteDiagnostic.listening) return false
-        val command = commands.firstOrNull { mapping(context, it) == key } ?: return false
-        // Suppress nearby duplicates from remotes which send burst key sequences.
-        if (event.eventTime - lastActivation < 280L) return true
-        lastActivation = event.eventTime
-        pendingAction = command
-        actionNumber += 1
-        if (command == "TRIGGER") {
-            lastTrigger = "Trigger empfangen: ${System.currentTimeMillis()} ms (Systemzeit)"
-        }
-        return true
+        return dispatchCommand(context, key, event.eventTime)
     }
     fun label(command: String) = when(command) {
         "PAUSE" -> "Analyzer Pause / Fortsetzen"
@@ -78,13 +136,45 @@ internal object BluetoothRemoteControl {
         "AUDIO" -> "Rolling-Audio speichern (bestehender Ablauf)"
         else -> "Mess-Trigger (Ereignis markieren)"
     }
+    @Composable private fun ObserveSettingsDialog(context: Context) {
+        val view = LocalView.current
+        DisposableEffect(view) {
+            settingsVisible = true
+            val window = (view.parent as? DialogWindowProvider)?.window
+            val original = window?.callback
+            if (window != null && original != null) {
+                val observer = object : Window.Callback by original {
+                    override fun dispatchTouchEvent(event: MotionEvent): Boolean {
+                        onMotion(context,event)
+                        return original.dispatchTouchEvent(event)
+                    }
+                    override fun dispatchGenericMotionEvent(event: MotionEvent): Boolean {
+                        onMotion(context,event)
+                        return original.dispatchGenericMotionEvent(event)
+                    }
+                    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+                        val used = onKey(context,event)
+                        return used || original.dispatchKeyEvent(event)
+                    }
+                }
+                window.callback = observer
+            }
+            onDispose {
+                settingsVisible = false
+                if (window != null && original != null && window.callback !== original) window.callback = original
+            }
+        }
+    }
     @Composable fun SettingsDialog(context: Context, onDismiss: () -> Unit) {
         var active by remember { mutableStateOf(enabled(context)) }
         var revision by remember { mutableIntStateOf(0) }
         AlertDialog(onDismissRequest = { stopLearning(); onDismiss() },
             title = { Text("Bluetooth Remote · Tastenbelegung") },
             text = {
+                ObserveSettingsDialog(context)
                 Column(Modifier.fillMaxWidth().heightIn(max=500.dp).verticalScroll(rememberScrollState())) {
+                    Text("S18: OBEN, UNTEN, LINKS, RECHTS, MITTE durch Bewegung erkennbar. Erst eine Funktion auf 'Anlernen' setzen, dann S18-Taste drücken.", style=MaterialTheme.typography.bodySmall)
+                    Text(recognizedS18, style=MaterialTheme.typography.bodySmall)
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                         Text("Fernbedienung aktiviert")
                         Switch(checked=active, onCheckedChange={ active=it; setEnabled(context,it) })
@@ -94,6 +184,8 @@ internal object BluetoothRemoteControl {
                     commands.forEach { command ->
                         Text(label(command), style=MaterialTheme.typography.titleSmall)
                         val assigned = mapping(context,command)
+                        // Re-read mappings when learning completes (latestKey changes).
+                        @Suppress("UNUSED_VARIABLE") val refreshToken = revision to latestKey
                         Text(if (assigned.isBlank()) "Nicht belegt" else assigned, style=MaterialTheme.typography.bodySmall)
                         Row {
                             TextButton(onClick={ learn(command); revision++ }) { Text("Anlernen") }

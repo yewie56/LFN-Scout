@@ -107,11 +107,13 @@ import kotlin.math.abs
 
 class MainActivity : ComponentActivity() {
     override fun dispatchGenericMotionEvent(event: android.view.MotionEvent): Boolean {
+        BluetoothRemoteControl.onMotion(this,event)
         BluetoothRemoteDiagnostic.onMotion(event, "generic")
         return super.dispatchGenericMotionEvent(event)
     }
 
     override fun dispatchTouchEvent(event: android.view.MotionEvent): Boolean {
+        BluetoothRemoteControl.onMotion(this,event)
         BluetoothRemoteDiagnostic.onMotion(event, "touch")
         return super.dispatchTouchEvent(event)
     }
