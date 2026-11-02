@@ -392,13 +392,13 @@ internal fun LiveAnalyzerSettingsPanel(
                             else { LiveAnalyzerController.setFilterDisplayRange(context,low,high);onRefresh();filterRangeError="FILTER-Skala gespeichert" }
                         }) { Text("FILTER-Pegelgrenzen übernehmen") }
                         if(filterRangeError.isNotBlank()) SettingNote(filterRangeError)
-                        SettingCaption("FILTER-Autorange: Dauer ${state.filterAutoRangeDurationSec} s")
+                        SettingCaption("FILTER-Autorange: Dauer ${state.filterAutoRangeDurationSec} s", parameterId=10116)
                         Row(Modifier.horizontalScroll(rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(3.dp)) {
                             listOf(1,2,3,5,10).forEach { sec -> SettingChoice("$sec s",sec==state.filterAutoRangeDurationSec) {
                                 LiveAnalyzerController.setFilterAutoRangeSettings(context,sec,state.filterAutoRangeMarginDb);onRefresh()
                             } }
                         }
-                        SettingCaption("FILTER-Autorange: Reserve ±${state.filterAutoRangeMarginDb} dB")
+                        SettingCaption("FILTER-Autorange: Reserve ±${state.filterAutoRangeMarginDb} dB", parameterId=10117)
                         Row(Modifier.horizontalScroll(rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(3.dp)) {
                             listOf(0,3,5,10,15).forEach { margin -> SettingChoice("±$margin",margin==state.filterAutoRangeMarginDb) {
                                 LiveAnalyzerController.setFilterAutoRangeSettings(context,state.filterAutoRangeDurationSec,margin);onRefresh()
@@ -442,7 +442,7 @@ internal fun LiveAnalyzerSettingsPanel(
                         }
                     }) { Text("Frequenzgrenzen übernehmen",fontSize=11.sp) }
                     if (frequencyError.isNotEmpty()) SettingNote(frequencyError)
-                    SettingCaption("Schnellwahl: 0–X Hz")
+                    SettingCaption("Schnellwahl: 0–X Hz", parameterId=10110)
                     Row(Modifier.horizontalScroll(rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(3.dp)) {
                         (if(state.direct48k) intArrayOf(200,1000,5000,10000,22000,48000).filter { it<=state.sampleRateHz/2 } else LiveAnalyzerController.allowedMaxHz.toList()).forEach { hz ->
                             SettingChoice("$hz Hz",hz==state.rangeHz) {
@@ -451,7 +451,7 @@ internal fun LiveAnalyzerSettingsPanel(
                         }
                     }
                     SettingCaption(if(state.direct48k) "Direkt: Decimation ${state.decimationFactor} · effektiv ${state.sampleRateHz} Hz" else
-                        "Decimation: ${state.decimationFactor}:1 · LF ${state.sampleRateHz} Hz")
+                        "Decimation: ${state.decimationFactor}:1 · LF ${state.sampleRateHz} Hz", parameterId=10111)
                     if(state.direct48k) {
                         if (state.running) SettingNote("STOP erforderlich · Decimation kann während RUN nicht geändert werden.")
                         else Row(Modifier.horizontalScroll(rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(3.dp)) {
@@ -476,7 +476,7 @@ internal fun LiveAnalyzerSettingsPanel(
                         }
                     }
                     SettingNote("FIR-Anti-Aliasing nur im Analyzer. Gemeinsamer 8-kHz-PCM-/WAV-Pfad bleibt unverändert.")
-                    SettingCaption("FFT Size: ${state.fftSize} · Δf ${String.format(Locale.US,"%.3f",state.sampleRateHz.toDouble()/state.fftSize)} Hz")
+                    SettingCaption("FFT Size: ${state.fftSize} · Δf ${String.format(Locale.US,"%.3f",state.sampleRateHz.toDouble()/state.fftSize)} Hz", parameterId=10112)
                     Row(Modifier.horizontalScroll(rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(3.dp)) {
                         (if(state.direct48k) DirectAnalyzerConfig.fftSizes else AnalyzerTiming.allowedFftSizes).forEach { size ->
                             SettingChoice("$size",size==state.fftSize) {
@@ -485,7 +485,7 @@ internal fun LiveAnalyzerSettingsPanel(
                             }
                         }
                     }
-                    SettingCaption("FFT-Hop: ${state.fftHopSamples} Samples · Transformation alle ${AnalyzerTiming.frameIntervalMs(state.fftHopSamples,state.sampleRateHz)} ms")
+                    SettingCaption("FFT-Hop: ${state.fftHopSamples} Samples · Transformation alle ${AnalyzerTiming.frameIntervalMs(state.fftHopSamples,state.sampleRateHz)} ms", parameterId=10113)
                     Row(Modifier.horizontalScroll(rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(3.dp)) {
                         (if(state.direct48k) DirectAnalyzerConfig.transformIntervalsMs.map { DirectAnalyzerConfig.hop(state.directInputRateHz,state.decimationFactor,it) }.distinct().toIntArray() else AnalyzerTiming.allowedFftHops).forEach { hop ->
                             SettingChoice("$hop",hop==state.fftHopSamples) {
@@ -523,7 +523,7 @@ internal fun LiveAnalyzerSettingsPanel(
                     }) {Text("Intervall übernehmen",color=white,fontSize=11.sp)}
                     if(transformError.isNotBlank()) SettingNote(transformError)
                     if (state.direct48k) SettingNote("Direkt-Intervalle: 10/15/20/25/30/50/100 ms. Bei kleinen FFTs darf Hop > FFT Size sein.")
-                    SettingCaption("Window-Funktion")
+                    SettingCaption("Window-Funktion", parameterId=10114)
                     Row(Modifier.horizontalScroll(rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(3.dp)) {
                         AnalyzerWindow.values().forEach { window ->
                             SettingChoice(window.name,window==state.windowType) {
@@ -545,7 +545,7 @@ internal fun LiveAnalyzerSettingsPanel(
                                 state.directSubtractDc,state.directStayAwake);onRefresh()
                         },valueRange=0f..1f,steps=99) }
                         SettingNote("α=0: letzten Mittelwert halten, α=1: keine Mittelung.")
-                        SettingCaption("Peak Markers")
+                        SettingCaption("Peak Markers", parameterId=10115)
                         Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(5.dp)) {
                             (0..2).forEach { count ->
                                 SettingChoice("$count",count==state.directPeakMarkers) {
@@ -562,7 +562,7 @@ internal fun LiveAnalyzerSettingsPanel(
                     }
                     val alpha = if (!state.smoothingEnabled) 1.0 else
                         1.0-exp(-state.fftHopSamples/state.sampleRateHz.toDouble()/state.smoothingTimeSeconds)
-                    SettingCaption("Zeitkonstante: ${String.format(Locale.US,"%.3f",state.smoothingTimeSeconds)} s · Faktor α: ${String.format(Locale.US,"%.5f",alpha)}")
+                    SettingCaption("Zeitkonstante: ${String.format(Locale.US,"%.3f",state.smoothingTimeSeconds)} s · Faktor α: ${String.format(Locale.US,"%.5f",alpha)}", parameterId=10127)
                     var tauText by remember(state.smoothingTimeSeconds) {
                         mutableStateOf(String.format(Locale.US,"%.3f",state.smoothingTimeSeconds)) }
                     var alphaText by remember(alpha) { mutableStateOf(String.format(Locale.US,"%.5f",alpha)) }
@@ -635,7 +635,7 @@ internal fun LiveAnalyzerSettingsPanel(
                     SettingToggle("Rote Kurve / Average (${if(state.direct48k) String.format(Locale.US,"α %.2f",state.directSmoothingAlpha) else if(state.smoothingEnabled) String.format(Locale.US,"%.2f s",state.smoothingTimeSeconds) else "ungeglättet"})",state.showAverage) {
                         LiveAnalyzerController.setTraceVisibility(context,it,state.showFloor);onRefresh()
                     }
-                    SettingCaption("Elektrische Rauschboden-Einmessung (Average)")
+                    SettingCaption("Elektrische Rauschboden-Einmessung (Average)", parameterId=10130)
                     SettingNote("Der NOISE-Button: kurz = AUS / MESSPROFIL / 1/f-MODELL, lang = Power-Average einmessen. Nur mit geeignet abgeschlossenem Eingang messen; ein mit Nutzsignal eingemessenes Profil kann dieses nicht vom Rauschen unterscheiden.")
                     var captureSeconds by remember { mutableStateOf(NoiseFloorReference.calibrationSeconds()) }
                     Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement=Arrangement.spacedBy(4.dp)) {
@@ -655,7 +655,7 @@ internal fun LiveAnalyzerSettingsPanel(
                 }
                 "Audio" -> {
                     if (state.direct48k) {
-                        SettingCaption("Audio Source · STOP für Änderung")
+                        SettingCaption("Audio Source · STOP für Änderung", parameterId=10118)
                         val selectedSource=prefs.getString("direct_audio_source","AUTO") ?: "AUTO"
                         if (state.running) SettingNote("Audioquelle/Sampling Rate ändern: zuerst STOP, dann START.")
                         else Row(Modifier.horizontalScroll(rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(4.dp)) {
@@ -665,7 +665,7 @@ internal fun LiveAnalyzerSettingsPanel(
                                 }
                             }
                         }
-                        SettingCaption("Sampling Rate: ${state.directInputRateHz} Hz · STOP für Änderung")
+                        SettingCaption("Sampling Rate: ${state.directInputRateHz} Hz · STOP für Änderung", parameterId=10119)
                         if (!state.running) Row(Modifier.horizontalScroll(rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(3.dp)) {
                             DirectAnalyzerConfig.inputRates.forEach { rate ->
                                 SettingChoice("$rate",rate==state.directInputRateHz) {
@@ -688,7 +688,7 @@ internal fun LiveAnalyzerSettingsPanel(
                         var on1 by remember { mutableStateOf(directTestPrefs.getBoolean("mode_48_direct_test1_on",true)) }
                         var on2 by remember { mutableStateOf(directTestPrefs.getBoolean("mode_48_direct_test2_on",false)) }
                         var toneError by remember { mutableStateOf("") }
-                        SettingCaption("Testsignal 1 / 2 · ausschließlich digitale TEST-Betriebsart")
+                        SettingCaption("Testsignal 1 / 2 · ausschließlich digitale TEST-Betriebsart", parameterId=10126)
                         SettingToggle("Testsignal 1 EIN",on1) { on1=it }
                         ParameterNumber.Decorated(10029) { OutlinedTextField(value=tone1,onValueChange={tone1=it;toneError=""},label={Text("Testsignal 1 Hz")},singleLine=true,
                             keyboardOptions=KeyboardOptions(keyboardType=KeyboardType.Decimal),textStyle=TextStyle(color=white)) }
@@ -737,7 +737,7 @@ internal fun LiveAnalyzerSettingsPanel(
                         var db by remember { mutableStateOf(testPrefs.getInt("level_dbfs",-24).toString()) }
                         var dual by remember { mutableStateOf(testPrefs.getBoolean("dual",false)) }
                         var testError by remember { mutableStateOf("") }
-                        SettingCaption("Digitaler Testgenerator · nur Analyzer · KEINE MESSUNG")
+                        SettingCaption("Digitaler Testgenerator · nur Analyzer · KEINE MESSUNG", parameterId=10129)
                         ParameterNumber.Decorated(10032) { OutlinedTextField(value=f1,onValueChange={f1=it;testError=""},label={Text("Frequenz 1 (Hz), z. B. 50")},singleLine=true,
                             keyboardOptions=KeyboardOptions(keyboardType=KeyboardType.Decimal),textStyle=TextStyle(color=white)) }
                         SettingToggle("Zweiten Sinus zuschalten",dual){dual=it}
@@ -810,7 +810,7 @@ internal fun LiveAnalyzerSettingsPanel(
                         Text("Grenzen übernehmen und speichern",fontSize=11.sp)
                     }
                     if(rangeError.isNotBlank())Text(rangeError,color=if(rangeError=="Gespeichert")cyan else Color(0xFFFFA9A0),fontSize=10.sp)
-                    SettingCaption("Schnell-Presets")
+                    SettingCaption("Schnell-Presets", parameterId=10120)
                     Row(Modifier.horizontalScroll(rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(3.dp)) {
                         listOf(-60,-40,0).forEach { high ->
                             SettingChoice("−120…$high",state.minDisplayDb == -120 && state.maxDisplayDb == high) {
@@ -834,7 +834,7 @@ internal fun LiveAnalyzerSettingsPanel(
                         else { LiveAnalyzerController.setHistorySeconds(context,seconds);onRefresh();historyError="Gespeichert" }
                     }) {Text("Wasserfall-Zeit übernehmen",color=white,fontSize=11.sp)}
                     if(historyError.isNotBlank()) SettingNote(historyError)
-                    SettingCaption("Wasserfall-Zeile alle ${state.waterfallIntervalMs} ms")
+                    SettingCaption("Wasserfall-Zeile alle ${state.waterfallIntervalMs} ms", parameterId=10121)
                     Row(Modifier.horizontalScroll(rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(3.dp)) {
                         AnalyzerTiming.allowedWaterfallIntervalsMs.forEach { interval ->
                             SettingChoice("$interval",state.waterfallIntervalMs==interval) {
@@ -845,7 +845,7 @@ internal fun LiveAnalyzerSettingsPanel(
                             }
                         }
                     }
-                    SettingCaption("Wasserfall-Auswertung: ${state.waterfallMode.label}")
+                    SettingCaption("Wasserfall-Auswertung: ${state.waterfallMode.label}", parameterId=10122)
                     Row(Modifier.horizontalScroll(rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(3.dp)) {
                         WaterfallMode.values().forEach { mode ->
                             SettingChoice(mode.label,mode==state.waterfallMode) {
@@ -861,7 +861,7 @@ internal fun LiveAnalyzerSettingsPanel(
                     }
                     SettingNote("Speicherdauer und Frequenzbereich der lokalen Audio-/Statistik-Saves einstellen.")
                     Spacer(Modifier.height(6.dp))
-                    SettingCaption("Statistikbereich ${state.statisticsMinHz}–${state.statisticsMaxHz} Hz")
+                    SettingCaption("Statistikbereich ${state.statisticsMinHz}–${state.statisticsMaxHz} Hz", parameterId=10128)
                     var statMinText by remember(state.statisticsMinHz) { mutableStateOf(state.statisticsMinHz.toString()) }
                     var statMaxText by remember(state.statisticsMaxHz) { mutableStateOf(state.statisticsMaxHz.toString()) }
                     var statWindowText by remember(state.statisticsWindowSec) { mutableStateOf(state.statisticsWindowSec.toString()) }
@@ -907,7 +907,7 @@ internal fun LiveAnalyzerSettingsPanel(
                     SettingNote("Unkalibrierte dBFS-Werte, keine dB-SPL-Kalibrierung.")
                 }
                 "Automatiken" -> {
-                    SettingCaption("Autorange · Dauer ${state.autoRangeDurationSec} s")
+                    SettingCaption("Autorange · Dauer ${state.autoRangeDurationSec} s", parameterId=10123)
                     Row(Modifier.horizontalScroll(rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(3.dp)) {
                         listOf(1,2,3,5,10).forEach { sec ->
                             SettingChoice("$sec s",sec==state.autoRangeDurationSec) {
@@ -915,7 +915,7 @@ internal fun LiveAnalyzerSettingsPanel(
                             }
                         }
                     }
-                    SettingCaption("Feste Reserve: ±${state.autoRangeMarginDb} dB")
+                    SettingCaption("Feste Reserve: ±${state.autoRangeMarginDb} dB", parameterId=10124)
                     Row(Modifier.horizontalScroll(rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(3.dp)) {
                         listOf(0,3,5,10,15).forEach { margin ->
                             SettingChoice("±$margin",margin==state.autoRangeMarginDb) {
@@ -923,7 +923,7 @@ internal fun LiveAnalyzerSettingsPanel(
                             }
                         }
                     }
-                    SettingCaption("Bildformat (manueller Langdruck und Automatik)")
+                    SettingCaption("Bildformat (manueller Langdruck und Automatik)", parameterId=10125)
                     Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(5.dp)) {
                         AnalyzerImageFormat.values().forEach { format ->
                             SettingChoice(format.name,format==state.imageFormat) {
@@ -1013,9 +1013,12 @@ private fun DisabledSetting(label: String, fixed: String) {
 }
 
 @Composable
-private fun SettingCaption(value: String) {
-    Text(value,color=Color(0xFFF1F6F8),fontSize=12.sp,fontWeight=FontWeight.Medium,
-        modifier=Modifier.padding(top=5.dp,bottom=4.dp))
+private fun SettingCaption(value: String, parameterId: Int? = null) {
+    Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(4.dp)) {
+        Text(value,color=Color(0xFFF1F6F8),fontSize=12.sp,fontWeight=FontWeight.Medium,
+            modifier=Modifier.padding(top=5.dp,bottom=4.dp))
+        if (parameterId != null) ParameterNumber.AutoMarker(parameterId)
+    }
 }
 
 @Composable
