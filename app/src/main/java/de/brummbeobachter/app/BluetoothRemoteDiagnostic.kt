@@ -1,6 +1,9 @@
 package de.brummbeobachter.app
 
 import android.content.Context
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import java.io.OutputStreamWriter
 import android.view.InputDevice
 import android.view.KeyEvent
 import androidx.compose.foundation.layout.*
@@ -24,6 +27,20 @@ internal object BluetoothRemoteDiagnostic {
     private val downTimes = mutableMapOf<Pair<Int, Int>, Long>()
     private val lastUps = mutableMapOf<Pair<Int, Int>, Long>()
     private const val LIMIT = 120
+
+    private fun exportText(): String = buildString {
+        appendLine("LFN-Scout v0.5.126 – Bluetooth Remote Diagnose")
+        appendLine("Export: " + SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.GERMANY).format(Date()))
+        appendLine("Status beim Export: " + if (listening) "Test aktiv" else "Test gestoppt")
+        appendLine("Geräte (${devices.size}):")
+        if (devices.isEmpty()) appendLine("Keine Tastatur-/DPAD-Geräte erkannt")
+        devices.forEach { appendLine(it) }
+        appendLine()
+        appendLine("Ereignisse (${events.size}, älteste zuerst; maximal 120 im Speicher):")
+        events.asReversed().forEach { appendLine(it) }
+        appendLine()
+        appendLine("Hinweis: Es werden nur tatsächlich an LFN-Scout zugestellte Android-Ereignisse protokolliert.")
+    }
 
     fun start(context: Context) {
         events.clear()
@@ -81,6 +98,25 @@ internal object BluetoothRemoteDiagnostic {
     @Composable
     fun Dialog(onDismiss: () -> Unit) {
         val context = LocalContext.current
+        var exportError by remember { mutableStateOf<String?>(null) }
+        var exportSuccess by remember { mutableStateOf(false) }
+        var pendingExport by remember { mutableStateOf("") }
+        val saveLauncher = rememberLauncherForActivityResult(
+            contract = ActivityResultContracts.CreateDocument("text/plain")
+        ) { uri ->
+            if (uri != null) {
+                try {
+                    context.contentResolver.openOutputStream(uri)?.use { stream ->
+                        OutputStreamWriter(stream, Charsets.UTF_8).use { it.write(pendingExport) }
+                    } ?: throw IllegalStateException("Datei konnte nicht geöffnet werden")
+                    exportError = null
+                    exportSuccess = true
+                } catch (e: Exception) {
+                    exportError = "Speichern fehlgeschlagen: ${e.message ?: e.javaClass.simpleName}"
+                    exportSuccess = false
+                }
+            }
+        }
         AlertDialog(
             onDismissRequest = { stop(); onDismiss() },
             title = { Text("Bluetooth Remote · Testmodus") },
@@ -95,15 +131,28 @@ internal object BluetoothRemoteDiagnostic {
                     if (devices.isEmpty()) Text("Keine Tastatur-/DPAD-Geräte erkannt")
                     devices.forEach { Text(it, style = MaterialTheme.typography.bodySmall) }
                     Spacer(Modifier.height(8.dp))
+                    exportError?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+                    if (exportSuccess) Text("Protokoll gespeichert.", color = MaterialTheme.colorScheme.primary)
                     Text("Empfangene Tastenereignisse (max. 120)", style = MaterialTheme.typography.titleSmall)
                     if (events.isEmpty()) Text("Noch keine Ereignisse")
                     events.forEach { Text(it, style = MaterialTheme.typography.bodySmall) }
                 }
             },
             confirmButton = { TextButton(onClick = { stop(); onDismiss() }) { Text("Schließen") } },
-            dismissButton = { TextButton(onClick = { if (listening) stop() else start(context) }) {
-                Text(if (listening) "Test stoppen" else "Test starten")
-            } }
+            dismissButton = {
+                Row {
+                    TextButton(onClick = {
+                        exportSuccess = false
+                        exportError = null
+                        pendingExport = exportText()
+                        val stamp = SimpleDateFormat("yyyyMMdd-HHmmss", Locale.GERMANY).format(Date())
+                        saveLauncher.launch("LFN-Scout-Bluetooth-Remote-$stamp.txt")
+                    }) { Text("Protokoll speichern") }
+                    TextButton(onClick = { if (listening) stop() else start(context) }) {
+                        Text(if (listening) "Test stoppen" else "Test starten")
+                    }
+                }
+            }
         )
     }
 

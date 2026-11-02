@@ -108,6 +108,7 @@ import kotlin.math.abs
 class MainActivity : ComponentActivity() {
     override fun dispatchKeyEvent(event: android.view.KeyEvent): Boolean {
         BluetoothRemoteDiagnostic.onKey(event)
+        if (BluetoothRemoteControl.onKey(this, event)) return true
         return super.dispatchKeyEvent(event)
     }
 
@@ -4903,6 +4904,13 @@ private fun ReminderSettingsScreen(
             Spacer(Modifier.height(FaceliftLayoutPolicy.SECTION_GAP_DP.dp))
 
             var remoteDiagnosticOpen by remember { mutableStateOf(false) }
+            var remoteSettingsOpen by remember { mutableStateOf(false) }
+            if (remoteSettingsOpen) {
+                BluetoothRemoteControl.SettingsDialog(appContext, onDismiss = { remoteSettingsOpen = false })
+            }
+            OutlinedButton(onClick = { remoteSettingsOpen = true }, modifier = Modifier.fillMaxWidth()) {
+                Text("Bluetooth Remote · Tastenbelegung")
+            }
             if (remoteDiagnosticOpen) {
                 BluetoothRemoteDiagnostic.Dialog(onDismiss = { remoteDiagnosticOpen = false })
             }

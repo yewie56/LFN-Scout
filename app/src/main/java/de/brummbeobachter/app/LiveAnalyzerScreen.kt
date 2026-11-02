@@ -393,6 +393,51 @@ internal fun LiveAnalyzerScreen(
             monitoring=false;monitoringShift=false
         }
     }
+    // The remote uses exactly the existing screen/audio confirmation paths.
+    // While this composable is absent, commands cannot operate analyzer UI state.
+    val initialRemoteActionNumber = remember { BluetoothRemoteControl.actionNumber }
+    val remoteActionNumber = BluetoothRemoteControl.actionNumber
+    LaunchedEffect(remoteActionNumber) {
+        if (remoteActionNumber <= initialRemoteActionNumber) return@LaunchedEffect
+        when (BluetoothRemoteControl.pendingAction) {
+            "PAUSE" -> {
+                val now = LiveAnalyzerController.snapshot()
+                if (now.running) {
+                    LiveAnalyzerController.setPaused(!now.paused)
+                    state = LiveAnalyzerController.snapshot()
+                }
+            }
+            "SCREEN" -> {
+                if (state.running && pendingImageSnapshot == null) {
+                    val captured = LiveAnalyzerController.captureManualImage()
+                    if (captured == null) saveMessage = "Bild nicht gespeichert: kein Nutzsignal oder Export beschäftigt"
+                    else { pendingImageSnapshot = captured; imageComment = "" }
+                }
+            }
+            "AUDIO" -> {
+                val now = LiveAnalyzerController.snapshot()
+                val testMode = AnalyzerModeCoordinator.mode == AnalyzerModeCoordinator.Mode.TEST_8K ||
+                    AnalyzerModeCoordinator.mode == AnalyzerModeCoordinator.Mode.TEST_48K
+                if (now.running && !testMode && !audioSaveBusy && pendingAudioClip == null &&
+                    dailyCount < dailyLimit && LocalAnalyzerAudioBuffer.canSave(localSaveConfig.durationSeconds, now.paused)) {
+                    val clip = LocalAnalyzerAudioBuffer.take(localSaveConfig.durationSeconds, now.paused)
+                    if (clip == null) audioSaveStatus = "Audiofenster nicht vollständig verfügbar"
+                    else {
+                        pendingAudioClip = clip
+                        pendingAudioConfig = StatisticsWindowEngine.Configuration(
+                            localSaveConfig.minHz.toDouble(),localSaveConfig.maxHz.toDouble(),
+                            if(now.direct48k) localSaveConfig.minHz.toDouble() else now.filterMinHz,
+                            if(now.direct48k) localSaveConfig.maxHz.toDouble() else now.filterMaxHz,
+                            if(now.direct48k) 10 else now.filterBandCount)
+                        pendingAudioDisplayGainDb = now.analysisGainDb
+                        audioSaveStatus = ""
+                    }
+                } else audioSaveStatus = "Audioaufnahme derzeit nicht verfügbar"
+            }
+            // Trigger is an observable timestamp; no measurement algorithm is invoked yet.
+            "TRIGGER" -> Unit
+        }
+    }
     LaunchedEffect(settings) { screenScroll.scrollTo(0) }
     LaunchedEffect(Unit) {
         ReminderSettingsStore(context).settingsFlow.collect { prefs ->
