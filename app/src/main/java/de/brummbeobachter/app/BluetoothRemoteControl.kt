@@ -52,6 +52,17 @@ internal object BluetoothRemoteControl {
             (event.isFromSource(InputDevice.SOURCE_MOUSE) ||
              event.isFromSource(InputDevice.SOURCE_TOUCHPAD))
     }
+    // Media buttons may arrive via Activity dispatch OR MediaSession, with different
+    // device descriptors. Normalize their identity so one learned mapping works for both.
+    private val mediaButtons = setOf(
+        KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE, KeyEvent.KEYCODE_MEDIA_PLAY,
+        KeyEvent.KEYCODE_MEDIA_PAUSE, KeyEvent.KEYCODE_MEDIA_NEXT,
+        KeyEvent.KEYCODE_MEDIA_PREVIOUS, KeyEvent.KEYCODE_MEDIA_STOP,
+        KeyEvent.KEYCODE_HEADSETHOOK
+    )
+    private val volumeButtons = setOf(KeyEvent.KEYCODE_VOLUME_UP, KeyEvent.KEYCODE_VOLUME_DOWN)
+    fun isMediaButton(code: Int) = code in mediaButtons
+    private fun normalizedMediaKey(code: Int): String = "MEDIA|$code"
     private var lastActivation = 0L
     private data class S18Stroke(val x: Float, val y: Float, var lastX: Float, var lastY: Float,
                                  var maxDx: Float = 0f, var maxDy: Float = 0f, val startedAtMs: Long = 0L)
@@ -120,7 +131,33 @@ internal object BluetoothRemoteControl {
     private fun prefs(context: Context) = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
     private fun keyId(event: KeyEvent): String {
         val descriptor = InputDevice.getDevice(event.deviceId)?.descriptor ?: "unknown"
-        return "${descriptor}|${event.keyCode}|${event.scanCode}"
+        return if (event.keyCode in mediaButtons) normalizedMediaKey(event.keyCode)
+            else "${descriptor}|${event.keyCode}|${event.scanCode}"
+    }
+    /** MediaSession callbacks may not supply an InputDevice. Do not require an external HID descriptor.
+     *  Only explicitly mapped commands execute. The Activity must be visible and on a remote surface.
+     */
+    fun onMediaButton(context: Context, event: KeyEvent): Boolean {
+        if (event.keyCode !in mediaButtons) return false
+        val key = normalizedMediaKey(event.keyCode)
+        if (event.action == KeyEvent.ACTION_UP) return enabled(context) &&
+            activityInForeground && activePanelIsRemoteSurface && !settingsVisible &&
+            !BluetoothRemoteDiagnostic.listening && commands.any { mapping(context, it) == key }
+        if (event.action != KeyEvent.ACTION_DOWN || event.repeatCount != 0) return false
+        latestKey = "Headset: ${KeyEvent.keyCodeToString(event.keyCode)}"
+        if (learning) {
+            learning = false
+            val edit = prefs(context).edit()
+            commands.forEach { if (mapping(context, it) == key) edit.remove(it) }
+            edit.putString(learnCommand, key).apply()
+            return true
+        }
+        if (!enabled(context) || !activityInForeground || !activePanelIsRemoteSurface ||
+            settingsVisible || BluetoothRemoteDiagnostic.listening) return false
+        return dispatchCommand(context, key, android.os.SystemClock.uptimeMillis())
+    }
+    fun hasMediaMapping(context: Context, code: Int) = commands.any {
+        mapping(context, it) == normalizedMediaKey(code)
     }
     fun enabled(context: Context) = prefs(context).getBoolean("enabled", false)
     fun setEnabled(context: Context, value: Boolean) { prefs(context).edit().putBoolean("enabled", value).apply() }
@@ -132,6 +169,7 @@ internal object BluetoothRemoteControl {
     fun learn(command: String) { learnCommand = command; beginLearning() }
     fun isLearning() = learning
     fun onKey(context: Context, event: KeyEvent): Boolean {
+        if (event.keyCode in mediaButtons) return onMediaButton(context, event)
         if (event.action == KeyEvent.ACTION_UP) {
             val key = keyId(event)
             return enabled(context) && activityInForeground && activePanelIsRemoteSurface && !settingsVisible && commands.any { mapping(context, it) == key } && !BluetoothRemoteDiagnostic.listening
@@ -200,7 +238,7 @@ internal object BluetoothRemoteControl {
             Box(Modifier.weight(1f)) {
                 ObserveSettingsDialog(context)
                 Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
-                    Text("S18: OBEN, UNTEN, LINKS, RECHTS, MITTE durch Bewegung erkennbar. Erst eine Funktion auf 'Anlernen' setzen, dann S18-Taste drücken.", style=MaterialTheme.typography.bodySmall)
+                    Text("S18: OBEN, UNTEN, LINKS, RECHTS, MITTE. Headset: Play/Pause, Vorwärts, Rückwärts (auch separate Play-/Pause-Tasten). Zum Zuweisen 'Anlernen' wählen und die Taste drücken. Lautstärke +/− wird nur erkannt, wenn Android sie als externe HID-Taste direkt an die App liefert; Android kann sie systemweit abfangen.", style=MaterialTheme.typography.bodySmall)
                     if (developerModeEnabled) {
                         Text(recognizedS18, style=MaterialTheme.typography.bodySmall)
                     } else {
@@ -208,7 +246,7 @@ internal object BluetoothRemoteControl {
                     }
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                         Column { Text("Fernbedienung aktiviert"); ParameterNumber.Marker(9001, developerModeEnabled) }
-                        Switch(checked=active, onCheckedChange={ active=it; setEnabled(context,it) })
+                        Switch(checked=active, onCheckedChange={ active=it; setEnabled(context,it); (context as? MainActivity)?.refreshRemoteMediaSession() })
                     }
                     Text("Nur von Android an die App zugestellte externe Tastensignale. Bei gesperrtem Display nicht für jedes Gerät garantiert.", style=MaterialTheme.typography.bodySmall)
                     Spacer(Modifier.height(8.dp))
@@ -220,6 +258,8 @@ internal object BluetoothRemoteControl {
                         val readable = when {
                             assigned.isBlank() -> "Nicht belegt"
                             assigned.contains("|S18:") -> "S18 · " + assigned.substringAfter("|S18:")
+                            assigned.startsWith("MEDIA|") -> "Headset · " +
+                                KeyEvent.keyCodeToString(assigned.substringAfter("MEDIA|").toIntOrNull() ?: 0)
                             else -> "Externe Taste angelernt"
                         }
                         Text(if (developerModeEnabled && assigned.isNotBlank()) "$readable · $assigned" else readable,

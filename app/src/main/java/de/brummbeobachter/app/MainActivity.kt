@@ -107,6 +107,43 @@ import java.util.UUID
 import kotlin.math.abs
 
 class MainActivity : ComponentActivity() {
+    // Opt-in activity-scoped media session. Deliberately disabled in background:
+    // no claim of lock-screen/background reliability without a foreground service.
+    private var remoteMediaSession: android.media.session.MediaSession? = null
+    internal fun refreshRemoteMediaSession() = updateRemoteMediaSession()
+    private fun updateRemoteMediaSession() {
+        if (!BluetoothRemoteControl.enabled(this)) {
+            remoteMediaSession?.isActive = false
+            return
+        }
+        if (remoteMediaSession == null) {
+            remoteMediaSession = android.media.session.MediaSession(this, "LFN-Scout-Headset").apply {
+                setFlags(android.media.session.MediaSession.FLAG_HANDLES_MEDIA_BUTTONS)
+                setCallback(object : android.media.session.MediaSession.Callback() {
+                    override fun onMediaButtonEvent(mediaButtonIntent: android.content.Intent): Boolean {
+                        val key = if (android.os.Build.VERSION.SDK_INT >= 33)
+                            mediaButtonIntent.getParcelableExtra(android.content.Intent.EXTRA_KEY_EVENT, android.view.KeyEvent::class.java)
+                        else mediaButtonIntent.getParcelableExtra<android.view.KeyEvent>(android.content.Intent.EXTRA_KEY_EVENT)
+                        if (key != null) {
+                            BluetoothRemoteDiagnostic.onKey(key)
+                            if (BluetoothRemoteControl.onMediaButton(this@MainActivity, key)) return true
+                        }
+                        return super.onMediaButtonEvent(mediaButtonIntent)
+                    }
+                })
+                setPlaybackState(android.media.session.PlaybackState.Builder()
+                    .setActions(android.media.session.PlaybackState.ACTION_PLAY_PAUSE or
+                        android.media.session.PlaybackState.ACTION_PLAY or
+                        android.media.session.PlaybackState.ACTION_PAUSE or
+                        android.media.session.PlaybackState.ACTION_SKIP_TO_NEXT or
+                        android.media.session.PlaybackState.ACTION_SKIP_TO_PREVIOUS)
+                    .setState(android.media.session.PlaybackState.STATE_PAUSED, 0L, 0f)
+                    .build())
+            }
+        }
+        remoteMediaSession?.isActive = true
+    }
+
     override fun dispatchGenericMotionEvent(event: android.view.MotionEvent): Boolean {
         BluetoothRemoteControl.onMotion(this,event)
         BluetoothRemoteDiagnostic.onMotion(event, "generic")
@@ -131,11 +168,19 @@ class MainActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
         BluetoothRemoteControl.setActivityForeground(true)
+        updateRemoteMediaSession()
     }
 
     override fun onPause() {
         BluetoothRemoteControl.setActivityForeground(false)
+        remoteMediaSession?.isActive = false
         super.onPause()
+    }
+
+    override fun onDestroy() {
+        remoteMediaSession?.release()
+        remoteMediaSession = null
+        super.onDestroy()
     }
 
     override fun onCreate(
