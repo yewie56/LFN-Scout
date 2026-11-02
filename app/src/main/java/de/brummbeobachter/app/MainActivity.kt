@@ -112,7 +112,7 @@ class MainActivity : ComponentActivity() {
     private var remoteMediaSession: android.media.session.MediaSession? = null
     internal fun refreshRemoteMediaSession() = updateRemoteMediaSession()
     private fun updateRemoteMediaSession() {
-        if (!BluetoothRemoteControl.enabled(this)) {
+        if (!BluetoothRemoteControl.enabled(this) && !BluetoothRemoteDiagnostic.listening) {
             remoteMediaSession?.isActive = false
             return
         }
@@ -125,7 +125,10 @@ class MainActivity : ComponentActivity() {
                             mediaButtonIntent.getParcelableExtra(android.content.Intent.EXTRA_KEY_EVENT, android.view.KeyEvent::class.java)
                         else mediaButtonIntent.getParcelableExtra<android.view.KeyEvent>(android.content.Intent.EXTRA_KEY_EVENT)
                         if (key != null) {
-                            BluetoothRemoteDiagnostic.onKey(key)
+                            BluetoothRemoteDiagnostic.onMediaSessionKey(key)
+                            // Diagnostic mode observes and consumes only keys actually routed here.
+                            // No analyzer action is executed while the test is active.
+                            if (BluetoothRemoteDiagnostic.listening) return true
                             if (BluetoothRemoteControl.onMediaButton(this@MainActivity, key)) return true
                         }
                         return super.onMediaButtonEvent(mediaButtonIntent)
@@ -141,7 +144,23 @@ class MainActivity : ComponentActivity() {
                     .build())
             }
         }
+        // Playing-state in the explicit test mode increases eligibility for media routing.
+        // This is not an audio playback service and does not guarantee routing on MIUI.
+        remoteMediaSession?.setPlaybackState(android.media.session.PlaybackState.Builder()
+            .setActions(android.media.session.PlaybackState.ACTION_PLAY_PAUSE or
+                android.media.session.PlaybackState.ACTION_PLAY or
+                android.media.session.PlaybackState.ACTION_PAUSE or
+                android.media.session.PlaybackState.ACTION_SKIP_TO_NEXT or
+                android.media.session.PlaybackState.ACTION_SKIP_TO_PREVIOUS or
+                android.media.session.PlaybackState.ACTION_STOP)
+            .setState(if (BluetoothRemoteDiagnostic.listening)
+                android.media.session.PlaybackState.STATE_PLAYING
+                else android.media.session.PlaybackState.STATE_PAUSED, 0L,
+                if (BluetoothRemoteDiagnostic.listening) 1f else 0f)
+            .build())
         remoteMediaSession?.isActive = true
+        BluetoothRemoteDiagnostic.onSessionStatus(
+            "MediaSession aktiv; Modus=" + if (BluetoothRemoteDiagnostic.listening) "TEST (PLAYING)" else "NORMAL (PAUSED)")
     }
 
     override fun dispatchGenericMotionEvent(event: android.view.MotionEvent): Boolean {
@@ -4991,7 +5010,7 @@ private fun ReminderSettingsScreen(
                 BluetoothRemoteDiagnostic.Dialog(onDismiss = { remoteDiagnosticOpen = false })
             }
             OutlinedButton(onClick = {
-                BluetoothRemoteDiagnostic.start(appContext)
+                BluetoothRemoteDiagnostic.start(this@MainActivity)
                 remoteDiagnosticOpen = true
             }, modifier = Modifier.fillMaxWidth()) {
                 Text("Bluetooth Remote · Testmodus")

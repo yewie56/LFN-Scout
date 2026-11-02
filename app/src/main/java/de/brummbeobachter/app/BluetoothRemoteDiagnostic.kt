@@ -25,6 +25,7 @@ import java.util.Locale
 /** Read-only diagnostic. No analyzer, recording or screenshot commands are dispatched. */
 internal object BluetoothRemoteDiagnostic {
     private var appContext: Context? = null
+    private var activityRef: java.lang.ref.WeakReference<MainActivity>? = null
     var listening by mutableStateOf(false)
         private set
     private val events = mutableStateListOf<String>()
@@ -37,7 +38,7 @@ internal object BluetoothRemoteDiagnostic {
     private val motionCounters = mutableMapOf<Int, Int>()
 
     private fun exportText(): String = buildString {
-        appendLine("LFN-Scout v0.5.130 – Bluetooth Remote Diagnose")
+        appendLine("LFN-Scout v0.5.152 – Bluetooth Remote Diagnose")
         appendLine("Export: " + SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.GERMANY).format(Date()))
         appendLine("Status beim Export: " + if (listening) "Test aktiv" else "Test gestoppt")
         appendLine("Geräte (${devices.size}):")
@@ -50,8 +51,20 @@ internal object BluetoothRemoteDiagnostic {
         appendLine("Hinweis: Es werden nur tatsächlich an LFN-Scout zugestellte Android-Ereignisse protokolliert.")
     }
 
+    fun onSessionStatus(message: String) {
+        if (listening) log("SESSION | $message")
+    }
+
+    fun onMediaSessionKey(event: KeyEvent) {
+        if (!listening) return
+        log("MEDIASESSION | " + (if (event.action == KeyEvent.ACTION_DOWN) "DOWN" else "UP") +
+            " | key=${event.keyCode} (${KeyEvent.keyCodeToString(event.keyCode)})" +
+            " | scan=${event.scanCode} repeat=${event.repeatCount}")
+    }
+
     fun start(context: Context) {
         appContext = context.applicationContext
+        activityRef = (context as? MainActivity)?.let { java.lang.ref.WeakReference(it) }
         events.clear()
         downTimes.clear()
         lastUps.clear()
@@ -61,9 +74,15 @@ internal object BluetoothRemoteDiagnostic {
         refreshDevices(context)
         listening = true
         log("Test gestartet. Ereignisse werden ausschließlich bei Android-Zustellung erfasst.")
+        activityRef?.get()?.refreshRemoteMediaSession()
     }
 
-    fun stop() { listening = false; downTimes.clear(); previousCoordinates.clear() }
+    fun stop() {
+        listening = false
+        downTimes.clear()
+        previousCoordinates.clear()
+        activityRef?.get()?.refreshRemoteMediaSession()
+    }
 
     fun refreshDevices(context: Context) {
         devices.clear()
@@ -216,7 +235,7 @@ internal object BluetoothRemoteDiagnostic {
             text = {
                 ObserveDialogWindow()
                 Column(Modifier.fillMaxWidth().heightIn(max = 510.dp).verticalScroll(rememberScrollState())) {
-                    Text("Diagnose für Tastatur und Maus/Zeiger (S18). Ereignisse werden zusätzlich direkt am Dialog-Fenster beobachtet, ohne die normale Eingabeverarbeitung zu blockieren.")
+                    Text("Diagnose für S18-HID/Maus und klassische Headset-Medientasten. Quelle MEDIASESSION oder direkter Tasteneingang wird protokolliert. Während des Tests werden keine Fernsteuerungsaktionen ausgeführt.")
                     Spacer(Modifier.height(8.dp))
                     Text("Status: " + if (listening) "Empfangstest aktiv" else "Gestoppt")
                     Text("Display gesperrt/aus: nicht bestätigt. Android stellt normale HID-Tasten dabei möglicherweise nicht an diese Activity zu.", style = MaterialTheme.typography.bodySmall)
