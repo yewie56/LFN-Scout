@@ -1,9 +1,9 @@
 {
   "package_type": "LFN-Scout ACTIVE HANDOFF",
-  "version": "0.5.36",
-  "version_code": 183,
-  "created_at": "2026-10-11",
-  "purpose": "Local half-hour observation regression test and timestamp validation; cloud unchanged; Android build pending",
+  "version": "0.5.125",
+  "version_code": 283,
+  "created_at": "2026-11-02",
+  "purpose": "Bluetooth HID Remote Testmodus: read-only key event diagnostics in Settings; no production actions",
   "excluded_base_paths": [
     "docs/project/analyzer_v0.7/assets/",
     "docs/project/analyzer_v0.7/references/",
@@ -25,7 +25,7 @@
     "*.log"
   ],
   "source_file_count": 826,
-  "build_status": "STATIC_AND_ISOLATED_KOTLIN_CHECKS_ONLY_ANDROID_GRADLE_NOT_RUN",
+  "build_status": "STATIC_CHECKS_ONLY_ANDROID_BUILD_NOT_RUN",
   "supabase_status": {
     "remote_project_ref": "kbejualnruiwtnmeytif",
     "migrations_through": "20261010174500",
@@ -42,9 +42,9 @@
     "statistics_outbox": "PARTIALLY_INTEGRATED_EVENT_RETRY_ONLY",
     "independent_half_hour": "NOT_IMPLEMENTED",
     "testDebugUnitTest_current": "NOT_RUN",
-    "assembleDebug_current": "NOT_RUN",
-    "device_test": "NOT_RUN"
+    "assembleDebug_current": "NOT_RUN_v0.5.125",
+    "device_test": "NOT_RUN_v0.5.125"
   },
-  "next_version": "0.5.37",
-  "next_required_change": "Cloud half-hour acoustic statistics upload; device-verify v0.5.36 boundary, timeout and restart scenarios"
+  "next_version": "0.5.126",
+  "next_required_change": "Device-test Bluetooth key events, then map supported signals to existing actions"
 }

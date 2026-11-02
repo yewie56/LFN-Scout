@@ -106,6 +106,11 @@ import java.util.UUID
 import kotlin.math.abs
 
 class MainActivity : ComponentActivity() {
+    override fun dispatchKeyEvent(event: android.view.KeyEvent): Boolean {
+        BluetoothRemoteDiagnostic.onKey(event)
+        return super.dispatchKeyEvent(event)
+    }
+
 
     override fun onCreate(
         savedInstanceState: Bundle?
@@ -4896,6 +4901,18 @@ private fun ReminderSettingsScreen(
             )
 
             Spacer(Modifier.height(FaceliftLayoutPolicy.SECTION_GAP_DP.dp))
+
+            var remoteDiagnosticOpen by remember { mutableStateOf(false) }
+            if (remoteDiagnosticOpen) {
+                BluetoothRemoteDiagnostic.Dialog(onDismiss = { remoteDiagnosticOpen = false })
+            }
+            OutlinedButton(onClick = {
+                BluetoothRemoteDiagnostic.start(appContext)
+                remoteDiagnosticOpen = true
+            }, modifier = Modifier.fillMaxWidth()) {
+                Text("Bluetooth Remote · Testmodus")
+            }
+            Spacer(Modifier.height(FaceliftLayoutPolicy.FIELD_GAP_DP.dp))
 
             SectionCard(title = "Erinnerungen") {
                 Row(
