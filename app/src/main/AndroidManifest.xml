@@ -49,6 +49,15 @@
         </activity>
 
         <receiver
+            android:name=".BoomMediaButtonReceiver"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MEDIA_BUTTON" />
+            </intent-filter>
+        </receiver>
+
+        <receiver
             android:name=".RollingAudioBootReceiver"
             android:enabled="true"
             android:exported="true">

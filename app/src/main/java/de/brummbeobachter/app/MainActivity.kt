@@ -120,6 +120,18 @@ class MainActivity : ComponentActivity() {
         if (remoteMediaSession == null) {
             remoteMediaSession = android.media.session.MediaSession(this, "LFN-Scout-Headset").apply {
                 setFlags(android.media.session.MediaSession.FLAG_HANDLES_MEDIA_BUTTONS)
+                // Explicit fallback target for Android media-key routing when this session
+                // is not selected. This does not override Android's session-selection policy.
+                val receiverIntent = android.content.Intent(
+                    android.content.Intent.ACTION_MEDIA_BUTTON
+                ).setClass(this@MainActivity, BoomMediaButtonReceiver::class.java)
+                val receiverPendingIntent = android.app.PendingIntent.getBroadcast(
+                    this@MainActivity, 0, receiverIntent,
+                    android.app.PendingIntent.FLAG_UPDATE_CURRENT or
+                        (if (android.os.Build.VERSION.SDK_INT >= 23)
+                            android.app.PendingIntent.FLAG_IMMUTABLE else 0)
+                )
+                setMediaButtonReceiver(receiverPendingIntent)
                 setCallback(object : android.media.session.MediaSession.Callback() {
                     override fun onMediaButtonEvent(mediaButtonIntent: android.content.Intent): Boolean {
                         val key = if (android.os.Build.VERSION.SDK_INT >= 33)
