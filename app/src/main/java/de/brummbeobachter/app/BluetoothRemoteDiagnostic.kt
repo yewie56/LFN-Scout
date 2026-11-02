@@ -38,7 +38,7 @@ internal object BluetoothRemoteDiagnostic {
 
     fun refreshDevices(context: Context) {
         devices.clear()
-        InputDevice.getDeviceIds().mapNotNull(InputDevice::getDevice).forEach { device ->
+        InputDevice.getDeviceIds().map { id -> InputDevice.getDevice(id) }.filterNotNull().forEach { device ->
             val source = device.sources
             if (source and InputDevice.SOURCE_KEYBOARD == InputDevice.SOURCE_KEYBOARD ||
                 source and InputDevice.SOURCE_DPAD == InputDevice.SOURCE_DPAD) {
