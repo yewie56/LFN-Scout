@@ -107,8 +107,9 @@ import java.util.UUID
 import kotlin.math.abs
 
 class MainActivity : ComponentActivity() {
-    // Opt-in activity-scoped media session. Deliberately disabled in background:
-    // no claim of lock-screen/background reliability without a foreground service.
+    // Explicitly opt-in MediaSession: retained on Activity pause so headset media keys
+    // can reach LFN-Scout while the user briefly switches to Termux or another app.
+    // Android may still terminate the process; lock-screen reliability requires a service.
     private var remoteMediaSession: android.media.session.MediaSession? = null
     internal fun refreshRemoteMediaSession() = updateRemoteMediaSession()
     private fun updateRemoteMediaSession() {
@@ -129,7 +130,7 @@ class MainActivity : ComponentActivity() {
                             // Diagnostic mode observes and consumes only keys actually routed here.
                             // No analyzer action is executed while the test is active.
                             if (BluetoothRemoteDiagnostic.listening) return true
-                            if (BluetoothRemoteControl.onMediaButton(this@MainActivity, key)) return true
+                            if (BluetoothRemoteControl.onMediaSessionButton(this@MainActivity, key)) return true
                         }
                         return super.onMediaButtonEvent(mediaButtonIntent)
                     }
@@ -192,7 +193,10 @@ class MainActivity : ComponentActivity() {
 
     override fun onPause() {
         BluetoothRemoteControl.setActivityForeground(false)
-        remoteMediaSession?.isActive = false
+        // Do not disable an explicitly enabled headset session merely because
+        // the user opens Termux or the display changes focus. updateRemoteMediaSession()
+        // still deactivates it immediately when both remote and diagnostic are off.
+        updateRemoteMediaSession()
         super.onPause()
     }
 

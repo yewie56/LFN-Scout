@@ -178,6 +178,35 @@ internal object BluetoothRemoteControl {
             settingsVisible || BluetoothRemoteDiagnostic.listening) return false
         return dispatchCommand(context, key, android.os.SystemClock.uptimeMillis())
     }
+    /** MediaSession path (not ordinary Activity key dispatch).
+     *  The user explicitly enabled the remote. PAUSE and TRIGGER have no UI
+     *  dependency and can execute when another Activity has focus. SCREEN and
+     *  AUDIO continue to require the visible analyzer/UI save flow.
+     *  Android background routing is best effort until a foreground service exists.
+     */
+    fun onMediaSessionButton(context: Context, event: KeyEvent): Boolean {
+        if (event.keyCode !in mediaButtons) return false
+        val key = normalizedMediaKey(event.keyCode)
+        if (event.action == KeyEvent.ACTION_UP) return enabled(context) &&
+            !BluetoothRemoteDiagnostic.listening && commands.any { mapping(context, it) == key }
+        if (event.action != KeyEvent.ACTION_DOWN || event.repeatCount != 0) return false
+        latestKey = "Headset(MediaSession): ${KeyEvent.keyCodeToString(event.keyCode)}"
+        if (learning && activityInForeground) {
+            learning = false
+            val edit = prefs(context).edit()
+            commands.forEach { if (mapping(context, it) == key) edit.remove(it) }
+            edit.putString(learnCommand, key).apply()
+            return true
+        }
+        if (!enabled(context) || BluetoothRemoteDiagnostic.listening || settingsVisible) return false
+        val command = commands.firstOrNull { mapping(context, it) == key } ?: return false
+        if (!activityInForeground && command != "PAUSE" && command != "TRIGGER") {
+            DebugLogger.log(context, "BT_REMOTE_IGNORED", "$command: Oberfläche nicht aktiv")
+            return true
+        }
+        if (activityInForeground && !activePanelIsRemoteSurface) return false
+        return dispatchCommand(context, key, android.os.SystemClock.uptimeMillis())
+    }
     fun hasMediaMapping(context: Context, code: Int) = commands.any {
         mapping(context, it) == normalizedMediaKey(code)
     }
