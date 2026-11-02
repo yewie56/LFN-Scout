@@ -122,9 +122,31 @@ internal object BluetoothRemoteControl {
         val command = commands.firstOrNull { mapping(context,it) == key } ?: return false
         if (whenMs - lastActivation < 280L) return true
         lastActivation = whenMs
-        pendingAction = command
-        actionNumber += 1
-        if (command == "TRIGGER") lastTrigger = "Trigger empfangen: ${System.currentTimeMillis()} ms (Systemzeit)"
+        // PAUSE and TRIGGER are handled independently from the Compose analyzer screen.
+        // SCREEN and AUDIO keep their established UI confirmation/save workflows.
+        when (command) {
+            "PAUSE" -> {
+                val analyzer = LiveAnalyzerController.snapshot()
+                if (!analyzer.running) {
+                    DebugLogger.log(context, "BT_REMOTE_IGNORED", "PAUSE: Analyzer nicht RUN")
+                    return true
+                }
+                val targetPaused = !analyzer.paused
+                LiveAnalyzerController.setPaused(targetPaused)
+                DebugLogger.log(context, "BT_REMOTE_PAUSE", "paused=$targetPaused")
+            }
+            "TRIGGER" -> {
+                val timestampMs = System.currentTimeMillis()
+                lastTrigger = "Trigger empfangen: $timestampMs ms (Systemzeit)"
+                // An event marker, not an implemented special measurement algorithm.
+                DebugLogger.log(context, "BT_REMOTE_TRIGGER", "timestampMs=$timestampMs")
+            }
+            "SCREEN", "AUDIO" -> {
+                pendingAction = command
+                actionNumber += 1
+                DebugLogger.log(context, "BT_REMOTE_COMMAND", command)
+            }
+        }
         return true
     }
 

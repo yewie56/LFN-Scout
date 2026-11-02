@@ -401,13 +401,6 @@ internal fun LiveAnalyzerScreen(
     LaunchedEffect(remoteActionNumber) {
         if (remoteActionNumber <= initialRemoteActionNumber) return@LaunchedEffect
         when (BluetoothRemoteControl.pendingAction) {
-            "PAUSE" -> {
-                val now = LiveAnalyzerController.snapshot()
-                if (now.running) {
-                    LiveAnalyzerController.setPaused(!now.paused)
-                    state = LiveAnalyzerController.snapshot()
-                }
-            }
             "SCREEN" -> {
                 if (state.running && pendingImageSnapshot == null) {
                     val captured = LiveAnalyzerController.captureManualImage()
