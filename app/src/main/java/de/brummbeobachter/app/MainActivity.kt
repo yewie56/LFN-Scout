@@ -63,6 +63,7 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -109,12 +110,14 @@ class MainActivity : ComponentActivity() {
     override fun dispatchGenericMotionEvent(event: android.view.MotionEvent): Boolean {
         BluetoothRemoteControl.onMotion(this,event)
         BluetoothRemoteDiagnostic.onMotion(event, "generic")
+        if (BluetoothRemoteControl.shouldConsumeMotion(this, event)) return true
         return super.dispatchGenericMotionEvent(event)
     }
 
     override fun dispatchTouchEvent(event: android.view.MotionEvent): Boolean {
         BluetoothRemoteControl.onMotion(this,event)
         BluetoothRemoteDiagnostic.onMotion(event, "touch")
+        if (BluetoothRemoteControl.shouldConsumeMotion(this, event)) return true
         return super.dispatchTouchEvent(event)
     }
 
@@ -124,6 +127,16 @@ class MainActivity : ComponentActivity() {
         return super.dispatchKeyEvent(event)
     }
 
+
+    override fun onResume() {
+        super.onResume()
+        BluetoothRemoteControl.setActivityForeground(true)
+    }
+
+    override fun onPause() {
+        BluetoothRemoteControl.setActivityForeground(false)
+        super.onPause()
+    }
 
     override fun onCreate(
         savedInstanceState: Bundle?
@@ -375,6 +388,9 @@ fun LFNScoutApp(
 
     var currentPanel by remember {
         mutableStateOf(AppPanel.MAIN)
+    }
+    SideEffect {
+        BluetoothRemoteControl.updateRemoteSurface(currentPanel)
     }
     var showDebugLog by remember {
         mutableStateOf(false)

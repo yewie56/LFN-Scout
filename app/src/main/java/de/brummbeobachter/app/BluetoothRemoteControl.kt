@@ -30,6 +30,26 @@ internal object BluetoothRemoteControl {
         private set
     private var learning = false
     private var settingsVisible = false
+    // Updated from the Compose navigation state; never consume outside Scout/Analyzer.
+    @Volatile private var activePanelIsRemoteSurface = false
+    @Volatile private var activityInForeground = false
+    fun updateRemoteSurface(panel: AppPanel) {
+        activePanelIsRemoteSurface = panel == AppPanel.MAIN || panel == AppPanel.ANALYZER
+        if (!activePanelIsRemoteSurface) strokes.clear()
+    }
+    fun setActivityForeground(active: Boolean) {
+        activityInForeground = active
+        if (!active) strokes.clear()
+    }
+    /** Entire S18 gesture is owned by LFN-Scout only on its two remote surfaces. */
+    fun shouldConsumeMotion(context: Context, event: MotionEvent): Boolean {
+        if (!activityInForeground || !activePanelIsRemoteSurface || settingsVisible ||
+            BluetoothRemoteDiagnostic.listening || !enabled(context)) return false
+        val device = InputDevice.getDevice(event.deviceId) ?: return false
+        return device.isExternal && device.descriptor == S18_DESCRIPTOR &&
+            (event.isFromSource(InputDevice.SOURCE_MOUSE) ||
+             event.isFromSource(InputDevice.SOURCE_TOUCHPAD))
+    }
     private var lastActivation = 0L
     private data class S18Stroke(val x: Float, val y: Float, var lastX: Float, var lastY: Float,
                                  var maxDx: Float = 0f, var maxDy: Float = 0f)
@@ -74,7 +94,7 @@ internal object BluetoothRemoteControl {
                     commands.forEach { if (mapping(context,it) == key) edit.remove(it) }
                     edit.putString(learnCommand,key).apply()
                     latestKey = recognizedS18
-                } else if (enabled(context) && !BluetoothRemoteDiagnostic.listening && !settingsVisible) {
+                } else if (shouldConsumeMotion(context, event)) {
                     dispatchCommand(context, key, event.eventTime)
                 }
             }
@@ -110,7 +130,7 @@ internal object BluetoothRemoteControl {
     fun onKey(context: Context, event: KeyEvent): Boolean {
         if (event.action == KeyEvent.ACTION_UP) {
             val key = keyId(event)
-            return enabled(context) && commands.any { mapping(context, it) == key } && !BluetoothRemoteDiagnostic.listening
+            return enabled(context) && activityInForeground && activePanelIsRemoteSurface && !settingsVisible && commands.any { mapping(context, it) == key } && !BluetoothRemoteDiagnostic.listening
         }
         if (event.action != KeyEvent.ACTION_DOWN || event.repeatCount != 0) return false
         // Never intercept local keyboard, system/back/power, or unknown devices.
@@ -127,7 +147,7 @@ internal object BluetoothRemoteControl {
             edit.putString(learnCommand, key).apply()
             return true
         }
-        if (!enabled(context) || BluetoothRemoteDiagnostic.listening) return false
+        if (!enabled(context) || !activityInForeground || !activePanelIsRemoteSurface || settingsVisible || BluetoothRemoteDiagnostic.listening) return false
         return dispatchCommand(context, key, event.eventTime)
     }
     fun label(command: String) = when(command) {
