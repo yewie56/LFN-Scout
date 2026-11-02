@@ -52,7 +52,7 @@ internal object BluetoothRemoteControl {
     }
     private var lastActivation = 0L
     private data class S18Stroke(val x: Float, val y: Float, var lastX: Float, var lastY: Float,
-                                 var maxDx: Float = 0f, var maxDy: Float = 0f)
+                                 var maxDx: Float = 0f, var maxDy: Float = 0f, val startedAtMs: Long = 0L)
     private val strokes = mutableMapOf<Int, S18Stroke>()
     private const val S18_DESCRIPTOR = "1f9732f291ce3e3ddc26c59de5cc9968625367d8"
     private fun s18Key(direction: String) = "$S18_DESCRIPTOR|S18:$direction"
@@ -67,7 +67,7 @@ internal object BluetoothRemoteControl {
              !event.isFromSource(InputDevice.SOURCE_TOUCHPAD))) return
         val id = event.deviceId
         when (event.actionMasked) {
-            MotionEvent.ACTION_DOWN -> strokes[id] = S18Stroke(event.x,event.y,event.x,event.y)
+            MotionEvent.ACTION_DOWN -> strokes[id] = S18Stroke(event.x,event.y,event.x,event.y, startedAtMs=event.eventTime)
             MotionEvent.ACTION_MOVE -> strokes[id]?.let { stroke ->
                 stroke.lastX = event.x; stroke.lastY = event.y
                 stroke.maxDx = maxOf(stroke.maxDx, abs(event.x - stroke.x))
@@ -78,9 +78,11 @@ internal object BluetoothRemoteControl {
                 val dx = event.x - stroke.x
                 val dy = event.y - stroke.y
                 val direction = when {
-                    // Center sends a brief DOWN/UP near the reported fixed center.
-                    stroke.maxDx < 35f && stroke.maxDy < 35f &&
-                        abs(stroke.x - 402f) < 90f && abs(stroke.y - 995f) < 120f -> "MITTE"
+                    // S18 center is a short, stationary DOWN/UP. Do not depend on
+                    // absolute screen coordinates (Analyzer and Scout layouts differ).
+                    event.eventTime - stroke.startedAtMs in 0L..350L &&
+                        stroke.maxDx < 35f && stroke.maxDy < 35f &&
+                        abs(dx) < 35f && abs(dy) < 35f -> "MITTE"
                     abs(dx) < 80f && abs(dy) < 80f -> null
                     abs(dx) >= 90f && abs(dx) > abs(dy) * 1.6f -> if (dx > 0) "RECHTS" else "LINKS"
                     abs(dy) >= 90f && abs(dy) > abs(dx) * 1.6f -> if (dy > 0) "UNTEN" else "OBEN"
@@ -185,7 +187,7 @@ internal object BluetoothRemoteControl {
             }
         }
     }
-    @Composable fun SettingsDialog(context: Context, onDismiss: () -> Unit) {
+    @Composable fun SettingsDialog(context: Context, developerModeEnabled: Boolean, onDismiss: () -> Unit) {
         var active by remember { mutableStateOf(enabled(context)) }
         var revision by remember { mutableIntStateOf(0) }
         AlertDialog(onDismissRequest = { stopLearning(); onDismiss() },
@@ -194,7 +196,11 @@ internal object BluetoothRemoteControl {
                 ObserveSettingsDialog(context)
                 Column(Modifier.fillMaxWidth().heightIn(max=500.dp).verticalScroll(rememberScrollState())) {
                     Text("S18: OBEN, UNTEN, LINKS, RECHTS, MITTE durch Bewegung erkennbar. Erst eine Funktion auf 'Anlernen' setzen, dann S18-Taste drücken.", style=MaterialTheme.typography.bodySmall)
-                    Text(recognizedS18, style=MaterialTheme.typography.bodySmall)
+                    if (developerModeEnabled) {
+                        Text(recognizedS18, style=MaterialTheme.typography.bodySmall)
+                    } else {
+                        Text(recognizedS18.substringBefore(" ("), style=MaterialTheme.typography.bodySmall)
+                    }
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                         Text("Fernbedienung aktiviert")
                         Switch(checked=active, onCheckedChange={ active=it; setEnabled(context,it) })
@@ -206,13 +212,21 @@ internal object BluetoothRemoteControl {
                         val assigned = mapping(context,command)
                         // Re-read mappings when learning completes (latestKey changes).
                         @Suppress("UNUSED_VARIABLE") val refreshToken = revision to latestKey
-                        Text(if (assigned.isBlank()) "Nicht belegt" else assigned, style=MaterialTheme.typography.bodySmall)
+                        val readable = when {
+                            assigned.isBlank() -> "Nicht belegt"
+                            assigned.contains("|S18:") -> "S18 · " + assigned.substringAfter("|S18:")
+                            else -> "Externe Taste angelernt"
+                        }
+                        Text(if (developerModeEnabled && assigned.isNotBlank()) "$readable · $assigned" else readable,
+                            style=MaterialTheme.typography.bodySmall)
                         Row {
                             TextButton(onClick={ learn(command); revision++ }) { Text("Anlernen") }
                             TextButton(onClick={ clear(context,command); revision++ }) { Text("Löschen") }
                         }
                     }
-                    Text(latestKey, style=MaterialTheme.typography.bodySmall)
+                    Text(if (developerModeEnabled) latestKey else if (isLearning())
+                        "Taste jetzt drücken …" else "Letzte Eingabe erkannt",
+                        style=MaterialTheme.typography.bodySmall)
                     if (isLearning()) Text("Anlernen aktiv – Taste drücken, danach Dialog erneut öffnen, um Belegung zu prüfen.")
                     Text(lastTrigger, style=MaterialTheme.typography.bodySmall)
                 }

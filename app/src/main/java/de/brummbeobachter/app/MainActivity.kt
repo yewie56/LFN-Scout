@@ -4934,7 +4934,7 @@ private fun ReminderSettingsScreen(
             var remoteDiagnosticOpen by remember { mutableStateOf(false) }
             var remoteSettingsOpen by remember { mutableStateOf(false) }
             if (remoteSettingsOpen) {
-                BluetoothRemoteControl.SettingsDialog(appContext, onDismiss = { remoteSettingsOpen = false })
+                BluetoothRemoteControl.SettingsDialog(appContext, developerModeEnabled = settings.developerModeEnabled, onDismiss = { remoteSettingsOpen = false })
             }
             OutlinedButton(onClick = { remoteSettingsOpen = true }, modifier = Modifier.fillMaxWidth()) {
                 Text("Bluetooth Remote · Tastenbelegung")
