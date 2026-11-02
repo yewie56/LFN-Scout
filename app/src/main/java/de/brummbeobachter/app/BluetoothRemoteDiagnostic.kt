@@ -7,6 +7,9 @@ import java.io.OutputStreamWriter
 import android.view.InputDevice
 import android.view.KeyEvent
 import android.view.MotionEvent
+import android.view.Window
+import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.window.DialogWindowProvider
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -33,7 +36,7 @@ internal object BluetoothRemoteDiagnostic {
     private val motionCounters = mutableMapOf<Int, Int>()
 
     private fun exportText(): String = buildString {
-        appendLine("LFN-Scout v0.5.128 – Bluetooth Remote Diagnose")
+        appendLine("LFN-Scout v0.5.129 – Bluetooth Remote Diagnose")
         appendLine("Export: " + SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.GERMANY).format(Date()))
         appendLine("Status beim Export: " + if (listening) "Test aktiv" else "Test gestoppt")
         appendLine("Geräte (${devices.size}):")
@@ -144,6 +147,43 @@ internal object BluetoothRemoteDiagnostic {
     }
 
     @Composable
+    private fun ObserveDialogWindow() {
+        val composeView = LocalView.current
+        // AlertDialog uses its own Android window. Motion/key events targeted at
+        // that window do not pass through MainActivity.dispatch*(). Observe this
+        // dialog window without consuming any events.
+        DisposableEffect(composeView) {
+            val dialogWindow = (composeView.parent as? DialogWindowProvider)?.window
+            val original = dialogWindow?.callback
+            if (dialogWindow == null || original == null) {
+                log("WARNUNG: Dialog-Fenster nicht gefunden – Eingangsdiagnose ggf. unvollständig")
+            } else {
+                val observer = object : Window.Callback by original {
+                    override fun dispatchGenericMotionEvent(event: MotionEvent): Boolean {
+                        onMotion(event, "dialog-generic")
+                        return original.dispatchGenericMotionEvent(event)
+                    }
+                    override fun dispatchTouchEvent(event: MotionEvent): Boolean {
+                        onMotion(event, "dialog-touch")
+                        return original.dispatchTouchEvent(event)
+                    }
+                    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+                        onKey(event)
+                        return original.dispatchKeyEvent(event)
+                    }
+                }
+                dialogWindow.callback = observer
+                log("Dialog-Fenster-Eventempfang aktiviert")
+            }
+            onDispose {
+                if (dialogWindow != null && original != null && dialogWindow.callback !== original) {
+                    dialogWindow.callback = original
+                }
+            }
+        }
+    }
+
+    @Composable
     fun Dialog(onDismiss: () -> Unit) {
         val context = LocalContext.current
         var exportError by remember { mutableStateOf<String?>(null) }
@@ -169,8 +209,9 @@ internal object BluetoothRemoteDiagnostic {
             onDismissRequest = { stop(); onDismiss() },
             title = { Text("Bluetooth Remote · Testmodus") },
             text = {
+                ObserveDialogWindow()
                 Column(Modifier.fillMaxWidth().heightIn(max = 510.dp).verticalScroll(rememberScrollState())) {
-                    Text("Diagnose für Tastatur und Maus/Zeiger (S18). Mausbewegungen werden gedrosselt protokolliert. Die normale Eingabeverarbeitung bleibt aktiv.")
+                    Text("Diagnose für Tastatur und Maus/Zeiger (S18). Ereignisse werden zusätzlich direkt am Dialog-Fenster beobachtet, ohne die normale Eingabeverarbeitung zu blockieren.")
                     Spacer(Modifier.height(8.dp))
                     Text("Status: " + if (listening) "Empfangstest aktiv" else "Gestoppt")
                     Text("Display gesperrt/aus: nicht bestätigt. Android stellt normale HID-Tasten dabei möglicherweise nicht an diese Activity zu.", style = MaterialTheme.typography.bodySmall)
