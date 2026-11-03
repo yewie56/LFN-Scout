@@ -111,6 +111,8 @@ class MainActivity : ComponentActivity() {
     // can reach LFN-Scout while the user briefly switches to Termux or another app.
     // Android may still terminate the process; lock-screen reliability requires a service.
     private var remoteMediaSession: android.media.session.MediaSession? = null
+    @Volatile private var remoteAudioPrimingPending = false
+    private var remotePrimingForeground = false
     internal fun refreshRemoteMediaSession() = updateRemoteMediaSession()
     private fun updateRemoteMediaSession() {
         if (!BluetoothRemoteControl.enabled(this) && !BluetoothRemoteDiagnostic.listening) {
@@ -172,6 +174,18 @@ class MainActivity : ComponentActivity() {
                 if (BluetoothRemoteDiagnostic.listening) 1f else 0f)
             .build())
         remoteMediaSession?.isActive = true
+        // Short, almost inaudible real playback to make Android consider this UID
+        // for media-button routing. Only when the user has enabled remote control,
+        // and only while the application is in the foreground. No MON changes.
+        if (remotePrimingForeground && BluetoothRemoteControl.enabled(this) &&
+            !remoteAudioPrimingPending &&
+            RemoteMediaPriming.shouldStart()) {
+            remoteAudioPrimingPending = true
+            lifecycleScope.launch(Dispatchers.IO) {
+                try { RemoteMediaPriming.playBriefAudio() }
+                finally { remoteAudioPrimingPending = false }
+            }
+        }
         BluetoothRemoteDiagnostic.onSessionStatus(
             "MediaSession aktiv; Modus=" + if (BluetoothRemoteDiagnostic.listening) "TEST (PLAYING)" else "NORMAL (PAUSED)")
     }
@@ -200,11 +214,13 @@ class MainActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
         BluetoothRemoteControl.setActivityForeground(true)
+        remotePrimingForeground = true
         updateRemoteMediaSession()
     }
 
     override fun onPause() {
         BluetoothRemoteControl.setActivityForeground(false)
+        remotePrimingForeground = false
         // Do not disable an explicitly enabled headset session merely because
         // the user opens Termux or the display changes focus. updateRemoteMediaSession()
         // still deactivates it immediately when both remote and diagnostic are off.
