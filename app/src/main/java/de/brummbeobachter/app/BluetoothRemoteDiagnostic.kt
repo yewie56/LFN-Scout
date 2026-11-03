@@ -38,9 +38,14 @@ internal object BluetoothRemoteDiagnostic {
     private val motionCounters = mutableMapOf<Int, Int>()
 
     private fun exportText(): String = buildString {
-        appendLine("LFN-Scout v0.5.152 – Bluetooth Remote Diagnose")
+        appendLine("LFN-Scout v0.5.158 – Bluetooth Remote Diagnose")
         appendLine("Export: " + SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.GERMANY).format(Date()))
         appendLine("Status beim Export: " + if (listening) "Test aktiv" else "Test gestoppt")
+        appContext?.let { ctx ->
+            val selected = BluetoothRemoteControl.mediaProfileSelection(ctx)
+            appendLine("Media-Profilwahl: " + if (selected == -1) "Automatisch (bei Mehrdeutigkeit keine Zuordnung)"
+                else "Manuell: ${BluetoothRemoteControl.profileLabel(selected)}")
+        }
         appendLine("Geräte (${devices.size}):")
         if (devices.isEmpty()) appendLine("Keine unterstützten Eingabegeräte erkannt")
         devices.forEach { appendLine(it) }
@@ -59,7 +64,8 @@ internal object BluetoothRemoteDiagnostic {
         if (!listening) return
         log("MEDIASESSION | " + (if (event.action == KeyEvent.ACTION_DOWN) "DOWN" else "UP") +
             " | key=${event.keyCode} (${KeyEvent.keyCodeToString(event.keyCode)})" +
-            " | scan=${event.scanCode} repeat=${event.repeatCount}")
+            " | scan=${event.scanCode} meta=${event.metaState} repeat=${event.repeatCount}" +
+            " | Profil: ${appContext?.let { BluetoothRemoteControl.profileForEvent(it, event) } ?: "unbekannt"}")
     }
 
     fun start(context: Context) {
@@ -117,7 +123,8 @@ internal object BluetoothRemoteDiagnostic {
             }
             lastUps[key] = event.eventTime
         }
-        log("$action | ${dev?.name ?: "unbekannt"} | device=${event.deviceId} | key=${event.keyCode} (${KeyEvent.keyCodeToString(event.keyCode)}) | scan=${event.scanCode} | repeat=${event.repeatCount}$suffix")
+        log("$action | ${dev?.name ?: "unbekannt"} | device=${event.deviceId} | key=${event.keyCode} (${KeyEvent.keyCodeToString(event.keyCode)}) | scan=${event.scanCode} | meta=${event.metaState} | repeat=${event.repeatCount}$suffix" +
+            " | Profil: ${appContext?.let { BluetoothRemoteControl.profileForEvent(it, event) } ?: "unbekannt"}")
         // Never steal system, volume, media or navigation keys; observing only.
         return false
     }
@@ -161,7 +168,8 @@ internal object BluetoothRemoteDiagnostic {
         log("MOTION $actionName | $entryPoint | ${device.name} | device=$id | " +
             "source=${event.source} | x=${event.x} y=${event.y} | dx=$dx dy=$dy | " +
             "relX=$xRelative relY=$yRelative | buttons=${event.buttonState} " +
-            "actionButton=${event.actionButton} | count=${motionCounters[id]}")
+            "actionButton=${event.actionButton} | count=${motionCounters[id]} | Profil: " +
+            if (device.descriptor == "1f9732f291ce3e3ddc26c59de5cc9968625367d8") "S18 (HID-Descriptor)" else "Unbekannt (Maus/HID)")
     }
 
     private fun log(message: String) {
@@ -213,6 +221,7 @@ internal object BluetoothRemoteDiagnostic {
         var exportError by remember { mutableStateOf<String?>(null) }
         var exportSuccess by remember { mutableStateOf(false) }
         var pendingExport by remember { mutableStateOf("") }
+        var mediaProfile by remember { mutableIntStateOf(BluetoothRemoteControl.mediaProfileSelection(context)) }
         val saveLauncher = rememberLauncherForActivityResult(
             contract = ActivityResultContracts.CreateDocument("text/plain")
         ) { uri ->
@@ -239,6 +248,18 @@ internal object BluetoothRemoteDiagnostic {
                     Spacer(Modifier.height(8.dp))
                     Text("Status: " + if (listening) "Empfangstest aktiv" else "Gestoppt")
                     Text("Display gesperrt/aus: nicht bestätigt. Android stellt normale HID-Tasten dabei möglicherweise nicht an diese Activity zu.", style = MaterialTheme.typography.bodySmall)
+                    Spacer(Modifier.height(8.dp))
+                    Text("Profilzuordnung für nicht unterscheidbare MediaSession-Tasten", style = MaterialTheme.typography.titleSmall)
+                    Text("Automatisch nutzt nur eindeutige gespeicherte Tastenbelegungen; ohne eindeutige Gerätekennung wird kein Bluetooth-Gerät behauptet.", style = MaterialTheme.typography.bodySmall)
+                    (listOf(-1) + BluetoothRemoteControl.profileNames().indices.toList()).forEach { index ->
+                        Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+                            RadioButton(selected = mediaProfile == index, onClick = {
+                                mediaProfile = index
+                                BluetoothRemoteControl.setMediaProfileSelection(context, index)
+                            })
+                            Text(if (index == -1) "Automatisch" else "Manuell: ${BluetoothRemoteControl.profileLabel(index)}")
+                        }
+                    }
                     Spacer(Modifier.height(8.dp))
                     Text("Erkannte Eingabegeräte", style = MaterialTheme.typography.titleSmall)
                     if (devices.isEmpty()) Text("Keine unterstützten Eingabegeräte erkannt")

@@ -29,32 +29,88 @@ internal object BluetoothRemoteControl {
     private val profileLabels = listOf("S18", "Headphones / Boom", "Fernsteuerung 3", "Fernsteuerung 4")
     private fun profilePrefKey(profile: Int, command: String): String =
         if (profile == 0) command else "profile_${profiles[profile]}_$command"
+    // Preserve the original single-key preference verbatim; extra keys are additive.
+    private fun extraKey(profile: Int, command: String) = profilePrefKey(profile, command) + "_additional"
+    private fun mappingsFor(context: Context, profile: Int, command: String): Set<String> {
+        val primary = prefs(context).getString(profilePrefKey(profile, command), "").orEmpty()
+        val additional = prefs(context).getStringSet(extraKey(profile, command), emptySet()).orEmpty()
+        return (additional + primary).filter { it.isNotBlank() }.toSet()
+    }
     private fun mappingFor(context: Context, profile: Int, command: String): String =
-        prefs(context).getString(profilePrefKey(profile, command), "") ?: ""
-    private fun assignedCommand(context: Context, key: String): String? =
-        profiles.indices.firstNotNullOfOrNull { profile ->
-            commands.firstOrNull { mappingFor(context, profile, it) == key }
+        mappingsFor(context, profile, command).sorted().joinToString("; ")
+    // Upgrade the existing Boom PLAY/PAUSE binding without touching S18 or its prefs.
+    // Only add the partner when that code is not already used by another assignment.
+    private fun ensureBoomPausePair(context: Context) {
+        val existing = mappingsFor(context, 1, "PAUSE")
+        val play = normalizedMediaKey(KeyEvent.KEYCODE_MEDIA_PLAY)
+        val pause = normalizedMediaKey(KeyEvent.KEYCODE_MEDIA_PAUSE)
+        val partner = when {
+            play in existing && pause !in existing -> pause
+            pause in existing && play !in existing -> play
+            else -> return
         }
+        val alreadyUsed = profiles.indices.any { profile ->
+            commands.any { command -> partner in mappingsFor(context, profile, command) }
+        }
+        if (!alreadyUsed) {
+            prefs(context).edit().putStringSet(extraKey(1, "PAUSE"),
+                (prefs(context).getStringSet(extraKey(1, "PAUSE"), emptySet()).orEmpty() + partner).toSet()).apply()
+        }
+    }
+    private fun matchingProfiles(context: Context, key: String): List<Int> {
+        if (key.startsWith("MEDIA|")) ensureBoomPausePair(context)
+        return profiles.indices.filter { profile -> commands.any { key in mappingsFor(context, profile, it) } }
+    }
+    private fun assignedCommand(context: Context, key: String): String? {
+        val matches = matchingProfiles(context, key)
+        val chosen = if (key.startsWith("MEDIA|") && mediaProfileSelection(context) in matches)
+            mediaProfileSelection(context) else matches.singleOrNull() ?: return null
+        return commands.firstOrNull { key in mappingsFor(context, chosen, it) }
+    }
     private fun hasAssignment(context: Context, key: String): Boolean = assignedCommand(context, key) != null
+    // -1 = automatic: ambiguous MediaSession keys are never assigned a guessed device identity.
+    fun mediaProfileSelection(context: Context): Int =
+        prefs(context).getInt("test_media_profile_selection", -1).takeIf { it in profiles.indices } ?: -1
+    fun setMediaProfileSelection(context: Context, profile: Int) {
+        require(profile == -1 || profile in profiles.indices)
+        prefs(context).edit().putInt("test_media_profile_selection", profile).apply()
+    }
+    fun profileLabel(index: Int) = profileLabels[index]
+    fun profileNames() = profileLabels
+    fun detectedProfile(context: Context, key: String): String {
+        val matches = matchingProfiles(context, key)
+        return when {
+            matches.isEmpty() -> "Unbekannt / keine passende Belegung"
+            matches.size == 1 -> "Automatisch: ${profileLabels[matches.single()]} (Tastenbelegung)"
+            key.startsWith("MEDIA|") && mediaProfileSelection(context) in matches ->
+                "Manuell: ${profileLabels[mediaProfileSelection(context)]} (Media-Key nicht unterscheidbar)"
+            else -> "Mehrdeutig: ${matches.joinToString { profileLabels[it] }} – Profil manuell wählen"
+        }
+    }
+    fun profileForEvent(context: Context, event: KeyEvent): String {
+        val key = if (event.keyCode in mediaButtons) normalizedMediaKey(event.keyCode)
+            else "${InputDevice.getDevice(event.deviceId)?.descriptor ?: "unknown"}|${event.keyCode}|${event.scanCode}"
+        return detectedProfile(context, key)
+    }
     private fun assignLearned(context: Context, key: String) {
         val targetProfile = learnProfile
-        val edit = prefs(context).edit()
-        // One key must never trigger two actions; do not silently rewrite another profile.
-        // If it is assigned elsewhere, the user must explicitly remove that mapping first.
         val conflict = profiles.indices.any { profile ->
             commands.any { command ->
-                !(profile == targetProfile && command == learnCommand) && mappingFor(context, profile, command) == key
+                !(profile == targetProfile && command == learnCommand) &&
+                    key in mappingsFor(context, profile, command)
             }
         }
         if (conflict) {
             latestKey = "Taste bereits in einem anderen Feld belegt – dort zuerst löschen"
         } else {
-            commands.forEach { command ->
-                if (command != learnCommand && mappingFor(context, targetProfile, command) == key)
-                    edit.remove(profilePrefKey(targetProfile, command))
-            }
-            edit.putString(profilePrefKey(targetProfile, learnCommand), key).apply()
-            latestKey = "${profileLabels[targetProfile]}: Taste zugeordnet"
+            val all = mappingsFor(context, targetProfile, learnCommand)
+            val primary = prefs(context).getString(profilePrefKey(targetProfile, learnCommand), "").orEmpty()
+            val edit = prefs(context).edit()
+            if (primary.isBlank()) edit.putString(profilePrefKey(targetProfile, learnCommand), key)
+            else if (key != primary) edit.putStringSet(extraKey(targetProfile, learnCommand),
+                (all + key - primary).toSet())
+            edit.apply()
+            latestKey = "${profileLabels[targetProfile]}: Taste hinzugefügt (${(all + key).size})"
         }
         learning = false
     }
@@ -238,7 +294,7 @@ internal object BluetoothRemoteControl {
     fun setEnabled(context: Context, value: Boolean) { prefs(context).edit().putBoolean("enabled", value).apply() }
     fun mapping(context: Context, command: String) = mappingFor(context, 0, command)
     fun clear(context: Context, command: String, profile: Int = 0) {
-        prefs(context).edit().remove(profilePrefKey(profile, command)).apply()
+        prefs(context).edit().remove(profilePrefKey(profile, command)).remove(extraKey(profile, command)).apply()
     }
     fun beginLearning() { learning = true; latestKey = "Taste jetzt kurz drücken …" }
     fun stopLearning() { learning = false }
@@ -343,20 +399,22 @@ internal object BluetoothRemoteControl {
                     Spacer(Modifier.height(8.dp))
                     commands.forEach { command ->
                         Row { Text(label(command), style=MaterialTheme.typography.titleSmall); ParameterNumber.Marker(when(command) { "PAUSE" -> 9002; "SCREEN" -> 9003; "AUDIO" -> 9004; else -> 9005 }, developerModeEnabled) }
-                        val assigned = mappingFor(context,selectedProfile,command)
+                        val assignedKeys = mappingsFor(context,selectedProfile,command).sorted()
                         // Re-read mappings when learning completes (latestKey changes).
                         @Suppress("UNUSED_VARIABLE") val refreshToken = revision to latestKey
-                        val readable = when {
-                            assigned.isBlank() -> "Nicht belegt"
-                            assigned.contains("|S18:") -> "S18 · " + assigned.substringAfter("|S18:")
-                            assigned.startsWith("MEDIA|") -> "Headset · " +
-                                KeyEvent.keyCodeToString(assigned.substringAfter("MEDIA|").toIntOrNull() ?: 0)
-                            else -> "Externe Taste angelernt"
+                        val readable = if (assignedKeys.isEmpty()) "Nicht belegt" else assignedKeys.joinToString(" + ") { assigned ->
+                            when {
+                                assigned.contains("|S18:") -> "S18 · " + assigned.substringAfter("|S18:")
+                                assigned.startsWith("MEDIA|") -> "Headset · " +
+                                    KeyEvent.keyCodeToString(assigned.substringAfter("MEDIA|").toIntOrNull() ?: 0)
+                                else -> "Externe Taste"
+                            }
                         }
+                        val assigned = assignedKeys.joinToString("; ")
                         Text(if (developerModeEnabled && assigned.isNotBlank()) "$readable · $assigned" else readable,
                             style=MaterialTheme.typography.bodySmall)
                         Row {
-                            TextButton(onClick={ learn(command,selectedProfile); revision++ }) { Text("Anlernen") }
+                            TextButton(onClick={ learn(command,selectedProfile); revision++ }) { Text("Taste hinzufügen") }
                             TextButton(onClick={ clear(context,command,selectedProfile); revision++ }) { Text("Löschen") }
                         }
                     }

@@ -441,3 +441,8 @@ Die Kennzeichnung **R01–R07, O01–O08 und A01–A05** können wir künftig al
 
 ## LFN-EXT-01 (Stand v0.5.118)
 Extension-Leiste von fünf auf zehn scrollbar erreichbare Positionen erweitert. Slot 1 bisheriger Supabase-Test. Vorgesehene, NICHT implementierte Umlegung: Slot 2 NOISE (gleiche Darstellung/Bedienung inklusive Langdruck), Slot 3 Diag. Andere Plätze 4–10 reserviert. Geplanter ALGO RMS/IMPULS-Umschalter separat; RMS unverändert bewahren.
+
+## v0.5.158 – Fernsteuerung (Quellkandidat, Build/Geräteprüfung ausstehend)
+- [x] BT158-01: Zusatzcodes je Profil/Funktion ohne Umschreiben der bisherigen Primärbelegungen implementiert; BOOM PLAY=126 und PAUSE=127 bei freiem Gegenstück gekoppelt. Statisch implementiert, nicht gerätebestätigt.
+- [x] BT158-02: Diagnostische automatische Profilerkennung und manuelle Media-Profilwahl mit ehrlicher Mehrdeutigkeitsanzeige implementiert; Hardwareprüfung offen.
+- [ ] BT158-03: GitHub-Actions-TEST-Build, Android-Installation und physische Regression, einschließlich S18 und MediaSession bei Hintergrund/Display aus.

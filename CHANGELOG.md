@@ -1,3 +1,7 @@
+## 0.5.158 (Quellkandidat, nicht auf Android getestet)
+- Zusätzliche Keycodes pro Fernsteuerungsaktion; BOOM PLAY/PAUSE 126/127 gekoppelt, S18-Primärbelegung geschützt.
+- Testmodus: automatische Belegungsprofil-Erkennung und manuelle MediaSession-Profilwahl, Mehrdeutigkeiten ausgewiesen.
+
 ## v0.5.124 – Kompakter Scout-Titelbereich (versionCode 282)
 - Exakt zwei Kopfzeilen: Titel links, Version unmittelbar rechts auf halber Titelhoehe, RP ganz rechts in derselben Zeile.
 - Zweite Zeile: „Beobachten · bewerten · dokumentieren“ links; DevMode rechtsbuendig.

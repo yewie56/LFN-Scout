@@ -1,3 +1,6 @@
+## 03.11.2026 – v0.5.158 Quellkandidat
+Mehrfachkey-Zuordnung und BT-Testmodus-Profilwahl implementiert, Android-Build/Gerätetest offen. Letzter nutzerbestätigter Stand v0.5.157 (Test ok). Details BUILD_NOTES_v0.5.158.md.
+
 ## v0.5.124 – Kompakter Scout-Titelbereich (versionCode 282)
 - Exakt zwei Kopfzeilen: Titel links, Version unmittelbar rechts auf halber Titelhoehe, RP ganz rechts in derselben Zeile.
 - Zweite Zeile: „Beobachten · bewerten · dokumentieren“ links; DevMode rechtsbuendig.
