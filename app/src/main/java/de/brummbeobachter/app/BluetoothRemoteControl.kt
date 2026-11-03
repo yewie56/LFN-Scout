@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -22,6 +23,41 @@ import androidx.compose.ui.window.DialogProperties
 internal object BluetoothRemoteControl {
     private const val PREFS = "bluetooth_remote_127"
     private val commands = listOf("PAUSE", "SCREEN", "AUDIO", "TRIGGER")
+    // Profile 0 reads the original unmodified keys in bluetooth_remote_127.
+    // Additional profiles use distinct keys so existing S18 mappings are never migrated or overwritten.
+    private val profiles = listOf("S18", "BOOM", "REMOTE3", "REMOTE4")
+    private val profileLabels = listOf("S18", "Headphones / Boom", "Fernsteuerung 3", "Fernsteuerung 4")
+    private fun profilePrefKey(profile: Int, command: String): String =
+        if (profile == 0) command else "profile_${profiles[profile]}_$command"
+    private fun mappingFor(context: Context, profile: Int, command: String): String =
+        prefs(context).getString(profilePrefKey(profile, command), "") ?: ""
+    private fun assignedCommand(context: Context, key: String): String? =
+        profiles.indices.firstNotNullOfOrNull { profile ->
+            commands.firstOrNull { mappingFor(context, profile, it) == key }
+        }
+    private fun hasAssignment(context: Context, key: String): Boolean = assignedCommand(context, key) != null
+    private fun assignLearned(context: Context, key: String) {
+        val targetProfile = learnProfile
+        val edit = prefs(context).edit()
+        // One key must never trigger two actions; do not silently rewrite another profile.
+        // If it is assigned elsewhere, the user must explicitly remove that mapping first.
+        val conflict = profiles.indices.any { profile ->
+            commands.any { command ->
+                !(profile == targetProfile && command == learnCommand) && mappingFor(context, profile, command) == key
+            }
+        }
+        if (conflict) {
+            latestKey = "Taste bereits in einem anderen Feld belegt – dort zuerst löschen"
+        } else {
+            commands.forEach { command ->
+                if (command != learnCommand && mappingFor(context, targetProfile, command) == key)
+                    edit.remove(profilePrefKey(targetProfile, command))
+            }
+            edit.putString(profilePrefKey(targetProfile, learnCommand), key).apply()
+            latestKey = "${profileLabels[targetProfile]}: Taste zugeordnet"
+        }
+        learning = false
+    }
     var latestKey by mutableStateOf("Noch keine Taste erkannt")
         private set
     var lastTrigger by mutableStateOf("Noch kein Mess-Trigger")
@@ -104,11 +140,7 @@ internal object BluetoothRemoteControl {
                 recognizedS18 = "S18: $direction (dx=${dx.toInt()}, dy=${dy.toInt()})"
                 val key = s18Key(direction)
                 if (learning) {
-                    learning = false
-                    val edit = prefs(context).edit()
-                    commands.forEach { if (mapping(context,it) == key) edit.remove(it) }
-                    edit.putString(learnCommand,key).apply()
-                    latestKey = recognizedS18
+                    assignLearned(context, key)
                 } else if (shouldConsumeMotion(context, event)) {
                     dispatchCommand(context, key, event.eventTime)
                 }
@@ -119,7 +151,7 @@ internal object BluetoothRemoteControl {
     var recognizedS18 by mutableStateOf("Noch keine S18-Richtung erkannt")
         private set
     private fun dispatchCommand(context: Context, key: String, whenMs: Long): Boolean {
-        val command = commands.firstOrNull { mapping(context,it) == key } ?: return false
+        val command = assignedCommand(context, key) ?: return false
         if (whenMs - lastActivation < 280L) return true
         lastActivation = whenMs
         // PAUSE and TRIGGER are handled independently from the Compose analyzer screen.
@@ -164,14 +196,11 @@ internal object BluetoothRemoteControl {
         val key = normalizedMediaKey(event.keyCode)
         if (event.action == KeyEvent.ACTION_UP) return enabled(context) &&
             activityInForeground && activePanelIsRemoteSurface && !settingsVisible &&
-            !BluetoothRemoteDiagnostic.listening && commands.any { mapping(context, it) == key }
+            !BluetoothRemoteDiagnostic.listening && hasAssignment(context, key)
         if (event.action != KeyEvent.ACTION_DOWN || event.repeatCount != 0) return false
         latestKey = "Headset: ${KeyEvent.keyCodeToString(event.keyCode)}"
         if (learning) {
-            learning = false
-            val edit = prefs(context).edit()
-            commands.forEach { if (mapping(context, it) == key) edit.remove(it) }
-            edit.putString(learnCommand, key).apply()
+            assignLearned(context, key)
             return true
         }
         if (!enabled(context) || !activityInForeground || !activePanelIsRemoteSurface ||
@@ -188,18 +217,15 @@ internal object BluetoothRemoteControl {
         if (event.keyCode !in mediaButtons) return false
         val key = normalizedMediaKey(event.keyCode)
         if (event.action == KeyEvent.ACTION_UP) return enabled(context) &&
-            !BluetoothRemoteDiagnostic.listening && commands.any { mapping(context, it) == key }
+            !BluetoothRemoteDiagnostic.listening && hasAssignment(context, key)
         if (event.action != KeyEvent.ACTION_DOWN || event.repeatCount != 0) return false
         latestKey = "Headset(MediaSession): ${KeyEvent.keyCodeToString(event.keyCode)}"
         if (learning && activityInForeground) {
-            learning = false
-            val edit = prefs(context).edit()
-            commands.forEach { if (mapping(context, it) == key) edit.remove(it) }
-            edit.putString(learnCommand, key).apply()
+            assignLearned(context, key)
             return true
         }
         if (!enabled(context) || BluetoothRemoteDiagnostic.listening || settingsVisible) return false
-        val command = commands.firstOrNull { mapping(context, it) == key } ?: return false
+        val command = assignedCommand(context, key) ?: return false
         if (!activityInForeground && command != "PAUSE" && command != "TRIGGER") {
             DebugLogger.log(context, "BT_REMOTE_IGNORED", "$command: Oberfläche nicht aktiv")
             return true
@@ -207,23 +233,28 @@ internal object BluetoothRemoteControl {
         if (activityInForeground && !activePanelIsRemoteSurface) return false
         return dispatchCommand(context, key, android.os.SystemClock.uptimeMillis())
     }
-    fun hasMediaMapping(context: Context, code: Int) = commands.any {
-        mapping(context, it) == normalizedMediaKey(code)
-    }
+    fun hasMediaMapping(context: Context, code: Int) = hasAssignment(context, normalizedMediaKey(code))
     fun enabled(context: Context) = prefs(context).getBoolean("enabled", false)
     fun setEnabled(context: Context, value: Boolean) { prefs(context).edit().putBoolean("enabled", value).apply() }
-    fun mapping(context: Context, command: String) = prefs(context).getString(command, "") ?: ""
-    fun clear(context: Context, command: String) { prefs(context).edit().remove(command).apply() }
+    fun mapping(context: Context, command: String) = mappingFor(context, 0, command)
+    fun clear(context: Context, command: String, profile: Int = 0) {
+        prefs(context).edit().remove(profilePrefKey(profile, command)).apply()
+    }
     fun beginLearning() { learning = true; latestKey = "Taste jetzt kurz drücken …" }
     fun stopLearning() { learning = false }
     private var learnCommand = ""
-    fun learn(command: String) { learnCommand = command; beginLearning() }
+    private var learnProfile = 0
+    fun learn(command: String, profile: Int = 0) {
+        learnCommand = command
+        learnProfile = profile
+        beginLearning()
+    }
     fun isLearning() = learning
     fun onKey(context: Context, event: KeyEvent): Boolean {
         if (event.keyCode in mediaButtons) return onMediaButton(context, event)
         if (event.action == KeyEvent.ACTION_UP) {
             val key = keyId(event)
-            return enabled(context) && activityInForeground && activePanelIsRemoteSurface && !settingsVisible && commands.any { mapping(context, it) == key } && !BluetoothRemoteDiagnostic.listening
+            return enabled(context) && activityInForeground && activePanelIsRemoteSurface && !settingsVisible && hasAssignment(context, key) && !BluetoothRemoteDiagnostic.listening
         }
         if (event.action != KeyEvent.ACTION_DOWN || event.repeatCount != 0) return false
         // Never intercept local keyboard, system/back/power, or unknown devices.
@@ -233,11 +264,7 @@ internal object BluetoothRemoteControl {
         val key = keyId(event)
         latestKey = "${device.name}: ${KeyEvent.keyCodeToString(event.keyCode)} (scan ${event.scanCode})"
         if (learning) {
-            learning = false
-            // Reassigning a key removes any previous command for the same key.
-            val edit = prefs(context).edit()
-            commands.forEach { if (mapping(context, it) == key) edit.remove(it) }
-            edit.putString(learnCommand, key).apply()
+            assignLearned(context, key)
             return true
         }
         if (!enabled(context) || !activityInForeground || !activePanelIsRemoteSurface || settingsVisible || BluetoothRemoteDiagnostic.listening) return false
@@ -281,6 +308,7 @@ internal object BluetoothRemoteControl {
     @Composable fun SettingsDialog(context: Context, developerModeEnabled: Boolean, onDismiss: () -> Unit) {
         var active by remember { mutableStateOf(enabled(context)) }
         var revision by remember { mutableIntStateOf(0) }
+        var selectedProfile by remember { mutableIntStateOf(0) }
         Dialog(onDismissRequest = { stopLearning(); onDismiss() }, properties = DialogProperties(usePlatformDefaultWidth = false)) {
           Surface(modifier = Modifier.fillMaxWidth(0.94f).fillMaxHeight(0.88f), shape = MaterialTheme.shapes.large, tonalElevation = 6.dp) {
            Column(Modifier.padding(18.dp)) {
@@ -289,7 +317,19 @@ internal object BluetoothRemoteControl {
             Box(Modifier.weight(1f)) {
                 ObserveSettingsDialog(context)
                 Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
-                    Text("S18: OBEN, UNTEN, LINKS, RECHTS, MITTE. Headset: Play/Pause, Vorwärts, Rückwärts (auch separate Play-/Pause-Tasten). Zum Zuweisen 'Anlernen' wählen und die Taste drücken. Lautstärke +/− wird nur erkannt, wenn Android sie als externe HID-Taste direkt an die App liefert; Android kann sie systemweit abfangen.", style=MaterialTheme.typography.bodySmall)
+                    Text("Vier unabhängige Belegungsprofile. S18 bleibt unverändert. Headphones / Boom: Vorwärts und Rückwärts (Android-Medientasten). Alle vier Profile sind gleichzeitig aktiv. Gleichartige Media-Tasten unterschiedlicher Headsets sind durch Android nicht immer unterscheidbar.", style=MaterialTheme.typography.bodySmall)
+                    Spacer(Modifier.height(8.dp))
+                    Text("Fernbedienung auswählen", style=MaterialTheme.typography.titleSmall)
+                    profiles.indices.forEach { profile ->
+                        Row(Modifier.fillMaxWidth().selectable(selected = selectedProfile == profile,
+                            onClick = { stopLearning(); selectedProfile = profile }),
+                            verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+                            RadioButton(selected = selectedProfile == profile,
+                                onClick = { stopLearning(); selectedProfile = profile })
+                            Text(profileLabels[profile])
+                        }
+                    }
+                    Text("Belegung für: ${profileLabels[selectedProfile]}", style=MaterialTheme.typography.titleSmall)
                     if (developerModeEnabled) {
                         Text(recognizedS18, style=MaterialTheme.typography.bodySmall)
                     } else {
@@ -303,7 +343,7 @@ internal object BluetoothRemoteControl {
                     Spacer(Modifier.height(8.dp))
                     commands.forEach { command ->
                         Row { Text(label(command), style=MaterialTheme.typography.titleSmall); ParameterNumber.Marker(when(command) { "PAUSE" -> 9002; "SCREEN" -> 9003; "AUDIO" -> 9004; else -> 9005 }, developerModeEnabled) }
-                        val assigned = mapping(context,command)
+                        val assigned = mappingFor(context,selectedProfile,command)
                         // Re-read mappings when learning completes (latestKey changes).
                         @Suppress("UNUSED_VARIABLE") val refreshToken = revision to latestKey
                         val readable = when {
@@ -316,8 +356,8 @@ internal object BluetoothRemoteControl {
                         Text(if (developerModeEnabled && assigned.isNotBlank()) "$readable · $assigned" else readable,
                             style=MaterialTheme.typography.bodySmall)
                         Row {
-                            TextButton(onClick={ learn(command); revision++ }) { Text("Anlernen") }
-                            TextButton(onClick={ clear(context,command); revision++ }) { Text("Löschen") }
+                            TextButton(onClick={ learn(command,selectedProfile); revision++ }) { Text("Anlernen") }
+                            TextButton(onClick={ clear(context,command,selectedProfile); revision++ }) { Text("Löschen") }
                         }
                     }
                     Text(if (developerModeEnabled) latestKey else if (isLearning())
