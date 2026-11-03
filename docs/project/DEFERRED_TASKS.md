@@ -446,3 +446,9 @@ Extension-Leiste von fünf auf zehn scrollbar erreichbare Positionen erweitert. 
 - [x] BT158-01: Zusatzcodes je Profil/Funktion ohne Umschreiben der bisherigen Primärbelegungen implementiert; BOOM PLAY=126 und PAUSE=127 bei freiem Gegenstück gekoppelt. Statisch implementiert, nicht gerätebestätigt.
 - [x] BT158-02: Diagnostische automatische Profilerkennung und manuelle Media-Profilwahl mit ehrlicher Mehrdeutigkeitsanzeige implementiert; Hardwareprüfung offen.
 - [ ] BT158-03: GitHub-Actions-TEST-Build, Android-Installation und physische Regression, einschließlich S18 und MediaSession bei Hintergrund/Display aus.
+
+## v0.5.159 – Kommentar-Pop-ups (Quellkandidat, Android-Test offen)
+- Analyzer-Audio: „Ohne Kommentar“ entfällt, „Jetzt speichern“ und „Abbrechen“; Abbrechen vor Speicherung verwirft den eingefrorenen Audio-Snapshot, ohne Rolling/Analyzer/MON zu stoppen.
+- Beobachter-Audio: gemeinsames Kommentar-Popup erhält „Abbrechen“ statt „Ohne Kommentar“. Bereits vor Dialogöffnung lokal archivierte WAV bleibt bei Abbruch sicher erhalten, nur automatischer/manueller Cloud-Versand wird unterlassen; kein Löschen bereits entstandener Messdaten.
+- Analyzer-Screenshot: „Jetzt speichern“ und „Abbrechen“, „Ohne Kommentar“ entfällt; automatische Speicherung nach dem bestehenden Audio-Kommentar-Timeout (Start/letzte Texteingabe), bei jeder Änderung retriggert; leeres Feld wird ohne Kommentar gespeichert.
+- Android-TEST-Build, Dialog-Timeouts (Start und nach Eingabe), manueller Speichern-/Abbrechen-Pfad, Rolling-/S18-Regression auf Gerät offen.

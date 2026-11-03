@@ -219,6 +219,8 @@ internal fun LiveAnalyzerScreen(
     var saveMessage by remember { mutableStateOf("") }
     var pendingImageSnapshot by remember { mutableStateOf<LiveAnalyzerController.Snapshot?>(null) }
     var imageComment by remember { mutableStateOf("") }
+    var imageCommentInteracted by remember { mutableStateOf(false) }
+    var imageCommentCountdown by remember { androidx.compose.runtime.mutableIntStateOf(audioNoCommentTimeoutSeconds) }
     // Transient, two-line indication of WATERFALL DISPLAY changes only. Not an image/raster layer.
     var waterfallNotice by remember { mutableStateOf<AnalyzerWaterfallNotice.Content?>(null) }
     // Never use rows.size, spectra count, waterfallRevision or autorange progress in this key:
@@ -405,7 +407,7 @@ internal fun LiveAnalyzerScreen(
                 if (state.running && pendingImageSnapshot == null) {
                     val captured = LiveAnalyzerController.captureManualImage()
                     if (captured == null) saveMessage = "Bild nicht gespeichert: kein Nutzsignal oder Export beschäftigt"
-                    else { pendingImageSnapshot = captured; imageComment = "" }
+                    else { pendingImageSnapshot = captured; imageComment = ""; imageCommentInteracted = false }
                 }
             }
             "AUDIO" -> {
@@ -548,49 +550,68 @@ internal fun LiveAnalyzerScreen(
                 actionWord = "gespeichert",
                 busyText = "Speichern läuft ...",
                 confirmLabel = "Jetzt speichern",
-                withoutCommentLabel = "Ohne Kommentar speichern",
                 onAutoComplete = { comment, _ -> submitAnalyzerAudio(comment) },
                 onConfirm = { comment -> submitAnalyzerAudio(comment) },
-                onWithoutComment = { submitAnalyzerAudio(null) }
+                onCancel = {
+                    if (!audioSaveBusy) {
+                        pendingAudioClip = null
+                        pendingAudioConfig = null
+                        audioSaveStatus = "Audiospeicherung abgebrochen"
+                    }
+                }
             )
         }
         val capturedImage = pendingImageSnapshot
         if (capturedImage != null) {
+            // The frozen image remains stable while the user enters a comment.
+            // Editing retriggers the timer; no keystroke can change the captured frame.
+            LaunchedEffect(capturedImage, imageComment, imageCommentInteracted) {
+                val timeout = (if (imageCommentInteracted) audioCommentTimeoutSeconds
+                    else audioNoCommentTimeoutSeconds).coerceAtLeast(1)
+                for (remaining in timeout downTo 1) {
+                    imageCommentCountdown = remaining
+                    delay(1_000L)
+                }
+                if (pendingImageSnapshot === capturedImage) {
+                    pendingImageSnapshot = null
+                    if (!LiveAnalyzerController.saveCapturedImage(capturedImage, imageComment.takeIf { it.isNotBlank() }))
+                        saveMessage = "Bild nicht gespeichert: Bildexport beschäftigt"
+                    imageComment = ""
+                    imageCommentInteracted = false
+                }
+            }
             AlertDialog(
-                onDismissRequest = { pendingImageSnapshot = null; imageComment = "" },
+                onDismissRequest = { /* Save or cancel explicitly; do not discard with outside tap. */ },
                 title = { Text("Kommentar zum Analyzer-Bild") },
                 text = {
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Text("Der Wasserfall ist bereits eingefroren. Der Kommentar wird unten in das gespeicherte Bild eingeblendet.")
                         ParameterNumber.Decorated(10008) { OutlinedTextField(
                             value = imageComment,
-                            onValueChange = { imageComment = it.take(400) },
+                            onValueChange = { imageComment = it.take(400); imageCommentInteracted = true },
                             label = { Text("Kommentar (optional)") },
                             minLines = 3, maxLines = 6, modifier = Modifier.fillMaxWidth()
                         ) }
                         Text("${imageComment.length}/400", fontSize = 11.sp, color = muted)
+                        Text("Automatisch in $imageCommentCountdown s", fontSize = 11.sp, color = muted)
                     }
                 },
                 confirmButton = {
                     TextButton(onClick = {
                         val snap = pendingImageSnapshot
                         pendingImageSnapshot = null
-                        if (snap != null && !LiveAnalyzerController.saveCapturedImage(snap, imageComment))
+                        if (snap != null && !LiveAnalyzerController.saveCapturedImage(snap, imageComment.takeIf { it.isNotBlank() }))
                             saveMessage = "Bild nicht gespeichert: Bildexport beschäftigt"
                         imageComment = ""
-                    }) { Text("Speichern") }
+                        imageCommentInteracted = false
+                    }) { Text("Jetzt speichern") }
                 },
                 dismissButton = {
-                    Row {
-                        TextButton(onClick = {
-                            val snap = pendingImageSnapshot
-                            pendingImageSnapshot = null
-                            if (snap != null && !LiveAnalyzerController.saveCapturedImage(snap, null))
-                                saveMessage = "Bild nicht gespeichert: Bildexport beschäftigt"
-                            imageComment = ""
-                        }) { Text("Ohne Kommentar") }
-                        TextButton(onClick = { pendingImageSnapshot = null; imageComment = "" }) { Text("Abbrechen") }
-                    }
+                    TextButton(onClick = {
+                        pendingImageSnapshot = null
+                        imageComment = ""
+                        imageCommentInteracted = false
+                    }) { Text("Abbrechen") }
                 }
             )
         }
@@ -1360,6 +1381,7 @@ internal fun LiveAnalyzerScreen(
                         } else {
                             pendingImageSnapshot = captured
                             imageComment = ""
+                            imageCommentInteracted = false
                         }
                     }
                 )

@@ -37,12 +37,11 @@ internal fun AudioCommentDialog(
     actionWord: String,
     busyText: String,
     confirmLabel: String,
-    withoutCommentLabel: String,
     onInteraction: (Int) -> Unit = {},
     onCommentChanged: (String) -> Unit = {},
     onAutoComplete: (String?, Boolean) -> Unit,
     onConfirm: (String?) -> Unit,
-    onWithoutComment: () -> Unit
+    onCancel: () -> Unit
 ) {
     var comment by remember(recordingId) { mutableStateOf("") }
     var interacted by remember(recordingId) { mutableStateOf(false) }
@@ -51,7 +50,8 @@ internal fun AudioCommentDialog(
     }
     val latestAutoComplete = rememberUpdatedState(onAutoComplete)
 
-    LaunchedEffect(recordingId, interacted, comment) {
+    LaunchedEffect(recordingId, interacted, comment, busy) {
+        if (busy) return@LaunchedEffect
         val timeout = if (interacted) commentTimeoutSeconds else noCommentTimeoutSeconds
         for (remaining in timeout downTo 1) {
             countdown = remaining
@@ -109,8 +109,8 @@ internal fun AudioCommentDialog(
             ) { Text(confirmLabel) }
         },
         dismissButton = {
-            TextButton(onClick = onWithoutComment, enabled = !busy) {
-                Text(withoutCommentLabel)
+            TextButton(onClick = onCancel, enabled = !busy) {
+                Text("Abbrechen")
             }
         }
     )

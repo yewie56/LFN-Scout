@@ -966,3 +966,6 @@ Neuer opt-in Android-Berechtigungsdialog für Mikrofon und GPS/Standort bei App-
 - Vorschalt-Auswahl ohne verfrühte Analyzer-UI. Benanntes Setup wird bei Direct und 8k vor Analyzer-Start übernommen.
 - Zu prüfen: bereits zugeordnete Direct/8k-Setups, STOP/Verlassen/Neustart, Abbruch des Popups, persistente MON-Werte.
 - Build nicht durchgeführt.
+
+## 03.11.2026 – v0.5.159 Quellkandidat
+Basis v0.5.158 (Nutzer: TEST OK). Audio- und Bildkommentar-Pop-ups geändert wie BUILD_NOTES_v0.5.159.md. GitHub-Android-Build und Gerätetest offen; letzter bestätigter Stand bleibt v0.5.158.

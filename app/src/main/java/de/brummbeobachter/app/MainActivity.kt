@@ -4311,7 +4311,6 @@ private fun AudioRecordingCard(
             actionWord = "gesendet",
             busyText = "Versand läuft ...",
             confirmLabel = "Jetzt senden",
-            withoutCommentLabel = "Ohne Kommentar senden",
             onInteraction = { timeout ->
                 DebugLogger.log(
                     appContext,
@@ -4343,14 +4342,13 @@ private fun AudioRecordingCard(
                 )
                 scope.launch { sendPendingAudio(comment) }
             },
-            onWithoutComment = {
-                DebugLogger.log(
-                    appContext,
-                    "AUDIO_COMMENT_MANUAL_SEND",
-                    "recording_id=${currentPending.recordingId} comment_chars=0 forced_without_comment=true"
-                )
-                AudioArchive.updateComment(appContext, currentPending.recordingId, null)
-                scope.launch { sendPendingAudio(null) }
+            onCancel = {
+                if (!isUploadingAudio) {
+                    DebugLogger.log(appContext, "AUDIO_COMMENT_CANCEL",
+                        "recording_id=${currentPending.recordingId} local_wav_retained=true")
+                    pendingAudio = null
+                    status = "Versand abgebrochen · WAV bleibt lokal gespeichert"
+                }
             }
         )
     }

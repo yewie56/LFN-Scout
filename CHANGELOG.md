@@ -2545,3 +2545,8 @@ Kein PASS für Android-Build, Emulator oder Xiaomi ohne tatsächlichen Lauf. 16:
 - Beide Betriebsarten laden beim Start ihr jeweils zugeordnetes benanntes JSON-Setup; bisher nur 8 kHz.
 - Keine Änderung an JSON-Schema, Einstellungen oder GitHub-Workflow.
 - Android-Build und Gerätetest noch offen.
+
+## 0.5.159 (Quellkandidat – noch nicht auf Android getestet)
+- Audio-Kommentar-Dialoge: Abbrechen statt „Ohne Kommentar“; keine nachträgliche Unterbrechung laufender Speicher-/Sendevorgänge.
+- Analyzer-Screenshot: „Jetzt speichern“, „Abbrechen“ und retriggerter Kommentar-Timeout; kein „Ohne Kommentar“.
+- Bestehende lokale WAV-Archivierung vor Beobachter-Kommentardialog wird bei Abbruch nicht rückwirkend gelöscht.
