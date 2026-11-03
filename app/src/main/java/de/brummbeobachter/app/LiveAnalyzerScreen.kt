@@ -407,7 +407,7 @@ internal fun LiveAnalyzerScreen(
                 if (state.running && pendingImageSnapshot == null) {
                     val captured = LiveAnalyzerController.captureManualImage()
                     if (captured == null) saveMessage = "Bild nicht gespeichert: kein Nutzsignal oder Export beschäftigt"
-                    else { pendingImageSnapshot = captured; imageComment = ""; imageCommentInteracted = false }
+                    else { pendingImageSnapshot = captured; imageComment = LastCaptureCommentStore.read(context).take(400); imageCommentInteracted = false }
                 }
             }
             "AUDIO" -> {
@@ -574,7 +574,10 @@ internal fun LiveAnalyzerScreen(
                 }
                 if (pendingImageSnapshot === capturedImage) {
                     pendingImageSnapshot = null
-                    if (!LiveAnalyzerController.saveCapturedImage(capturedImage, imageComment.takeIf { it.isNotBlank() }))
+                    val currentComment = imageComment.take(400)
+                    LastCaptureCommentStore.save(context, currentComment)
+                    val timedComment = LastCaptureCommentStore.forTimeout(currentComment, 400)
+                    if (!LiveAnalyzerController.saveCapturedImage(capturedImage, timedComment))
                         saveMessage = "Bild nicht gespeichert: Bildexport beschäftigt"
                     imageComment = ""
                     imageCommentInteracted = false
@@ -600,8 +603,12 @@ internal fun LiveAnalyzerScreen(
                     TextButton(onClick = {
                         val snap = pendingImageSnapshot
                         pendingImageSnapshot = null
-                        if (snap != null && !LiveAnalyzerController.saveCapturedImage(snap, imageComment.takeIf { it.isNotBlank() }))
-                            saveMessage = "Bild nicht gespeichert: Bildexport beschäftigt"
+                        if (snap != null) {
+                            val currentComment = imageComment.take(400)
+                            LastCaptureCommentStore.save(context, currentComment)
+                            if (!LiveAnalyzerController.saveCapturedImage(snap, currentComment.takeIf { it.isNotBlank() }))
+                                saveMessage = "Bild nicht gespeichert: Bildexport beschäftigt"
+                        }
                         imageComment = ""
                         imageCommentInteracted = false
                     }) { Text("Jetzt speichern") }
@@ -1380,7 +1387,7 @@ internal fun LiveAnalyzerScreen(
                             saveMessage="Bild nicht gespeichert: kein Nutzsignal oder Bildexport beschäftigt"
                         } else {
                             pendingImageSnapshot = captured
-                            imageComment = ""
+                            imageComment = LastCaptureCommentStore.read(context).take(400)
                             imageCommentInteracted = false
                         }
                     }

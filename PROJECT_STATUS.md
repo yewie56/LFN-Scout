@@ -1,3 +1,8 @@
+## v0.5.160 – Gemeinsamer letzter Kommentar (Quellkandidat, 03.11.2026)
+- Alle drei Capture-Kommentardialoge nutzen einen gemeinsamen persistenten Kommentar.
+- Bei Zeitablauf `#` nur auf dem aktuellen Datensatz, nicht im dauerhaft gespeicherten Vorschlag.
+- Kein Android-Build/Gerätetest; Details `BUILD_NOTES_v0.5.160.md`.
+
 ## 03.11.2026 – v0.5.158 Quellkandidat
 Mehrfachkey-Zuordnung und BT-Testmodus-Profilwahl implementiert, Android-Build/Gerätetest offen. Letzter nutzerbestätigter Stand v0.5.157 (Test ok). Details BUILD_NOTES_v0.5.158.md.
 

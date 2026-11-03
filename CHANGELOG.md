@@ -1,3 +1,8 @@
+## v0.5.160 – Gemeinsamer letzter Kommentar (Quellkandidat, 03.11.2026)
+- Alle drei Capture-Kommentardialoge nutzen einen gemeinsamen persistenten Kommentar.
+- Bei Zeitablauf `#` nur auf dem aktuellen Datensatz, nicht im dauerhaft gespeicherten Vorschlag.
+- Kein Android-Build/Gerätetest; Details `BUILD_NOTES_v0.5.160.md`.
+
 ## 0.5.158 (Quellkandidat, nicht auf Android getestet)
 - Zusätzliche Keycodes pro Fernsteuerungsaktion; BOOM PLAY/PAUSE 126/127 gekoppelt, S18-Primärbelegung geschützt.
 - Testmodus: automatische Belegungsprofil-Erkennung und manuelle MediaSession-Profilwahl, Mehrdeutigkeiten ausgewiesen.

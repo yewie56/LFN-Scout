@@ -1,3 +1,8 @@
+## v0.5.160 – Geräteabnahme noch offen
+- [ ] Gemeinsame Kommentarpersistenz über Scout-Audio, Analyzer-Rolling-Audio und Screenshot einschließlich App-Neustart prüfen.
+- [ ] Timeout-Marker `#` nur im gespeicherten Einzeldatensatz, bei nächster Vorbelegung ohne automatischen Marker; Retriggerung/Abbrechen prüfen.
+- [ ] Android-Build und vollständige Regression für v0.5.159 und v0.5.160.
+
 ## v0.5.124 – Verifikation offen
 - [ ] GitHub-Build und Smartphone-Layout: Titel/Version/RP exakt eine Zeile, Beschreibung/DevMode exakt zweite Zeile, kein zusaetzlicher Abstand.
 - [ ] Regression v0.5.123: Exit-Popup-Back und 10 schwarze Extension-Buttons bleiben korrekt.

@@ -18,6 +18,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -43,7 +44,8 @@ internal fun AudioCommentDialog(
     onConfirm: (String?) -> Unit,
     onCancel: () -> Unit
 ) {
-    var comment by remember(recordingId) { mutableStateOf("") }
+    val context = LocalContext.current
+    var comment by remember(recordingId) { mutableStateOf(LastCaptureCommentStore.read(context).take(AudioArchive.MAX_COMMENT_LENGTH)) }
     var interacted by remember(recordingId) { mutableStateOf(false) }
     var countdown by remember(recordingId, noCommentTimeoutSeconds) {
         mutableIntStateOf(noCommentTimeoutSeconds)
@@ -57,10 +59,9 @@ internal fun AudioCommentDialog(
             countdown = remaining
             delay(1_000L)
         }
-        val normalized = if (interacted) {
-            comment.take(AudioArchive.MAX_COMMENT_LENGTH).takeIf { it.isNotBlank() }
-        } else null
-        latestAutoComplete.value(normalized, interacted)
+        val current = comment.take(AudioArchive.MAX_COMMENT_LENGTH)
+        LastCaptureCommentStore.save(context, current)
+        latestAutoComplete.value(LastCaptureCommentStore.forTimeout(current, AudioArchive.MAX_COMMENT_LENGTH), interacted)
     }
 
     AlertDialog(
@@ -72,9 +73,9 @@ internal fun AudioCommentDialog(
             Column {
                 Text(
                     if (interacted) {
-                        "$commentTimeoutSeconds s nach der letzten Textänderung wird automatisch $actionWord."
+                        "$commentTimeoutSeconds s nach der letzten Textänderung wird automatisch mit # $actionWord."
                     } else {
-                        "Ohne Kommentareingabe wird nach $noCommentTimeoutSeconds s ohne Kommentar automatisch $actionWord."
+                        "Ohne Textänderung wird nach $noCommentTimeoutSeconds s automatisch mit dem angezeigten Kommentar und # $actionWord."
                     }
                 )
                 Spacer(Modifier.height(FaceliftLayoutPolicy.FIELD_GAP_DP.dp))
@@ -104,7 +105,11 @@ internal fun AudioCommentDialog(
         },
         confirmButton = {
             Button(
-                onClick = { onConfirm(comment.takeIf { it.isNotBlank() }) },
+                onClick = {
+                    val current = comment.take(AudioArchive.MAX_COMMENT_LENGTH)
+                    LastCaptureCommentStore.save(context, current)
+                    onConfirm(current.takeIf { it.isNotBlank() })
+                },
                 enabled = !busy
             ) { Text(confirmLabel) }
         },
