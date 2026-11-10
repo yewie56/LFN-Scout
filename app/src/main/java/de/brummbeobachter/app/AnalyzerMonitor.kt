@@ -76,7 +76,37 @@ internal object AnalyzerMonitor {
     private var agcGain = 1.0
     private var agcAwaitingReference = false
     private const val AGC_MIN_RMS = 1e-5
-    private const val AGC_RELEASE_MS = 600.0
+    /** Adjustable MON-only spectral loudness proxy; does not alter the audio samples. */
+    @Volatile var agcWeightCutoffHz = 100.0; private set
+    @Volatile var agcWeightBoostDb = 15.0; private set
+    @Volatile var agcReleaseMs = 900.0; private set
+    private val agcWeight = MonAgcPolicy.WeightedMeter(OUTPUT_RATE.toDouble())
+
+    fun setAgcTuning(context: Context, key: String, value: Double) = synchronized(lock) {
+        if (!value.isFinite()) return@synchronized
+        when (key) {
+            "cutoff" -> agcWeightCutoffHz = value.coerceIn(20.0, 1000.0)
+            "boost" -> agcWeightBoostDb = value.coerceIn(0.0, 30.0)
+            "release" -> agcReleaseMs = value.coerceIn(100.0, 3000.0)
+            else -> return@synchronized
+        }
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
+            .putFloat("agc_weight_cutoff", agcWeightCutoffHz.toFloat())
+            .putFloat("agc_weight_boost", agcWeightBoostDb.toFloat())
+            .putFloat("agc_release", agcReleaseMs.toFloat()).apply()
+        // Recalibrate when enabled: previously captured references use a different meter weighting.
+        if (agcEnabled && key != "release") {
+            agcAwaitingReference = true
+            agcReferenceRms = 0.0
+            agcReferenceDbfs = -120.0
+            agcGain = 1.0
+            agcReductionDb = 0.0
+        }
+        if (key != "release") {
+            agcLastSampleNanos = 0L
+            agcWeight.reset()
+        }
+    }
 
     /** Toggling ON captures the current audible MON RMS, not a persisted setting.
      * If the signal is silent/stale, the first non-silent block becomes the reference.
@@ -107,6 +137,7 @@ internal object AnalyzerMonitor {
     fun disableDirectAgc() = synchronized(lock) { resetAgc() }
     private fun resetAgc() {
         agcEnabled = false
+        agcWeight.reset()
         agcGain = 1.0
         agcReductionDb = 0.0
         agcReferenceRms = 0.0
@@ -240,6 +271,10 @@ internal object AnalyzerMonitor {
         limiterAttackMs=p.getFloat("limit_attack",1f).toDouble().coerceIn(0.1,20.0)
         limiterReleaseMs=p.getFloat("limit_release",100f).toDouble().coerceIn(10.0,1000.0)
         fadeSeconds=p.getFloat("fade",1.5f).toDouble().coerceIn(0.2,5.0)
+        agcWeightCutoffHz=p.getFloat("agc_weight_cutoff",100f).toDouble().coerceIn(20.0,1000.0)
+        agcWeightBoostDb=p.getFloat("agc_weight_boost",15f).toDouble().coerceIn(0.0,30.0)
+        agcReleaseMs=p.getFloat("agc_release",900f).toDouble().coerceIn(100.0,3000.0)
+        agcWeight.reset()
         shifted=false; enabled=false
     }
     /** Current display range, clipped to the supported MON selection range. */
@@ -453,7 +488,6 @@ internal object AnalyzerMonitor {
             val count=(processed.size.toLong()*OUTPUT_RATE/rate).toInt().coerceAtLeast(1)
             val buffer=ShortArray(count)
             val staged=DoubleArray(count)
-            var blockPower=0.0
             var blockPeak=0.0
             var blockReduction=0.0
             val ceiling=10.0.pow(limiterCeilingDb/20.0)
@@ -500,11 +534,12 @@ internal object AnalyzerMonitor {
                 val limited=y.coerceIn(-OUTPUT_RATE_LIMIT,OUTPUT_RATE_LIMIT)
                 blockPeak=max(blockPeak,abs(limited))
                 staged[i]=limited
-                blockPower+=limited*limited
             }
-            // RMS is measured after existing compressor/limiter but BEFORE the new
-            // attenuation. This prevents AGC feedback and never changes recorded PCM.
-            val blockRms = sqrt(blockPower / count)
+            // Frequency-weighted loudness proxy after compressor/limiter, before AGC.
+            // All filter state belongs ONLY to this meter, never the audio output.
+            // Higher spectral components are emphasized, mitigating loudness growth
+            // when MON bandwidth expands beyond the original low-frequency band.
+            val blockRms = agcWeight.measure(staged, agcWeightCutoffHz, agcWeightBoostDb)
             if (!diagnosticToneEnabled) {
                 agcLastRms = blockRms
                 agcLastSampleNanos = System.nanoTime()
@@ -518,7 +553,7 @@ internal object AnalyzerMonitor {
                 if (!agcAwaitingReference && agcReferenceRms >= AGC_MIN_RMS) {
                     val target = MonAgcPolicy.gain(agcReferenceRms, blockRms)
                     agcGain = MonAgcPolicy.nextGain(agcGain, target,
-                        count.toDouble()/OUTPUT_RATE, AGC_RELEASE_MS)
+                        count.toDouble()/OUTPUT_RATE, agcReleaseMs)
                     agcReductionDb=-20.0*log10(agcGain.coerceAtLeast(1e-9))
                 }
             }
@@ -561,7 +596,7 @@ internal object AnalyzerMonitor {
             }
         }
     }
-    fun diagnostic():String = "MON AGC=$agcEnabled ref=${"%.1f".format(java.util.Locale.US,agcReferenceDbfs)}dBFS reduction=${"%.1f".format(java.util.Locale.US,agcReductionDb)}dB enabled=$enabled SHIFT=$shifted input=$actualDevice output=$outputRoute blocks=$outputBlocks errors=$outputErrors Test440=$diagnosticToneEnabled; $outputDiagnostic"
+    fun diagnostic():String = "MON AGC=$agcEnabled ref=${"%.1f".format(java.util.Locale.US,agcReferenceDbfs)}dBFS reduction=${"%.1f".format(java.util.Locale.US,agcReductionDb)}dB cutoff=${agcWeightCutoffHz}Hz boost=${agcWeightBoostDb}dB enabled=$enabled SHIFT=$shifted input=$actualDevice output=$outputRoute blocks=$outputBlocks errors=$outputErrors Test440=$diagnosticToneEnabled; $outputDiagnostic"
     private class Biquad {
         private var b0=1.0;private var b1=0.0;private var b2=0.0;private var a1=0.0;private var a2=0.0
         private var z1=0.0;private var z2=0.0

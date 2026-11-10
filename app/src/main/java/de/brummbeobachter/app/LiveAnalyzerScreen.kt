@@ -731,6 +731,26 @@ internal fun LiveAnalyzerScreen(
             Text("Frequenzverschiebung: +${monitorShiftHz.toInt()} Hz",color=white,fontSize=12.sp)
             ParameterNumber.Decorated(10011) { Slider(value=monitorShiftHz,onValueChange={ monitorShiftHz=it },valueRange=20f..400f,
                 onValueChangeFinished={ AnalyzerMonitor.setShift(context,monitorShiftHz.toDouble()) }) }
+            if (state.direct48k) {
+                Text("AGC · frequenzgewichtete Mithör-Absenkung", color=cyan, fontSize=15.sp, fontWeight=FontWeight.Bold)
+                Text("Dämpfung: −${"%.1f".format(Locale.US, AnalyzerMonitor.agcReductionDb)} dB  · " +
+                    if (AnalyzerMonitor.agcEnabled) "AGC EIN" else "AGC AUS", color=white, fontSize=12.sp)
+                Text("Beim Einschalten wird der gewichtete Mithörpegel als Referenz übernommen. " +
+                    "Änderungen an den AGC-Reglern erfassen eine neue Referenz; zum gezielten Referenzieren " +
+                    "AGC kurz AUS und EIN schalten. Keine automatische Anhebung.", color=muted, fontSize=11.sp)
+                var agcCorner by remember { mutableStateOf(AnalyzerMonitor.agcWeightCutoffHz.toFloat()) }
+                var agcBoost by remember { mutableStateOf(AnalyzerMonitor.agcWeightBoostDb.toFloat()) }
+                var agcRelease by remember { mutableStateOf(AnalyzerMonitor.agcReleaseMs.toFloat()) }
+                Text("Gewichtung ab: ${agcCorner.toInt()} Hz", color=white, fontSize=12.sp)
+                Slider(value=agcCorner.coerceIn(20f, 1000f), onValueChange={agcCorner=it},
+                    valueRange=20f..1000f, onValueChangeFinished={AnalyzerMonitor.setAgcTuning(context,"cutoff",agcCorner.toDouble())})
+                Text("Höhengewichtung: +${agcBoost.toInt()} dB", color=white, fontSize=12.sp)
+                Slider(value=agcBoost.coerceIn(0f,30f), onValueChange={agcBoost=it},
+                    valueRange=0f..30f, onValueChangeFinished={AnalyzerMonitor.setAgcTuning(context,"boost",agcBoost.toDouble())})
+                Text("Rückregelzeit: ${agcRelease.toInt()} ms", color=white, fontSize=12.sp)
+                Slider(value=agcRelease.coerceIn(100f,3000f), onValueChange={agcRelease=it},
+                    valueRange=100f..3000f, onValueChangeFinished={AnalyzerMonitor.setAgcTuning(context,"release",agcRelease.toDouble())})
+            }
             Text("Ausgangsdynamik · nur Mithörzweig",color=cyan,fontSize=14.sp)
             var maxMonGain by remember { mutableStateOf(AnalyzerMonitor.maxGainDb.toFloat()) }
             LaunchedEffect(settingsSection) { maxMonGain=AnalyzerMonitor.maxGainDb.toFloat() }
@@ -1546,7 +1566,7 @@ internal fun LiveAnalyzerScreen(
                     },contentAlignment=Alignment.Center) {
                     Column(horizontalAlignment=Alignment.CenterHorizontally) {
                         Text("AGC",color=if(directAgc) Color(0xFF48ED87) else if(monitoring) white else muted,fontSize=12.sp)
-                        Text(if(directAgc) "EIN" else "AUS",color=if(directAgc) Color(0xFF48ED87) else muted,fontSize=9.sp)
+                        Text(if(directAgc) "−${"%.1f".format(Locale.US, AnalyzerMonitor.agcReductionDb)} dB" else "AUS",color=if(directAgc) Color(0xFF48ED87) else muted,fontSize=9.sp)
                     }
                 }
             }
