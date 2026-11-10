@@ -242,6 +242,32 @@ internal object AnalyzerMonitor {
         }
     }
 
+    /** Persist MON edits on either settings back route. Never overwrite unrelated
+     * analyzer/setup parameters; named JSON setups are updated atomically.
+     */
+    fun persistOnMonSettingsExit(context: Context): Result<Unit> = runCatching {
+        synchronized(lock) {
+            if (setupDraftActive) {
+                val repository = AnalyzerJsonSetupRepository(context.applicationContext)
+                val id = AnalyzerMonDraftSession.setupId
+                    ?: repository.selectedForMode(LiveAnalyzerController.snapshot().direct48k)
+                    ?: error("Kein aktives MON-Setup vorhanden")
+                val doc = repository.load(id)
+                val groups = doc.getJSONObject("parameters")
+                val monitor = snapshotSetupParameters()
+                groups.put("monitor", monitor)
+                repository.save(doc)
+                check(AnalyzerSetupExactComparison.sameComplete(
+                    monitor, repository.load(id).getJSONObject("parameters").getJSONObject("monitor"))) {
+                    "MON-Einstellungen konnten nicht verifiziert werden"
+                }
+                AnalyzerMonDraftSession.baseline = monitor.toString()
+            } else {
+                save(context)
+            }
+        }
+    }
+
     /** Return to original legacy persistence behavior when the new setup UI is not active. */
     fun releaseSetupDraft(context: Context) = synchronized(lock) {
         require(!enabled) { "Stop MON before releasing the setup draft" }
@@ -312,6 +338,18 @@ internal object AnalyzerMonitor {
         if (high - low < 0.5) return@synchronized
         bandwidthHz = high - low
         centerHz = (low + high) / 2.0
+        initialized = false
+    }
+    /** Direct MON pinch changes requested bandwidth as well as active filter edges.
+     * Keeps the centre fixed; the caller clamps width to the available edge space.
+     */
+    fun setPinchBandwidth(widthHz: Double) = synchronized(lock) {
+        if (!widthHz.isFinite()) return@synchronized
+        val width = MonInteractionPolicy.pinchedWidth(
+            bandwidthHz, widthHz / bandwidthHz.coerceAtLeast(0.5),
+            centerHz, rangeMinHz, rangeMaxHz)
+        bandwidthHz = width
+        gestureTargetWidthHz = width
         initialized = false
     }
     fun setLevel(context:Context,db:Double) {
@@ -544,12 +582,22 @@ internal object AnalyzerMonitor {
                 agcLastRms = blockRms
                 agcLastSampleNanos = System.nanoTime()
             }
+            // Strict cutoff: below 100 Hz centre AGC must not change ANY output sample.
+            // Keep the captured reference for later higher-frequency selections.
+            val agcBandActive = agcEnabled && !diagnosticToneEnabled && MonInteractionPolicy.agcApplicable(centerHz)
+            if (!agcBandActive) {
+                agcGain = 1.0
+                agcReductionDb = 0.0
+            }
+            // Reference is captured even below 100 Hz; only the gain action is bypassed.
             if (agcEnabled && !diagnosticToneEnabled) {
                 if (agcAwaitingReference && blockRms >= AGC_MIN_RMS) {
                     agcReferenceRms = blockRms
                     agcReferenceDbfs = 20.0 * log10(blockRms)
                     agcAwaitingReference = false
                 }
+            }
+            if (agcBandActive) {
                 if (!agcAwaitingReference && agcReferenceRms >= AGC_MIN_RMS) {
                     val target = MonAgcPolicy.gain(agcReferenceRms, blockRms)
                     agcGain = MonAgcPolicy.nextGain(agcGain, target,
@@ -558,10 +606,10 @@ internal object AnalyzerMonitor {
                 }
             }
             for (i in 0 until count) {
-                val y=staged[i] * (if(agcEnabled && !diagnosticToneEnabled) agcGain else 1.0)
+                val y=staged[i] * (if(agcBandActive) agcGain else 1.0)
                 buffer[i]=(y*32767.0).roundToInt().coerceIn(-32767,32767).toShort()
             }
-            outputPeakDbfs=20*log10((blockPeak * (if(agcEnabled && !diagnosticToneEnabled) agcGain else 1.0)).coerceAtLeast(1e-6))
+            outputPeakDbfs=20*log10((blockPeak * (if(agcBandActive) agcGain else 1.0)).coerceAtLeast(1e-6))
             gainReductionDb=blockReduction
             val track=output ?: return@synchronized null
             Pair(track,buffer)

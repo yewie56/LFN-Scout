@@ -1,3 +1,9 @@
+## v0.5.163 – MON-AGC und Gesten
+- AGC bei Mittenfrequenz unter 100 Hz: exakt kein Einfluss; Referenz bleibt erhalten.
+- Verlassen von MON & Audio speichert aktuelle MON-Werte ins aktive benannte JSON-Setup oder alte Einstellungen; überprüfte Speicherung, Fehler verbleiben im Dialog.
+- Zwei-Finger-Pinch im Wasserfall bei aktivem MON (nicht EQ): Bandbreite ändern, Mitte und Grenzen beibehalten.
+- 8-kHz-/Mess-/Rolling-Zweig unverändert.
+
 ## v0.5.162 – MON AGC Gewichtung (Build und Gerätetest offen)
 Frequenzgewichteter RMS-Messzweig ausschließlich im Direkt-Analyzer; Höhengewichtung, Übergangsfrequenz, Release im Mithör-Setup; Anzeige der AGC-Dämpfung in dB. Keine Änderung an 8-kHz-Analyzer oder Rolling.
 

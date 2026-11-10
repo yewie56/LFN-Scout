@@ -15,6 +15,9 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -123,6 +126,15 @@ internal fun LiveAnalyzerScreen(
     val setupTransitionScope = rememberCoroutineScope()
     fun selectSettingsSection(target: String?) {
         if (setupTransitionBusy || settingsSection == target) return
+        if (settingsSection == "MON & Audio" && target != settingsSection) {
+            val saved = AnalyzerMonitor.persistOnMonSettingsExit(context)
+            if (saved.isFailure) {
+                setupTransitionMessage = "MON-Speichern fehlgeschlagen: " +
+                    (saved.exceptionOrNull()?.message ?: "Unbekannter Fehler")
+                return
+            }
+            setupTransitionMessage = ""
+        }
         // Setups require STOP for named JSON changes. Filterbank requires STOP only
         // for filter configuration; both share this one bounded transition.
         val requiresAnalyzerStop = target == "Setups" || target == "Filterbank"
@@ -733,6 +745,7 @@ internal fun LiveAnalyzerScreen(
                 onValueChangeFinished={ AnalyzerMonitor.setShift(context,monitorShiftHz.toDouble()) }) }
             if (state.direct48k) {
                 Text("AGC · frequenzgewichtete Mithör-Absenkung", color=cyan, fontSize=15.sp, fontWeight=FontWeight.Bold)
+                Text("Bei Bandpass-Mitte unter 100 Hz ist AGC vollständig wirkungslos (0 dB).", color=muted, fontSize=11.sp)
                 Text("Dämpfung: −${"%.1f".format(Locale.US, AnalyzerMonitor.agcReductionDb)} dB  · " +
                     if (AnalyzerMonitor.agcEnabled) "AGC EIN" else "AGC AUS", color=white, fontSize=12.sp)
                 Text("Beim Einschalten wird der gewichtete Mithörpegel als Referenz übernommen. " +
@@ -1171,6 +1184,50 @@ internal fun LiveAnalyzerScreen(
         }
         Box(Modifier.fillMaxWidth().height(waterfallHeight).background(Color(0xFF130C29))
             .clickable { if(!monitoring)expanded=!expanded }
+            // Dedicated two-finger detector. Observes the Initial pointer pass so
+            // an existing single-finger drag cannot swallow a pinch transition.
+            .pointerInput(monitoring,eqMode,state.minFrequencyHz,state.rangeHz) {
+                if (monitoring && !eqMode) awaitEachGesture {
+                    awaitFirstDown(requireUnconsumed=false)
+                    var startDistance = 0f
+                    var startWidth = 0.0
+                    var fixedCenter = 0.0
+                    var pinching = false
+                    do {
+                        val event = awaitPointerEvent(PointerEventPass.Initial)
+                        val fingers = event.changes.filter { it.pressed }
+                        if (fingers.size >= 2) {
+                            val distance = (fingers[0].position - fingers[1].position).getDistance()
+                            if (!pinching) {
+                                pinching = true
+                                startDistance = distance.coerceAtLeast(1f)
+                                startWidth = AnalyzerMonitor.bandwidthHz
+                                fixedCenter = AnalyzerMonitor.centerHz
+                                monitoringTouch = true
+                                frozenSpectrum = state
+                            }
+                            val lo = AnalyzerMonitor.selectionMinHz()
+                            val hi = AnalyzerMonitor.selectionMaxHz()
+                            val width = MonInteractionPolicy.pinchedWidth(
+                                startWidth, distance.toDouble() / startDistance.toDouble(),
+                                fixedCenter, lo, hi)
+                            AnalyzerMonitor.setPinchBandwidth(width)
+                            monitorCenter = AnalyzerMonitor.centerHz
+                            event.changes.forEach { it.consume() }
+                        } else if (pinching) {
+                            AnalyzerMonitor.persistTouchSettings(context)
+                            pinching = false
+                            monitoringTouch = false
+                            frozenSpectrum = null
+                        }
+                    } while (event.changes.any { it.pressed })
+                    if (pinching) {
+                        AnalyzerMonitor.persistTouchSettings(context)
+                        monitoringTouch = false
+                        frozenSpectrum = null
+                    }
+                }
+            }
             .pointerInput(monitoring,eqMode,state.direct48k,state.minFrequencyHz,state.rangeHz) {
                 if (monitoring && eqMode && state.direct48k) {
                     var activeBand = -1

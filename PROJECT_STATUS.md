@@ -1,3 +1,5 @@
+# Aktueller Stand: v0.5.163 (Build und Gerätetest offen)
+
 ## v0.5.162 – MON AGC Gewichtung (Build und Gerätetest offen)
 Frequenzgewichteter RMS-Messzweig ausschließlich im Direkt-Analyzer; Höhengewichtung, Übergangsfrequenz, Release im Mithör-Setup; Anzeige der AGC-Dämpfung in dB. Keine Änderung an 8-kHz-Analyzer oder Rolling.
 
