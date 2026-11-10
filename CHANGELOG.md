@@ -1,3 +1,9 @@
+## v0.5.161 – Direkt-Analyzer MON-AGC (Quellkandidat, 10.11.2026)
+- AGC-Taste nur im Direkt-Analyzer; Referenz-RMS bei Aktivierung, ausschließlich Absenkung, keine automatische Anhebung.
+- Nur MON-Ausgabe; 8-kHz-Analyzer, Mess-/Rolling/WAV-Daten und bestehende Setups unverändert.
+- Letzter Nutzerstand: v0.5.160 mit 27/27 durchgeführten Funktionstests PASS, Testphase beendet.
+- Android-Build/Gerätetest v0.5.161 noch OFFEN. Siehe `BUILD_NOTES_v0.5.161.md`.
+
 ## v0.5.160 – Gemeinsamer letzter Kommentar (Quellkandidat, 03.11.2026)
 - Alle drei Capture-Kommentardialoge nutzen einen gemeinsamen persistenten Kommentar.
 - Bei Zeitablauf `#` nur auf dem aktuellen Datensatz, nicht im dauerhaft gespeicherten Vorschlag.

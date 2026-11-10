@@ -66,6 +66,53 @@ internal object AnalyzerMonitor {
     @Volatile var fadeSeconds = 1.5; private set
     @Volatile var outputPeakDbfs = -120.0; private set
     @Volatile var gainReductionDb = 0.0; private set
+    /** Direct-analyzer MON-only RMS ceiling; deliberately excluded from named setups. */
+    @Volatile var agcEnabled = false; private set
+    @Volatile var agcReferenceDbfs = -120.0; private set
+    @Volatile var agcReductionDb = 0.0; private set
+    private var agcReferenceRms = 0.0
+    private var agcLastRms = 0.0
+    private var agcLastSampleNanos = 0L
+    private var agcGain = 1.0
+    private var agcAwaitingReference = false
+    private const val AGC_MIN_RMS = 1e-5
+    private const val AGC_RELEASE_MS = 600.0
+
+    /** Toggling ON captures the current audible MON RMS, not a persisted setting.
+     * If the signal is silent/stale, the first non-silent block becomes the reference.
+     * Gain is always in (0,1]; never amplifies quieter signals.
+     */
+    fun toggleDirectAgc(): Boolean = synchronized(lock) {
+        if (!enabled) return@synchronized false
+        if (agcEnabled) {
+            resetAgc()
+        } else {
+            agcEnabled = true
+            agcGain = 1.0
+            agcReductionDb = 0.0
+            val fresh = System.nanoTime() - agcLastSampleNanos < 500_000_000L
+            if (fresh && agcLastRms >= AGC_MIN_RMS) {
+                agcReferenceRms = agcLastRms
+                agcReferenceDbfs = 20.0 * log10(agcReferenceRms)
+                agcAwaitingReference = false
+            } else {
+                agcAwaitingReference = true
+                agcReferenceRms = 0.0
+                agcReferenceDbfs = -120.0
+            }
+        }
+        agcEnabled
+    }
+
+    fun disableDirectAgc() = synchronized(lock) { resetAgc() }
+    private fun resetAgc() {
+        agcEnabled = false
+        agcGain = 1.0
+        agcReductionDb = 0.0
+        agcReferenceRms = 0.0
+        agcReferenceDbfs = -120.0
+        agcAwaitingReference = false
+    }
     private var compressorEnvelope = 0.0
     private var compressorGain = 1.0
     private var limiterEnvelope = 0.0
@@ -285,6 +332,7 @@ internal object AnalyzerMonitor {
         val engine = AnalyzerSessionGateway.rawPcm
         ramp=0.0;phase=0.0;rate=0;initialized=false
         compressorEnvelope=0.0;compressorGain=1.0;limiterEnvelope=0.0;limiterGain=1.0
+        resetAgc(); agcLastRms=0.0; agcLastSampleNanos=0L
         outputPeakDbfs=-120.0;gainReductionDb=0.0
         outputBlocks=0;outputErrors=0;limiterHits=0;outputDiagnostic="Start angefordert"
         diagnosticToneEnabled=false;tonePhase=0.0
@@ -292,7 +340,7 @@ internal object AnalyzerMonitor {
         enabled=true; true
     }
     fun stop() = synchronized(lock) {
-        enabled=false;shifted=false;diagnosticToneEnabled=false;subscription?.close();subscription=null
+        enabled=false;shifted=false;diagnosticToneEnabled=false;resetAgc();subscription?.close();subscription=null
         try { output?.pause();output?.flush();output?.release() } catch (_:Exception) {}
         output=null;actualDevice="";outputRoute="Kein AudioTrack";rate=0;initialized=false;ramp=0.0
         outputPeakDbfs=-120.0
@@ -404,6 +452,8 @@ internal object AnalyzerMonitor {
             // a future quality pass should use a polyphase resampler.
             val count=(processed.size.toLong()*OUTPUT_RATE/rate).toInt().coerceAtLeast(1)
             val buffer=ShortArray(count)
+            val staged=DoubleArray(count)
+            var blockPower=0.0
             var blockPeak=0.0
             var blockReduction=0.0
             val ceiling=10.0.pow(limiterCeilingDb/20.0)
@@ -449,9 +499,34 @@ internal object AnalyzerMonitor {
                 // Hard digital safety ceiling remains active even if optional limiter is OFF.
                 val limited=y.coerceIn(-OUTPUT_RATE_LIMIT,OUTPUT_RATE_LIMIT)
                 blockPeak=max(blockPeak,abs(limited))
-                buffer[i]=(limited*32767.0).roundToInt().coerceIn(-32767,32767).toShort()
+                staged[i]=limited
+                blockPower+=limited*limited
             }
-            outputPeakDbfs=20*log10(blockPeak.coerceAtLeast(1e-6))
+            // RMS is measured after existing compressor/limiter but BEFORE the new
+            // attenuation. This prevents AGC feedback and never changes recorded PCM.
+            val blockRms = sqrt(blockPower / count)
+            if (!diagnosticToneEnabled) {
+                agcLastRms = blockRms
+                agcLastSampleNanos = System.nanoTime()
+            }
+            if (agcEnabled && !diagnosticToneEnabled) {
+                if (agcAwaitingReference && blockRms >= AGC_MIN_RMS) {
+                    agcReferenceRms = blockRms
+                    agcReferenceDbfs = 20.0 * log10(blockRms)
+                    agcAwaitingReference = false
+                }
+                if (!agcAwaitingReference && agcReferenceRms >= AGC_MIN_RMS) {
+                    val target = MonAgcPolicy.gain(agcReferenceRms, blockRms)
+                    agcGain = MonAgcPolicy.nextGain(agcGain, target,
+                        count.toDouble()/OUTPUT_RATE, AGC_RELEASE_MS)
+                    agcReductionDb=-20.0*log10(agcGain.coerceAtLeast(1e-9))
+                }
+            }
+            for (i in 0 until count) {
+                val y=staged[i] * (if(agcEnabled && !diagnosticToneEnabled) agcGain else 1.0)
+                buffer[i]=(y*32767.0).roundToInt().coerceIn(-32767,32767).toShort()
+            }
+            outputPeakDbfs=20*log10((blockPeak * (if(agcEnabled && !diagnosticToneEnabled) agcGain else 1.0)).coerceAtLeast(1e-6))
             gainReductionDb=blockReduction
             val track=output ?: return@synchronized null
             Pair(track,buffer)
@@ -486,7 +561,7 @@ internal object AnalyzerMonitor {
             }
         }
     }
-    fun diagnostic():String = "MON enabled=$enabled SHIFT=$shifted input=$actualDevice output=$outputRoute blocks=$outputBlocks errors=$outputErrors Test440=$diagnosticToneEnabled; $outputDiagnostic"
+    fun diagnostic():String = "MON AGC=$agcEnabled ref=${"%.1f".format(java.util.Locale.US,agcReferenceDbfs)}dBFS reduction=${"%.1f".format(java.util.Locale.US,agcReductionDb)}dB enabled=$enabled SHIFT=$shifted input=$actualDevice output=$outputRoute blocks=$outputBlocks errors=$outputErrors Test440=$diagnosticToneEnabled; $outputDiagnostic"
     private class Biquad {
         private var b0=1.0;private var b1=0.0;private var b2=0.0;private var a1=0.0;private var a2=0.0
         private var z1=0.0;private var z2=0.0

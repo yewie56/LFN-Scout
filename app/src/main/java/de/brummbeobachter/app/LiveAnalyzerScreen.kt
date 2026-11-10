@@ -192,6 +192,7 @@ internal fun LiveAnalyzerScreen(
     var previousBufferSeconds by remember { mutableStateOf(0) }
     var chosenInputId by remember { mutableStateOf(-1) }
     var monitoring by remember { mutableStateOf(false) }
+    var directAgc by remember { mutableStateOf(AnalyzerMonitor.agcEnabled) }
     var multiOpen by remember { mutableStateOf(false) }
     var diagnosticOpen by remember { mutableStateOf(false) }
     var impulseSettingsOpen by remember { mutableStateOf(false) }
@@ -360,6 +361,7 @@ internal fun LiveAnalyzerScreen(
         while (true) {
             state = LiveAnalyzerController.snapshot()
             monitoring=AnalyzerMonitor.enabled
+            directAgc=AnalyzerMonitor.agcEnabled
             monitoringShift=AnalyzerMonitor.shifted
             // Named JSON setup changes may occur while this screen remains composed.
             // Keep the visible MON handles in sync with the verified runtime draft.
@@ -376,7 +378,7 @@ internal fun LiveAnalyzerScreen(
     }
     LaunchedEffect(state.direct48k) {
         if (!state.direct48k && AnalyzerMonitor.eqMode) AnalyzerMonitor.setEqMode(false)
-        if (!state.direct48k) eqMode = false
+        if (!state.direct48k) { eqMode = false; AnalyzerMonitor.disableDirectAgc(); directAgc = false }
     }
     // Keep MON selection limits current even when the settings panel stays closed.
     // Neither 8-kHz nor direct mode may retain an outdated limit after
@@ -1508,6 +1510,7 @@ internal fun LiveAnalyzerScreen(
                     } else if(state.running) { expanded=false;AnalyzerMonitor.start(context) }
                     monitoringTouch=false;frozenSpectrum=null
                     monitoring=AnalyzerMonitor.enabled;monitoringShift=AnalyzerMonitor.shifted
+                    directAgc=AnalyzerMonitor.agcEnabled
                 },onLongPress={
                     if(AnalyzerMonitor.enabled)AnalyzerMonitor.toggleShift()
                     monitoringShift=AnalyzerMonitor.shifted
@@ -1533,6 +1536,18 @@ internal fun LiveAnalyzerScreen(
                     }, contentAlignment=Alignment.Center) {
                     Text(if(eqMode) "EQ" else "F",color=if(eqMode) Color(0xFF48ED87) else white,fontSize=15.sp)
                     Box(Modifier.align(Alignment.TopEnd)) { ParameterNumber.AutoMarker(10098) }
+                }
+            }
+            if (state.direct48k) {
+                Box(Modifier.size(buttonWidth,buttonHeight)
+                    .border(BorderStroke(1.dp, if(directAgc) Color(0xFF48ED87) else muted),RoundedCornerShape(6.dp))
+                    .clickable(enabled=monitoring) {
+                        directAgc=AnalyzerMonitor.toggleDirectAgc()
+                    },contentAlignment=Alignment.Center) {
+                    Column(horizontalAlignment=Alignment.CenterHorizontally) {
+                        Text("AGC",color=if(directAgc) Color(0xFF48ED87) else if(monitoring) white else muted,fontSize=12.sp)
+                        Text(if(directAgc) "EIN" else "AUS",color=if(directAgc) Color(0xFF48ED87) else muted,fontSize=9.sp)
+                    }
                 }
             }
             if(!state.direct48k) {

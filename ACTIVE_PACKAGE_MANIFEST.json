@@ -1,9 +1,9 @@
 {
   "package_type": "LFN-Scout ACTIVE HANDOFF",
-  "version": "0.5.125",
-  "version_code": 283,
-  "created_at": "2026-11-02",
-  "purpose": "Bluetooth HID Remote Testmodus: read-only key event diagnostics in Settings; no production actions",
+  "version": "0.5.161",
+  "version_code": 319,
+  "created_at": "2026-11-10",
+  "purpose": "Direct Analyzer MON-only AGC: reference-RMS attenuation, no automatic amplification",
   "excluded_base_paths": [
     "docs/project/analyzer_v0.7/assets/",
     "docs/project/analyzer_v0.7/references/",
@@ -24,8 +24,8 @@
     "*.aab",
     "*.log"
   ],
-  "source_file_count": 826,
-  "build_status": "STATIC_CHECKS_ONLY_ANDROID_BUILD_NOT_RUN",
+  "source_file_count": 975,
+  "build_status": "STATIC_CHECKS_ONLY_GRADLE_UNAVAILABLE",
   "supabase_status": {
     "remote_project_ref": "kbejualnruiwtnmeytif",
     "migrations_through": "20261010174500",
@@ -41,10 +41,10 @@
   "android_status": {
     "statistics_outbox": "PARTIALLY_INTEGRATED_EVENT_RETRY_ONLY",
     "independent_half_hour": "NOT_IMPLEMENTED",
-    "testDebugUnitTest_current": "NOT_RUN",
-    "assembleDebug_current": "NOT_RUN_v0.5.125",
-    "device_test": "NOT_RUN_v0.5.125"
+    "testDebugUnitTest_current": "NOT_RUN_GRADLE_DISTRIBUTION_UNAVAILABLE",
+    "assembleDebug_current": "NOT_RUN_v0.5.161",
+    "device_test": "NOT_RUN_v0.5.161"
   },
-  "next_version": "0.5.126",
-  "next_required_change": "Device-test Bluetooth key events, then map supported signals to existing actions"
+  "next_version": "0.5.162",
+  "next_required_change": "Build and device-test v0.5.161; optional Variant B only after explicit approval"
 }

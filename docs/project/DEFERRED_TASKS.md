@@ -1,3 +1,8 @@
+## v0.5.161 – Direct-MON AGC (Test offen)
+- [ ] Android-Build und Gerätetest v0.5.161: AGC-Taste ausschließlich Direkt-Analyzer; bei aktivem MON RMS-Referenz und Absenkung beim Verschieben/Verbreitern prüfen.
+- [ ] Regression: AGC AUS, MON STOP, Moduswechsel 8 kHz, WAV/ROLLING, S18 und benannte Setups unverändert.
+- [ ] Variante B (automatische Anhebung leiser Signale) nur optionale spätere Erweiterung, nicht beauftragt.
+
 ## v0.5.160 – Geräteabnahme noch offen
 - [ ] Gemeinsame Kommentarpersistenz über Scout-Audio, Analyzer-Rolling-Audio und Screenshot einschließlich App-Neustart prüfen.
 - [ ] Timeout-Marker `#` nur im gespeicherten Einzeldatensatz, bei nächster Vorbelegung ohne automatischen Marker; Retriggerung/Abbrechen prüfen.
