@@ -1,9 +1,9 @@
 {
   "package_type": "LFN-Scout ACTIVE HANDOFF",
-  "version": "0.5.164",
-  "version_code": 322,
+  "version": "0.5.166",
+  "version_code": 324,
   "created_at": "2026-11-11",
-  "purpose": "MON band-filtered nonoverlapping Leq30 in waterfall overlay and repositioned DevMode parameter identifiers 10009 and 10088",
+  "purpose": "Half-width Leq,30s waterfall overlay container right-aligned; no measurement changes",
   "excluded_base_paths": [
     "docs/project/analyzer_v0.7/assets/",
     "docs/project/analyzer_v0.7/references/",
@@ -24,7 +24,7 @@
     "*.aab",
     "*.log"
   ],
-  "source_file_count": 980,
+  "source_file_count": 981,
   "build_status": "STATIC_CHECKS_ONLY_GRADLE_UNAVAILABLE",
   "supabase_status": {
     "remote_project_ref": "kbejualnruiwtnmeytif",
@@ -42,9 +42,9 @@
     "statistics_outbox": "PARTIALLY_INTEGRATED_EVENT_RETRY_ONLY",
     "independent_half_hour": "NOT_IMPLEMENTED",
     "testDebugUnitTest_current": "NOT_RUN_GRADLE_DISTRIBUTION_UNAVAILABLE",
-    "assembleDebug_current": "NOT_RUN_v0.5.161",
-    "device_test": "NOT_RUN_v0.5.161"
+    "assembleDebug_current": "NOT_RUN_v0.5.166",
+    "device_test": "NOT_RUN_v0.5.166"
   },
-  "next_version": "0.5.165",
-  "next_required_change": "Build and device-test v0.5.164"
+  "next_version": "0.5.167",
+  "next_required_change": "Build and device-test v0.5.166"
 }

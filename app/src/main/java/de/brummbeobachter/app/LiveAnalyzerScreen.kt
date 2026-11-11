@@ -1484,9 +1484,15 @@ internal fun LiveAnalyzerScreen(
             if (state.direct48k && monitoring && !eqMode) {
                 val usableW = maxWidth - plotLeftDp - plotRightDp
                 val usableH = waterfallHeight - plotTopDp - plotBottomDp
-                val overlayX = plotLeftDp + usableW / 3f + 2.dp
+                // v0.5.166: half the former overlay container width, anchored
+                // to the right edge of the actual waterfall plot (not the screen).
+                // Never enter the protected left third, even on narrow devices.
+                val formerOverlayW = usableW * (2f / 3f) - 6.dp
+                val overlayW = (formerOverlayW * 0.5f)
+                    .coerceAtLeast(0.dp)
+                    .coerceAtMost((usableW * (2f / 3f) - 6.dp).coerceAtLeast(0.dp))
+                val overlayX = plotLeftDp + usableW - overlayW - 4.dp
                 val overlayY = plotTopDp + usableH / 3f + 2.dp
-                val overlayW = (usableW * (2f/3f) - 6.dp).coerceAtLeast(90.dp)
                 val level = bandComparison
                 val lo = String.format(Locale.GERMANY, "%.0f", level.lowHz)
                 val hi = String.format(Locale.GERMANY, "%.0f", level.highHz)
@@ -1500,13 +1506,16 @@ internal fun LiveAnalyzerScreen(
                     .background(Color(0xD9081724), RoundedCornerShape(5.dp))
                     .padding(horizontal=4.dp, vertical=2.dp),
                     verticalArrangement=Arrangement.spacedBy(1.dp)) {
-                    Text("Leq,30s · $lo–$hi Hz",color=cyan,fontSize=9.sp,lineHeight=10.sp,
+                    Text("Leq,30s",color=cyan,fontSize=9.sp,lineHeight=10.sp,maxLines=1)
+                    Text("$lo–$hi Hz",color=cyan,fontSize=9.sp,lineHeight=10.sp,
                         maxLines=1,overflow=TextOverflow.Ellipsis)
-                    Text("$latest dBFS",color=white,fontSize=16.sp,lineHeight=17.sp,
+                    Text("$latest dBFS",color=white,fontSize=14.sp,lineHeight=15.sp,
                         fontWeight=FontWeight.Bold,maxLines=1)
-                    Text("Vorher: $previous · Δ $difference dB",color=white,fontSize=8.sp,
-                        lineHeight=9.sp,maxLines=1,overflow=TextOverflow.Ellipsis)
-                    Text("Laufend: ${level.elapsedSeconds.toInt()} / 30 s",color=cyan,
+                    Text("Vorher: $previous",color=white,fontSize=8.sp,
+                        lineHeight=9.sp,maxLines=1)
+                    Text("Δ $difference dB",color=white,fontSize=8.sp,
+                        lineHeight=9.sp,maxLines=1)
+                    Text("${level.elapsedSeconds.toInt()} / 30 s",color=cyan,
                         fontSize=8.sp,lineHeight=9.sp,maxLines=1)
                     // Compact progress: half-width, exactly 15 visible 2-second steps.
                     // The Leq accumulator still integrates ALL incoming samples.

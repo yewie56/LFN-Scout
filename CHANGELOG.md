@@ -1,3 +1,7 @@
+## v0.5.166 – Leq-Overlay halbbreit und rechtsbündig
+- Gesamtes Pegelvergleichs-Overlay halbiert und an den rechten Wasserfallrand verschoben; Beschriftungen auf kurze Zeilen angepasst. Messung unverändert.
+- Android-Build und Gerätetest offen.
+
 ## v0.5.165 – DevMode-Parameter und kompakter Leq-Intervallfortschritt
 - Halbbreiter Leq,30s-Fortschritt mit 15 Schritten à 2 s, keine Änderung der Pegelmessung.
 - 10088 im türkisen MON-Gain-Balken live neu gezeichnet und an Gain-Reglerwert angepasst; alle Parameterbezeichner nur in DevMode sichtbar/aktualisiert.
