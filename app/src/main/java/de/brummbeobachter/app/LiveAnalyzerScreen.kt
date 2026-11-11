@@ -32,6 +32,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.rememberScrollState
@@ -56,6 +57,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.asImageBitmap
@@ -226,6 +228,7 @@ internal fun LiveAnalyzerScreen(
     var monitoringTouch by remember { mutableStateOf(false) }
     var frozenSpectrum by remember { mutableStateOf<LiveAnalyzerController.Snapshot?>(null) }
     var monitorOutputLevel by remember { mutableStateOf(-120.0) }
+    var bandComparison by remember { mutableStateOf(AnalyzerMonitor.bandLevel30s()) }
     var pendingAudioClip by remember { mutableStateOf<LocalAnalyzerAudioBuffer.Clip?>(null) }
     var pendingAudioConfig by remember { mutableStateOf<StatisticsWindowEngine.Configuration?>(null) }
     var pendingAudioDisplayGainDb by remember { mutableStateOf(0) }
@@ -383,6 +386,7 @@ internal fun LiveAnalyzerScreen(
                 monitorLevel=AnalyzerMonitor.levelDb
             }
             monitorOutputLevel=AnalyzerMonitor.outputPeakDbfs
+            bandComparison=AnalyzerMonitor.bandLevel30s()
             if(monRecRunning) AnalyzerMonitorRecording.noteParameters()
             // Display refresh is independent from FFT computation and waterfall decimation.
             delay(if (state.fftHopSamples <= 50) 50L else 100L)
@@ -1151,6 +1155,24 @@ internal fun LiveAnalyzerScreen(
                     drawRect(cyan.copy(alpha=0.7f),Offset(left,top),Size(plotW*state.autoRangeProgress,2.dp.toPx()))
                 }
             }
+            // DevMode MON identifiers: locate them at the gesture they describe.
+            if (monitoring && !eqMode) {
+                // The third quarter of the spectrum Hz axis (between the third
+                // and fourth major frequency ticks) – NOT in the waterfall.
+                val freqPlotWidth = maxWidth - plotLeftDp - plotRightDp
+                Box(Modifier.offset(x=plotLeftDp + freqPlotWidth * 0.625f,
+                    y=spectrumHeight - plotBottomDp + 1.dp)) {
+                    ParameterNumber.AutoMarker(10009)
+                }
+                // Rotate 90 degrees left, inside the bottom portion of the
+                // turquoise MON-gain bar (3..20 dp), without stealing gestures.
+                Box(Modifier.offset(x=5.dp, y=spectrumHeight - plotBottomDp - 27.dp)
+                    .width(13.dp).height(23.dp), contentAlignment=Alignment.Center) {
+                    Box(Modifier.graphicsLayer { rotationZ = -90f }) {
+                        ParameterNumber.AutoMarker(10088)
+                    }
+                }
+            }
             // The complete compact frame is also the sensitive reset surface. Keep the
             // three statistic rows tightly stacked so Leq does not make the box oversized.
             val statsRange = "${state.statisticsMinHz}-${state.statisticsMaxHz}"
@@ -1182,7 +1204,7 @@ internal fun LiveAnalyzerScreen(
                 state.direct48k || state.showOriginalWaterfall,!state.direct48k && state.showFilterWaterfall,
                 state.filterMinHz,state.filterMaxHz,state.filterPaletteGreen,state.impulseMode,state.impulseThresholdDb)
         }
-        Box(Modifier.fillMaxWidth().height(waterfallHeight).background(Color(0xFF130C29))
+        BoxWithConstraints(Modifier.fillMaxWidth().height(waterfallHeight).background(Color(0xFF130C29))
             .clickable { if(!monitoring)expanded=!expanded }
             // Dedicated two-finger detector. Observes the Initial pointer pass so
             // an existing single-finger drag cannot swallow a pinch transition.
@@ -1399,13 +1421,6 @@ internal fun LiveAnalyzerScreen(
                     horizontalArrangement=Arrangement.SpaceEvenly) {
                     for (band in 0 until 8) ParameterNumber.AutoMarker(10091 + band)
                 }
-            } else if (monitoring) {
-                Row(Modifier.align(Alignment.BottomCenter)
-                    .padding(bottom=plotBottomDp + 18.dp),
-                    horizontalArrangement=Arrangement.spacedBy(7.dp)) {
-                    ParameterNumber.AutoMarker(10009) // MON center, also set by horizontal drag
-                    ParameterNumber.AutoMarker(10088) // MON level, set by vertical drag
-                }
             }
             if(monitoring) Text(
                 "MON ${"%.0f".format(Locale.US,monitorCenter)} Hz · ${"%.0f".format(Locale.US,monitorLevel)} dB" +
@@ -1433,6 +1448,43 @@ internal fun LiveAnalyzerScreen(
                         color=if (notice.isFilter) Color(0xFFFF99E8) else muted,
                         fontSize=9.sp, lineHeight=10.sp,
                         maxLines=1, overflow=TextOverflow.Ellipsis)
+                }
+            }
+            // Band-level comparison: only the right 2/3 and middle vertical
+            // third of the WATERFALL. The small progress row may reach into
+            // the lower third. Visual only; pointer gestures pass through.
+            if (state.direct48k && monitoring && !eqMode) {
+                val usableW = maxWidth - plotLeftDp - plotRightDp
+                val usableH = waterfallHeight - plotTopDp - plotBottomDp
+                val overlayX = plotLeftDp + usableW / 3f + 2.dp
+                val overlayY = plotTopDp + usableH / 3f + 2.dp
+                val overlayW = (usableW * (2f/3f) - 6.dp).coerceAtLeast(90.dp)
+                val level = bandComparison
+                val lo = String.format(Locale.GERMANY, "%.0f", level.lowHz)
+                val hi = String.format(Locale.GERMANY, "%.0f", level.highHz)
+                val latest = level.completedDbfs?.let { String.format(Locale.GERMANY, "%.1f", it) } ?: "–"
+                val previous = level.previousDbfs?.let { String.format(Locale.GERMANY, "%.1f", it) } ?: "–"
+                val difference = if (level.previousDbfs != null && level.completedDbfs != null)
+                    String.format(Locale.GERMANY, "%+.1f", level.completedDbfs - level.previousDbfs)
+                    else "–"
+                Column(Modifier.offset(x=overlayX, y=overlayY).width(overlayW)
+                    .border(BorderStroke(1.dp, cyan), RoundedCornerShape(5.dp))
+                    .background(Color(0xD9081724), RoundedCornerShape(5.dp))
+                    .padding(horizontal=4.dp, vertical=2.dp),
+                    verticalArrangement=Arrangement.spacedBy(1.dp)) {
+                    Text("Leq,30s · $lo–$hi Hz",color=cyan,fontSize=9.sp,lineHeight=10.sp,
+                        maxLines=1,overflow=TextOverflow.Ellipsis)
+                    Text("$latest dBFS",color=white,fontSize=16.sp,lineHeight=17.sp,
+                        fontWeight=FontWeight.Bold,maxLines=1)
+                    Text("Vorher: $previous · Δ $difference dB",color=white,fontSize=8.sp,
+                        lineHeight=9.sp,maxLines=1,overflow=TextOverflow.Ellipsis)
+                    Text("Laufend: ${level.elapsedSeconds.toInt()} / 30 s",color=cyan,
+                        fontSize=8.sp,lineHeight=9.sp,maxLines=1)
+                    Box(Modifier.fillMaxWidth().height(3.dp)
+                        .background(Color(0xFF4B5D65),RoundedCornerShape(2.dp))) {
+                        Box(Modifier.fillMaxWidth((level.elapsedSeconds/30.0).toFloat().coerceIn(0f,1f))
+                            .height(3.dp).background(cyan,RoundedCornerShape(2.dp)))
+                    }
                 }
             }
             if(!state.validSignal) Text("Warte auf gültige FFT-Daten",color=muted,fontSize=11.sp,

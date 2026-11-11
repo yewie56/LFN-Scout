@@ -1,3 +1,7 @@
+# Aktueller Quellstand: v0.5.164 (Android-Build und Gerätetest offen)
+
+Neue Funktionen: bandbegrenzter Leq,30s im Wasserfall, letzter/vorheriger Pegel, Differenz und Intervallfortschritt; Parameterpositionen 10009/10088 korrigiert. Siehe BUILD_NOTES_v0.5.164.md. Letzter vollständig bestätigter Geräteteststand: v0.5.160.
+
 # Aktueller Stand: v0.5.163 (Build und Gerätetest offen)
 
 ## v0.5.162 – MON AGC Gewichtung (Build und Gerätetest offen)

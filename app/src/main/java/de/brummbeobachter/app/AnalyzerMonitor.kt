@@ -82,6 +82,71 @@ internal object AnalyzerMonitor {
     @Volatile var agcReleaseMs = 900.0; private set
     private val agcWeight = MonAgcPolicy.WeightedMeter(OUTPUT_RATE.toDouble())
 
+    /** Fixed non-overlapping, energy-averaged 30 s comparisons in the actual
+     * MON filter bandwidth, BEFORE monitor gain and all playback dynamics.
+     * Uncalibrated digital band levels are reported in dBFS, not dB SPL.
+     */
+    data class BandLevel30s(
+        val lowHz: Double, val highHz: Double, val completedDbfs: Double?,
+        val previousDbfs: Double?, val elapsedSeconds: Double, val sequence: Long
+    )
+    @Volatile private var bandLevelSnapshot = BandLevel30s(0.0, 0.0, null, null, 0.0, 0L)
+    fun bandLevel30s(): BandLevel30s = bandLevelSnapshot
+    private var bandSumSquares = 0.0
+    private var bandSampleCount = 0L
+    private var bandLastCenterHz = Double.NaN
+    private var bandLastWidthHz = Double.NaN
+    private var bandLastRate = 0
+    private var bandPreviousDbfs: Double? = null
+    private var bandCompletedDbfs: Double? = null
+    private var bandSequence = 0L
+
+    private fun clearBandMeasurement() {
+        bandSumSquares = 0.0
+        bandSampleCount = 0L
+        bandLastCenterHz = Double.NaN
+        bandLastWidthHz = Double.NaN
+        bandLastRate = 0
+        bandPreviousDbfs = null
+        bandCompletedDbfs = null
+        bandSequence++
+        bandLevelSnapshot = BandLevel30s(0.0, 0.0, null, null, 0.0, bandSequence)
+    }
+
+    private fun acceptBandSamples(samples: DoubleArray, sampleRate: Int) {
+        if (eqMode || sampleRate <= 0) return
+        if (centerHz != bandLastCenterHz || bandwidthHz != bandLastWidthHz || sampleRate != bandLastRate) {
+            bandSumSquares = 0.0
+            bandSampleCount = 0L
+            bandPreviousDbfs = null
+            bandCompletedDbfs = null
+            bandLastCenterHz = centerHz
+            bandLastWidthHz = bandwidthHz
+            bandLastRate = sampleRate
+            bandSequence++
+        }
+        val countPerInterval = 30L * sampleRate
+        for (sample in samples) {
+            if (sample.isFinite()) bandSumSquares += sample * sample
+            bandSampleCount++
+            if (bandSampleCount >= countPerInterval) {
+                bandPreviousDbfs = bandCompletedDbfs
+                bandCompletedDbfs = if (bandSumSquares > 0.0)
+                    10.0 * log10(bandSumSquares / bandSampleCount) else -120.0
+                bandSumSquares = 0.0
+                bandSampleCount = 0L
+                bandSequence++
+            }
+        }
+        bandLevelSnapshot = BandLevel30s(
+            (centerHz - bandwidthHz / 2.0).coerceAtLeast(rangeMinHz),
+            (centerHz + bandwidthHz / 2.0).coerceAtMost(rangeMaxHz),
+            bandCompletedDbfs, bandPreviousDbfs,
+            bandSampleCount.toDouble() / sampleRate, bandSequence
+        )
+    }
+
+
     fun setAgcTuning(context: Context, key: String, value: Double) = synchronized(lock) {
         if (!value.isFinite()) return@synchronized
         when (key) {
@@ -406,6 +471,7 @@ internal object AnalyzerMonitor {
         ramp=0.0;phase=0.0;rate=0;initialized=false
         compressorEnvelope=0.0;compressorGain=1.0;limiterEnvelope=0.0;limiterGain=1.0
         resetAgc(); agcLastRms=0.0; agcLastSampleNanos=0L
+        clearBandMeasurement()
         outputPeakDbfs=-120.0;gainReductionDb=0.0
         outputBlocks=0;outputErrors=0;limiterHits=0;outputDiagnostic="Start angefordert"
         diagnosticToneEnabled=false;tonePhase=0.0
@@ -414,6 +480,7 @@ internal object AnalyzerMonitor {
     }
     fun stop() = synchronized(lock) {
         enabled=false;shifted=false;diagnosticToneEnabled=false;resetAgc();subscription?.close();subscription=null
+        clearBandMeasurement()
         try { output?.pause();output?.flush();output?.release() } catch (_:Exception) {}
         output=null;actualDevice="";outputRoute="Kein AudioTrack";rate=0;initialized=false;ramp=0.0
         outputPeakDbfs=-120.0
@@ -519,6 +586,9 @@ internal object AnalyzerMonitor {
                 }
                 processed[i]=if(x.isFinite()) x else 0.0
             }
+            // Measure the filtered ORIGINAL digital band signal, before MON gain,
+            // compressor, limiter or AGC; never reuse output loudness for Leq.
+            acceptBandSamples(processed, frame.sampleRateHz)
             // Interpolate the post-filtered samples into a 48-kHz media stream.
             // Linear interpolation is sufficient for the 8-kHz MON selection at
             // 48-kHz output only with sample rates supporting that selection;

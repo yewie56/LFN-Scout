@@ -1,3 +1,9 @@
+## 0.5.164
+- Leq,30s-Bandpegel-Vergleich im MON-Wasserfall als Overlay mit echten Bandpassgrenzen.
+- Fixe 30-s-Intervalle, letzter/vorheriger Wert und Delta in dBFS; Fortschritt.
+- DevMode-Marker 10009 auf dritte Spektrum-Hz-Achsenteilung und 10088 gedreht in unteren MON-Gain-Balken verschoben.
+- 8-kHz-Analyzer und Mess-/Recording-Wege unverändert.
+
 ## v0.5.163 – MON-AGC und Gesten
 - AGC bei Mittenfrequenz unter 100 Hz: exakt kein Einfluss; Referenz bleibt erhalten.
 - Verlassen von MON & Audio speichert aktuelle MON-Werte ins aktive benannte JSON-Setup oder alte Einstellungen; überprüfte Speicherung, Fehler verbleiben im Dialog.
