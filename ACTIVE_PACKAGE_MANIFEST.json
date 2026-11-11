@@ -1,9 +1,9 @@
 {
   "package_type": "LFN-Scout ACTIVE HANDOFF",
-  "version": "0.5.168",
-  "version_code": 326,
+  "version": "0.5.169",
+  "version_code": 327,
   "created_at": "2026-11-11",
-  "purpose": "Analyzer JPG default and JPEG/PNG GPS EXIF metadata with default-on option",
+  "purpose": "Real application-window screenshots for manual and continuous capture; legacy analyzer export; charging-only real screenshot keep-awake",
   "excluded_base_paths": [
     "docs/project/analyzer_v0.7/assets/",
     "docs/project/analyzer_v0.7/references/",
@@ -24,8 +24,8 @@
     "*.aab",
     "*.log"
   ],
-  "source_file_count": 981,
-  "build_status": "STATIC_CHECKS_ONLY_GRADLE_UNAVAILABLE",
+  "source_file_count": 988,
+  "build_status": "STATIC_ONLY_ANDROID_BUILD_NOT_RUN",
   "supabase_status": {
     "remote_project_ref": "kbejualnruiwtnmeytif",
     "migrations_through": "20261010174500",
@@ -42,9 +42,9 @@
     "statistics_outbox": "PARTIALLY_INTEGRATED_EVENT_RETRY_ONLY",
     "independent_half_hour": "NOT_IMPLEMENTED",
     "testDebugUnitTest_current": "NOT_RUN_GRADLE_DISTRIBUTION_UNAVAILABLE",
-    "assembleDebug_current": "NOT_RUN_v0.5.168",
-    "device_test": "NOT_RUN_v0.5.166"
+    "assembleDebug_current": "NOT_RUN_v0.5.169",
+    "device_test": "NOT_RUN_v0.5.169"
   },
-  "next_version": "0.5.167",
-  "next_required_change": "Build and device-test v0.5.166"
+  "next_version": "0.5.170",
+  "next_required_change": "Build and device regression test v0.5.169"
 }

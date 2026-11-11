@@ -1,3 +1,7 @@
+## v0.5.169 – echter Analyzer-Screenshot, automatischer Echtbildmodus, Wake bei Laden
+
+Siehe `BUILD_NOTES_v0.5.169.md`. Basis v0.5.168, keine Änderungen an Rolling/DSP/MON/Leq. Android-Build und Gerätetest offen.
+
 ## v0.5.168 – GPS-EXIF für Analyzer-Screenshots; JPG als Standard
 - JPG ist bei nicht gesetzter Bildformat-Voreinstellung Standard, PNG bleibt wählbar. Bestehende explizite Einstellungen bleiben erhalten.
 - GPS-Schalter in Analyzer > Automatiken; bei Erstnutzung standardmäßig EIN, jederzeit abschaltbar. Unabhängig von benannten Setups.

@@ -466,3 +466,8 @@ Extension-Leiste von fünf auf zehn scrollbar erreichbare Positionen erweitert. 
 ## v0.5.165 – Offene Geräteabnahme
 - [ ] UI165-01: GitHub-/Android-Build und Sichtprüfung Parameter 10088 bei hohem, niedrigem und veränderlichem MON-Gain; DevMode EIN/AUS.
 - [ ] UI165-02: Halbbreiter Leq,30s-Balken mit 15 Schritten im Wasserfall, Null-Beeinflussung der Messwerte, Overlay-Grenzen und Gesten am Gerät nachweisen.
+
+## v0.5.169 – offener Gerätenachweis
+- Echtes Capture `View.draw` in Compose einschließlich Wasserfall/Skalen/Overlays am Zielgerät visuell überprüfen. Status: OFFEN.
+- `UserComment` und GPS in JPG und PNG auf Gerät prüfen; Aves Libre Kartenanzeige PNG ggf. begrenzt. Status: OFFEN.
+- Echte App-Ansicht schließt systemeigene Status-/Navigationsleisten aus; systemweites MediaProjection nur nach gesondertem Beschluss.

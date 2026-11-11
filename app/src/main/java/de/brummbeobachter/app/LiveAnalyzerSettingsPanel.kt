@@ -70,6 +70,7 @@ internal fun LiveAnalyzerSettingsPanel(
     }
     var slot by remember(state.direct48k) { mutableStateOf(if (state.direct48k) 4 else prefs.getInt("last_setup_slot",1).coerceIn(1,3)) }
     var message by remember { mutableStateOf("") }
+    var screenshotMode by remember { mutableStateOf(LiveAnalyzerController.screenshotMode(context)) }
     var screenshotGpsEnabled by remember { mutableStateOf(LiveAnalyzerController.isScreenshotGpsEnabled(context)) }
     var selfTestSummary by remember { mutableStateOf("") }
     var systemTestBusy by remember { mutableStateOf(false) }
@@ -924,6 +925,18 @@ internal fun LiveAnalyzerSettingsPanel(
                             }
                         }
                     }
+                    SettingCaption("Screenshot-Darstellung (manuell und kontinuierlich)")
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement=Arrangement.spacedBy(5.dp)) {
+                        SettingChoice("Echter Screenshot", screenshotMode == AnalyzerScreenshotMode.REAL) {
+                            LiveAnalyzerController.setScreenshotMode(context, AnalyzerScreenshotMode.REAL)
+                            screenshotMode = AnalyzerScreenshotMode.REAL; onRefresh()
+                        }
+                        SettingChoice("Analyzer-Export", screenshotMode == AnalyzerScreenshotMode.EXPORT) {
+                            LiveAnalyzerController.setScreenshotMode(context, AnalyzerScreenshotMode.EXPORT)
+                            screenshotMode = AnalyzerScreenshotMode.EXPORT; onRefresh()
+                        }
+                    }
+                    SettingNote("Echt: sichtbare App-Oberfläche, ohne Android-Systemleisten. Bei ausgeschaltetem Display keine echte Aufnahme. Beim Laden bleibt der Bildschirm nur in diesem Modus wach, während der Analyzer läuft.")
                     SettingCaption("Bildformat (manueller Langdruck und Automatik)", parameterId=10125)
                     Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(5.dp)) {
                         AnalyzerImageFormat.values().forEach { format ->

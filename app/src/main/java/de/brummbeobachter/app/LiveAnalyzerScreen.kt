@@ -112,10 +112,38 @@ internal fun LiveAnalyzerScreen(
     val parameterSettings by parameterSettingsStore.settingsFlow.collectAsState(initial = ReminderSettings())
     val showParameterMarkers = parameterSettings.developerModeEnabled
     var state by remember { mutableStateOf(LiveAnalyzerController.snapshot()) }
-    // SCREEN_ON is a visual preference, distinct from the service's existing CPU wakelock.
-    DisposableEffect(state.direct48k, state.directStayAwake, state.running) {
+    // The real capture references only the currently visible analyzer Activity.
+    DisposableEffect(context) {
         val activity = context as? android.app.Activity
-        val keep = state.direct48k && state.directStayAwake && state.running
+        if (activity != null) AnalyzerScreenCapture.attach(activity)
+        onDispose { if (activity != null) AnalyzerScreenCapture.detach(activity) }
+    }
+    var plugged by remember { mutableStateOf(false) }
+    DisposableEffect(context) {
+        val receiver = object : android.content.BroadcastReceiver() {
+            override fun onReceive(c: Context?, intent: android.content.Intent?) {
+                plugged = (intent?.getIntExtra(android.os.BatteryManager.EXTRA_PLUGGED, 0) ?: 0) != 0
+            }
+        }
+        val filter = android.content.IntentFilter(android.content.Intent.ACTION_BATTERY_CHANGED)
+        val initial = context.registerReceiver(receiver, filter)
+        plugged = (initial?.getIntExtra(android.os.BatteryManager.EXTRA_PLUGGED, 0) ?: 0) != 0
+        onDispose { context.unregisterReceiver(receiver) }
+    }
+    var realScreenshots by remember { mutableStateOf(LiveAnalyzerController.screenshotMode(context) == AnalyzerScreenshotMode.REAL) }
+    // Settings are device-wide, not part of setup profiles. Reflect changes without restarting analyzer.
+    LaunchedEffect(context) {
+        while (true) {
+            realScreenshots = LiveAnalyzerController.screenshotMode(context) == AnalyzerScreenshotMode.REAL
+            delay(500)
+        }
+    }
+    DisposableEffect(state.direct48k, state.directStayAwake, state.running, realScreenshots, plugged) {
+        val activity = context as? android.app.Activity
+        // Preserve the independent legacy Direct Analyzer Stay Awake option.
+        val legacyKeep = state.direct48k && state.directStayAwake && state.running
+        val realCaptureKeep = state.running && realScreenshots && plugged
+        val keep = legacyKeep || realCaptureKeep
         if (keep) activity?.window?.addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         onDispose { if (keep) activity?.window?.clearFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON) }
     }
@@ -238,6 +266,7 @@ internal fun LiveAnalyzerScreen(
     var pendingAudioDisplayGainDb by remember { mutableStateOf(0) }
     var saveMessage by remember { mutableStateOf("") }
     var pendingImageSnapshot by remember { mutableStateOf<LiveAnalyzerController.Snapshot?>(null) }
+    var pendingScreenBitmap by remember { mutableStateOf<Bitmap?>(null) }
     var imageComment by remember { mutableStateOf("") }
     var imageCommentInteracted by remember { mutableStateOf(false) }
     var imageCommentCountdown by remember { androidx.compose.runtime.mutableIntStateOf(audioNoCommentTimeoutSeconds) }
@@ -429,7 +458,14 @@ internal fun LiveAnalyzerScreen(
                 if (state.running && pendingImageSnapshot == null) {
                     val captured = LiveAnalyzerController.captureManualImage()
                     if (captured == null) saveMessage = "Bild nicht gespeichert: kein Nutzsignal oder Export beschäftigt"
-                    else { pendingImageSnapshot = captured; imageComment = LastCaptureCommentStore.read(context).take(400); imageCommentInteracted = false }
+                    else {
+                        val screen = if (realScreenshots) AnalyzerScreenCapture.capture() else null
+                        if (realScreenshots && screen == null) saveMessage = "Echter Screenshot nicht verfügbar"
+                        else {
+                            pendingScreenBitmap = screen; pendingImageSnapshot = captured
+                            imageComment = LastCaptureCommentStore.read(context).take(400); imageCommentInteracted = false
+                        }
+                    }
                 }
             }
             "AUDIO" -> {
@@ -599,7 +635,9 @@ internal fun LiveAnalyzerScreen(
                     val currentComment = imageComment.take(400)
                     LastCaptureCommentStore.save(context, currentComment)
                     val timedComment = LastCaptureCommentStore.forTimeout(currentComment, 400)
-                    if (!LiveAnalyzerController.saveCapturedImage(capturedImage, timedComment))
+                    val frozenScreen = pendingScreenBitmap
+                    pendingScreenBitmap = null
+                    if (!LiveAnalyzerController.saveCapturedImage(capturedImage, timedComment, frozenScreen))
                         saveMessage = "Bild nicht gespeichert: Bildexport beschäftigt"
                     imageComment = ""
                     imageCommentInteracted = false
@@ -610,7 +648,7 @@ internal fun LiveAnalyzerScreen(
                 title = { Text("Kommentar zum Analyzer-Bild") },
                 text = {
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text("Der Wasserfall ist bereits eingefroren. Der Kommentar wird unten in das gespeicherte Bild eingeblendet.")
+                        Text(if (realScreenshots) "Die Bildschirmansicht ist eingefroren. Der Kommentar wird in den Bildmetadaten gespeichert." else "Der Wasserfall ist bereits eingefroren. Der Kommentar wird unten in das gespeicherte Bild eingeblendet.")
                         ParameterNumber.Decorated(10008) { OutlinedTextField(
                             value = imageComment,
                             onValueChange = { imageComment = it.take(400); imageCommentInteracted = true },
@@ -628,7 +666,9 @@ internal fun LiveAnalyzerScreen(
                         if (snap != null) {
                             val currentComment = imageComment.take(400)
                             LastCaptureCommentStore.save(context, currentComment)
-                            if (!LiveAnalyzerController.saveCapturedImage(snap, currentComment.takeIf { it.isNotBlank() }))
+                            val frozenScreen = pendingScreenBitmap
+                            pendingScreenBitmap = null
+                            if (!LiveAnalyzerController.saveCapturedImage(snap, currentComment.takeIf { it.isNotBlank() }, frozenScreen))
                                 saveMessage = "Bild nicht gespeichert: Bildexport beschäftigt"
                         }
                         imageComment = ""
@@ -638,6 +678,8 @@ internal fun LiveAnalyzerScreen(
                 dismissButton = {
                     TextButton(onClick = {
                         pendingImageSnapshot = null
+                        pendingScreenBitmap?.recycle()
+                        pendingScreenBitmap = null
                         imageComment = ""
                         imageCommentInteracted = false
                     }) { Text("Abbrechen") }
@@ -1555,8 +1597,14 @@ internal fun LiveAnalyzerScreen(
                         if (captured == null) {
                             saveMessage="Bild nicht gespeichert: kein Nutzsignal oder Bildexport beschäftigt"
                         } else {
-                            pendingImageSnapshot = captured
-                            imageComment = LastCaptureCommentStore.read(context).take(400)
+                            val screen = if (realScreenshots) AnalyzerScreenCapture.capture() else null
+                            if (realScreenshots && screen == null) {
+                                saveMessage = "Echter Screenshot nicht verfügbar"
+                            } else {
+                                pendingScreenBitmap = screen
+                                pendingImageSnapshot = captured
+                                imageComment = LastCaptureCommentStore.read(context).take(400)
+                            }
                             imageCommentInteracted = false
                         }
                     }

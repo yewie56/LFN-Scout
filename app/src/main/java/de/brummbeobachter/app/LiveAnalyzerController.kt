@@ -40,6 +40,8 @@ internal enum class AnalyzerImageFormat(val extension: String, val mimeType: Str
     }
 }
 
+internal enum class AnalyzerScreenshotMode { REAL, EXPORT }
+
 internal object LiveAnalyzerController {
     const val HISTORY_SECONDS = AnalyzerTiming.HISTORY_SECONDS
     const val FFT_SIZE = 4096 // Legacy default, actual size in Snapshot.fftSize.
@@ -1119,7 +1121,18 @@ internal object LiveAnalyzerController {
             .edit().putBoolean("auto_png", value).apply()
     }
 
-    /** One format for manual and automatic off-screen screenshots; JPG is the initial default. */
+    /** Screenshot style is a device preference, not a measurement setup property. */
+    fun screenshotMode(context: Context): AnalyzerScreenshotMode =
+        runCatching { AnalyzerScreenshotMode.valueOf(context.getSharedPreferences("lfn_scout_live_analyzer", Context.MODE_PRIVATE)
+            .getString("screenshot_mode", AnalyzerScreenshotMode.REAL.name) ?: AnalyzerScreenshotMode.REAL.name) }
+            .getOrDefault(AnalyzerScreenshotMode.REAL)
+
+    fun setScreenshotMode(context: Context, mode: AnalyzerScreenshotMode) {
+        context.getSharedPreferences("lfn_scout_live_analyzer", Context.MODE_PRIVATE)
+            .edit().putString("screenshot_mode", mode.name).apply()
+    }
+
+    /** One format for manual and automatic screenshots; JPG is the initial default. */
     fun setImageFormat(context: Context, value: AnalyzerImageFormat) {
         context.getSharedPreferences("lfn_scout_live_analyzer", Context.MODE_PRIVATE)
             .edit().putString("image_format", value.name).apply()
@@ -1503,8 +1516,9 @@ internal object LiveAnalyzerController {
         if (current == null || !validSignal || writing.get()) null else snapshotLocked()
     }
 
-    fun saveCapturedImage(snap: Snapshot, comment: String?): Boolean =
-        export(snap, manual = true, comment = comment?.take(400)?.takeIf { it.isNotBlank() })
+    fun saveCapturedImage(snap: Snapshot, comment: String?, capturedScreen: Bitmap? = null): Boolean =
+        export(snap, manual = true, comment = comment?.take(400)?.takeIf { it.isNotBlank() },
+            capturedScreen = capturedScreen)
 
     /** Compatibility entry point for tests/older callers; manual UI uses captureManualImage(). */
     fun saveNow(): Boolean {
@@ -1512,15 +1526,24 @@ internal object LiveAnalyzerController {
         return saveCapturedImage(snap, null)
     }
 
-    private fun export(snap: Snapshot, manual: Boolean = false, comment: String? = null): Boolean {
+    private fun export(snap: Snapshot, manual: Boolean = false, comment: String? = null,
+                       capturedScreen: Bitmap? = null): Boolean {
         val context = appContext ?: return false
-        if (!writing.compareAndSet(false, true)) return false
+        if (!writing.compareAndSet(false, true)) {
+            capturedScreen?.recycle()
+            return false
+        }
         // Invalidate any previous successful-save status BEFORE announcing a new manual job.
         synchronized(lock) { status = "Bild wird gespeichert …" }
         writer.execute {
             var uri: android.net.Uri? = null
             try {
-                val bitmap = renderPng(snap, comment)
+                val realMode = screenshotMode(context) == AnalyzerScreenshotMode.REAL
+                // Manual: bitmap was frozen before opening the comment dialog.
+                // Automatic: capture current app frame on the UI thread when due.
+                val bitmap = if (realMode) (capturedScreen ?: AnalyzerScreenCapture.capture())
+                    ?: error("Echter Screenshot nicht möglich: Analyzer-Ansicht/Display nicht verfügbar")
+                    else renderPng(snap, comment).also { capturedScreen?.recycle() }
                 val format = snap.imageFormat
                 val compressFormat = if (format == AnalyzerImageFormat.PNG) Bitmap.CompressFormat.PNG else Bitmap.CompressFormat.JPEG
                 val quality = if (format == AnalyzerImageFormat.PNG) 100 else snap.jpgQuality
@@ -1545,6 +1568,8 @@ internal object LiveAnalyzerController {
                     context.contentResolver.openOutputStream(uri)?.use { stream ->
                         check(bitmap.compress(compressFormat, quality, stream))
                     } ?: error("MediaStore output stream unavailable")
+                    // Preserve user comments as image metadata for exact screen captures.
+                    if (realMode && !comment.isNullOrBlank()) AnalyzerScreenCaptureComment.write(context, uri, comment)
                     // Write GPS into JPEG APP1 or PNG eXIf and verify before publishing.
                     if (gpsLocation != null) {
                         gpsWritten = AnalyzerScreenshotGps.writeAndVerify(context, uri, gpsLocation)
@@ -1557,6 +1582,7 @@ internal object LiveAnalyzerController {
                     java.io.FileOutputStream(target).use { stream ->
                         check(bitmap.compress(compressFormat, quality, stream))
                     }
+                    if (realMode && !comment.isNullOrBlank()) AnalyzerScreenCaptureComment.write(target, comment)
                     if (gpsLocation != null) gpsWritten = AnalyzerScreenshotGps.writeAndVerify(target, gpsLocation)
                 }
                 bitmap.recycle()
@@ -1568,7 +1594,7 @@ internal object LiveAnalyzerController {
                         gpsWritten -> "GPS-EXIF geprüft"
                         else -> "GPS-EXIF konnte nicht gespeichert werden"
                     }
-                    status = "Bild gespeichert: $name · $gpsState"
+                    status = "${if (realMode) "Echter Screenshot" else "Analyzer-Export"} gespeichert: $name · $gpsState"
                     if (manual) { manualSaveMessage = "Bild gespeichert: ${format.name} · $gpsState"; manualSaveEvent++ }
                 }
             } catch (e: Exception) {

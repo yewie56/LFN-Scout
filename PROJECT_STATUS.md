@@ -1,3 +1,7 @@
+## v0.5.169 – Quellkandidat, Build-/Gerätetest offen
+
+Siehe `BUILD_NOTES_v0.5.169.md`. Basis v0.5.168, keine Änderungen an Rolling/DSP/MON/Leq. Android-Build und Gerätetest offen.
+
 ## Aktuell: v0.5.168 (GPS-EXIF für Analyzer-Screenshots, JPG-Standard; Build offen)
 
 # Aktueller Quellstand: v0.5.167 (Android-Build und Gerätetest offen)
