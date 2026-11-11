@@ -921,7 +921,7 @@ internal fun LiveAnalyzerScreen(
         val plotRightDp = 12.dp
         val plotBottomDp = 23.dp
         val plotTopDp = 4.dp
-        Box(Modifier.fillMaxWidth().height(spectrumHeight)
+        BoxWithConstraints(Modifier.fillMaxWidth().height(spectrumHeight)
             .background(Color(0xFF0B1215)).pointerInput(state.rangeHz, state.minFrequencyHz, cursorHz, state.autoRangeActive) {
                 detectTapGestures { point ->
                     val left = plotLeftDp.toPx()
