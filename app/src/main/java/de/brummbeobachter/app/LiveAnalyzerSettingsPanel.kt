@@ -70,6 +70,7 @@ internal fun LiveAnalyzerSettingsPanel(
     }
     var slot by remember(state.direct48k) { mutableStateOf(if (state.direct48k) 4 else prefs.getInt("last_setup_slot",1).coerceIn(1,3)) }
     var message by remember { mutableStateOf("") }
+    var screenshotGpsEnabled by remember { mutableStateOf(LiveAnalyzerController.isScreenshotGpsEnabled(context)) }
     var selfTestSummary by remember { mutableStateOf("") }
     var systemTestBusy by remember { mutableStateOf(false) }
     val exportScope = rememberCoroutineScope()
@@ -220,7 +221,7 @@ internal fun LiveAnalyzerSettingsPanel(
             savedWindow, prefs.getBoolean("setup_${slot}_smoothing_enabled",true), savedTime)
         LiveAnalyzerController.setAutoSave(context,prefs.getBoolean("setup_${slot}_auto",false))
         LiveAnalyzerController.setImageFormat(context,AnalyzerImageFormat.fromPreference(
-            prefs.getString("setup_${slot}_image_format",AnalyzerImageFormat.PNG.name)))
+            prefs.getString("setup_${slot}_image_format",AnalyzerImageFormat.JPG.name)))
         LiveAnalyzerController.setJpgQuality(context,
             prefs.getInt("setup_${slot}_jpg_quality",90).coerceIn(70,100))
         // Apply a safe history first, then the new interval, then the saved duration.
@@ -931,6 +932,11 @@ internal fun LiveAnalyzerSettingsPanel(
                             }
                         }
                     }
+                    SettingToggle("GPS-Koordinaten in Screenshots speichern", screenshotGpsEnabled) { enabled ->
+                        LiveAnalyzerController.setScreenshotGpsEnabled(context, enabled)
+                        screenshotGpsEnabled = enabled
+                    }
+                    SettingNote("GPS ist standardmäßig EIN. Bei Freigabe der Originalbilder wird der Aufnahmeort mitgegeben. Ohne Standortberechtigung oder gültige Position werden Bilder ohne GPS-Daten gespeichert.")
                     if (state.imageFormat == AnalyzerImageFormat.JPG) {
                         SettingCaption("JPG-Qualität: ${state.jpgQuality} %")
                         Row(Modifier.horizontalScroll(rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(4.dp)) {

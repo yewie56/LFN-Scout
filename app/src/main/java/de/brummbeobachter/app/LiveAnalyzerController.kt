@@ -36,7 +36,7 @@ internal enum class AnalyzerImageFormat(val extension: String, val mimeType: Str
 
     companion object {
         fun fromPreference(value: String?): AnalyzerImageFormat =
-            values().firstOrNull { it.name == value } ?: PNG
+            values().firstOrNull { it.name == value } ?: JPG
     }
 }
 
@@ -267,7 +267,7 @@ internal object LiveAnalyzerController {
     private var running = false
     private var paused = false
     private var auto = false
-    private var imageFormat = AnalyzerImageFormat.PNG
+    private var imageFormat = AnalyzerImageFormat.JPG
     private var jpgQuality = 90
     private var manualSaveEvent = 0L
     private var manualSaveMessage = ""
@@ -1119,11 +1119,21 @@ internal object LiveAnalyzerController {
             .edit().putBoolean("auto_png", value).apply()
     }
 
-    /** One format for manual and automatic off-screen screenshots. Existing PNG default remains. */
+    /** One format for manual and automatic off-screen screenshots; JPG is the initial default. */
     fun setImageFormat(context: Context, value: AnalyzerImageFormat) {
         context.getSharedPreferences("lfn_scout_live_analyzer", Context.MODE_PRIVATE)
             .edit().putString("image_format", value.name).apply()
         synchronized(lock) { imageFormat = value }
+    }
+
+    /** GPS metadata is independent of saved analyzer setups and defaults to enabled. */
+    fun isScreenshotGpsEnabled(context: Context): Boolean =
+        context.getSharedPreferences("lfn_scout_live_analyzer", Context.MODE_PRIVATE)
+            .getBoolean("screenshot_gps_enabled", true)
+
+    fun setScreenshotGpsEnabled(context: Context, enabled: Boolean) {
+        context.getSharedPreferences("lfn_scout_live_analyzer", Context.MODE_PRIVATE)
+            .edit().putBoolean("screenshot_gps_enabled", enabled).apply()
     }
 
     fun setJpgQuality(context: Context, value: Int) {
@@ -1523,6 +1533,11 @@ internal object LiveAnalyzerController {
                         put(MediaStore.MediaColumns.IS_PENDING, 1)
                     }
                 }
+                // Resolve location for this screenshot (not for an older screenshot or setup).
+                // Lack of permission, a stale fix or an unavailable provider never blocks image saving.
+                val gpsLocation = if (isScreenshotGpsEnabled(context))
+                    AnalyzerScreenshotGps.getCurrentLocation(context) else null
+                var gpsWritten = false
                 // On pre-29 Android use app-specific files rather than request broad storage rights.
                 if (Build.VERSION.SDK_INT >= 29) {
                     uri = context.contentResolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values)
@@ -1530,18 +1545,31 @@ internal object LiveAnalyzerController {
                     context.contentResolver.openOutputStream(uri)?.use { stream ->
                         check(bitmap.compress(compressFormat, quality, stream))
                     } ?: error("MediaStore output stream unavailable")
+                    // Write GPS into JPEG APP1 or PNG eXIf and verify before publishing.
+                    if (gpsLocation != null) {
+                        gpsWritten = AnalyzerScreenshotGps.writeAndVerify(context, uri, gpsLocation)
+                    }
                     context.contentResolver.update(uri, ContentValues().apply { put(MediaStore.MediaColumns.IS_PENDING, 0) }, null, null)
                 } else {
                     val dir = java.io.File(context.getExternalFilesDir(Environment.DIRECTORY_PICTURES), "Analyzer")
                     check(dir.exists() || dir.mkdirs())
-                    java.io.FileOutputStream(java.io.File(dir, name)).use { stream ->
+                    val target = java.io.File(dir, name)
+                    java.io.FileOutputStream(target).use { stream ->
                         check(bitmap.compress(compressFormat, quality, stream))
                     }
+                    if (gpsLocation != null) gpsWritten = AnalyzerScreenshotGps.writeAndVerify(target, gpsLocation)
                 }
                 bitmap.recycle()
                 synchronized(lock) {
-                    lastSave = name; status = "Bild gespeichert: $name"
-                    if (manual) { manualSaveMessage = "Bild gespeichert: ${format.name}"; manualSaveEvent++ }
+                    lastSave = name
+                    val gpsState = when {
+                        !isScreenshotGpsEnabled(context) -> "GPS aus"
+                        gpsLocation == null -> "GPS-Position nicht verfügbar"
+                        gpsWritten -> "GPS-EXIF geprüft"
+                        else -> "GPS-EXIF konnte nicht gespeichert werden"
+                    }
+                    status = "Bild gespeichert: $name · $gpsState"
+                    if (manual) { manualSaveMessage = "Bild gespeichert: ${format.name} · $gpsState"; manualSaveEvent++ }
                 }
             } catch (e: Exception) {
                 if (uri != null) runCatching { context.contentResolver.delete(uri, null, null) }

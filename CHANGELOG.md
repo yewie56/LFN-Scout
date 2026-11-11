@@ -1,3 +1,11 @@
+## v0.5.168 – GPS-EXIF für Analyzer-Screenshots; JPG als Standard
+- JPG ist bei nicht gesetzter Bildformat-Voreinstellung Standard, PNG bleibt wählbar. Bestehende explizite Einstellungen bleiben erhalten.
+- GPS-Schalter in Analyzer > Automatiken; bei Erstnutzung standardmäßig EIN, jederzeit abschaltbar. Unabhängig von benannten Setups.
+- Live-Anfrageservice für Standort (5 s + maximal 5 Minuten alte gültige Position als Fallback), ohne Standortberechtigung oder Position wird ohne GPS gespeichert.
+- EXIF-GPS auf JPEG (APP1) und PNG (eXIf) mit AndroidX ExifInterface. Nach dem Schreiben erneutes Lesen und Koordinatenvergleich.
+- Status unterscheidet GPS geprüft, GPS aus, GPS nicht verfügbar und EXIF-Fehler; Bild wird auch ohne GPS gespeichert.
+- Android-Build und Gerätetest einschließlich Aves Libre JPG/PNG müssen noch durchgeführt werden.
+
 ## v0.5.167 – Wasserfall-Leq-Overlay ohne Inhaltsverkleinerung
 - Nur überflüssige rechte Boxbreite entfernt (65 % der ehemaligen Box); Karte rechtsbündig. Leq-Hauptwert wieder 16 sp und übrige Typografie nicht verkleinert. Kein DSP- oder Datenpfad-Eingriff. Build-/Gerätetest offen.
 

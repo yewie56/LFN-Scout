@@ -1,3 +1,5 @@
+## Aktuell: v0.5.168 (GPS-EXIF für Analyzer-Screenshots, JPG-Standard; Build offen)
+
 # Aktueller Quellstand: v0.5.167 (Android-Build und Gerätetest offen)
 
 Leq,30s-Overlay rechts beschnitten, Inhalte in Originalgröße. Siehe BUILD_NOTES_v0.5.167.md. Letzter vollständig bestätigter Geräteteststand: v0.5.160.

@@ -1,9 +1,9 @@
 {
   "package_type": "LFN-Scout ACTIVE HANDOFF",
-  "version": "0.5.166",
-  "version_code": 324,
+  "version": "0.5.168",
+  "version_code": 326,
   "created_at": "2026-11-11",
-  "purpose": "Half-width Leq,30s waterfall overlay container right-aligned; no measurement changes",
+  "purpose": "Analyzer JPG default and JPEG/PNG GPS EXIF metadata with default-on option",
   "excluded_base_paths": [
     "docs/project/analyzer_v0.7/assets/",
     "docs/project/analyzer_v0.7/references/",
@@ -42,7 +42,7 @@
     "statistics_outbox": "PARTIALLY_INTEGRATED_EVENT_RETRY_ONLY",
     "independent_half_hour": "NOT_IMPLEMENTED",
     "testDebugUnitTest_current": "NOT_RUN_GRADLE_DISTRIBUTION_UNAVAILABLE",
-    "assembleDebug_current": "NOT_RUN_v0.5.166",
+    "assembleDebug_current": "NOT_RUN_v0.5.168",
     "device_test": "NOT_RUN_v0.5.166"
   },
   "next_version": "0.5.167",
