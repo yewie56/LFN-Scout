@@ -1,3 +1,7 @@
+# Aktueller Quellstand: v0.5.165 (Android-Build und Gerätetest offen)
+
+DevMode-Parameterposition/-Refresh 10088; halbbreiter Leq,30s-Fortschritt. Siehe BUILD_NOTES_v0.5.165.md. Letzter vollständig bestätigter Geräteteststand: v0.5.160.
+
 # Aktueller Quellstand: v0.5.164 (Android-Build und Gerätetest offen)
 
 Neue Funktionen: bandbegrenzter Leq,30s im Wasserfall, letzter/vorheriger Pegel, Differenz und Intervallfortschritt; Parameterpositionen 10009/10088 korrigiert. Siehe BUILD_NOTES_v0.5.164.md. Letzter vollständig bestätigter Geräteteststand: v0.5.160.

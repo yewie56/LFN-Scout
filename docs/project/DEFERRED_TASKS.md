@@ -462,3 +462,7 @@ Extension-Leiste von fünf auf zehn scrollbar erreichbare Positionen erweitert. 
 - Beobachter-Audio: gemeinsames Kommentar-Popup erhält „Abbrechen“ statt „Ohne Kommentar“. Bereits vor Dialogöffnung lokal archivierte WAV bleibt bei Abbruch sicher erhalten, nur automatischer/manueller Cloud-Versand wird unterlassen; kein Löschen bereits entstandener Messdaten.
 - Analyzer-Screenshot: „Jetzt speichern“ und „Abbrechen“, „Ohne Kommentar“ entfällt; automatische Speicherung nach dem bestehenden Audio-Kommentar-Timeout (Start/letzte Texteingabe), bei jeder Änderung retriggert; leeres Feld wird ohne Kommentar gespeichert.
 - Android-TEST-Build, Dialog-Timeouts (Start und nach Eingabe), manueller Speichern-/Abbrechen-Pfad, Rolling-/S18-Regression auf Gerät offen.
+
+## v0.5.165 – Offene Geräteabnahme
+- [ ] UI165-01: GitHub-/Android-Build und Sichtprüfung Parameter 10088 bei hohem, niedrigem und veränderlichem MON-Gain; DevMode EIN/AUS.
+- [ ] UI165-02: Halbbreiter Leq,30s-Balken mit 15 Schritten im Wasserfall, Null-Beeinflussung der Messwerte, Overlay-Grenzen und Gesten am Gerät nachweisen.

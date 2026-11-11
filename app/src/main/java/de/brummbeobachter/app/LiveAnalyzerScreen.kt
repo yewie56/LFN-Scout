@@ -107,6 +107,10 @@ internal fun LiveAnalyzerScreen(
     onAudioModeChanged: () -> Unit = {}
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
+    // One DevMode subscription for gesture markers. No marker layout or drawing in normal mode.
+    val parameterSettingsStore = remember(context) { ReminderSettingsStore(context) }
+    val parameterSettings by parameterSettingsStore.settingsFlow.collectAsState(initial = ReminderSettings())
+    val showParameterMarkers = parameterSettings.developerModeEnabled
     var state by remember { mutableStateOf(LiveAnalyzerController.snapshot()) }
     // SCREEN_ON is a visual preference, distinct from the service's existing CPU wakelock.
     DisposableEffect(state.direct48k, state.directStayAwake, state.running) {
@@ -1060,6 +1064,38 @@ internal fun LiveAnalyzerScreen(
                         }
                         c.restore()
                     }
+                    // DevMode only: 10088 follows every MON gain slider/gesture update.
+                    // Position uses the LIVE turquoise fill and the real bar geometry,
+                    // not a fixed screen offset. Draw last to keep the small marker legible.
+                    if (showParameterMarkers && gainFrac > 0f) {
+                        val actualFillHeight = plotH * gainFrac
+                        val markPaint = NativePaint(NativePaint.ANTI_ALIAS_FLAG).apply {
+                            color = AndroidColor.RED
+                            textAlign = NativePaint.Align.CENTER
+                            isFakeBoldText = true
+                            textSize = 7.sp.toPx()
+                            val barWidth = gainR - gainL - 2.dp.toPx()
+                            val fontHeight = fontMetrics.descent - fontMetrics.ascent
+                            if (fontHeight > barWidth) textSize *= barWidth / fontHeight
+                        }
+                        val markerLength = markPaint.measureText("10088")
+                        // The marker is only drawn when the illuminated part can hold it.
+                        if (actualFillHeight >= markerLength + 5.dp.toPx()) {
+                            val markX = (gainL + gainR) / 2f
+                            val markY = (bottom - (markerLength / 2f + 2.dp.toPx()))
+                                .coerceAtLeast(bottom - actualFillHeight + markerLength / 2f)
+                            drawIntoCanvas { canvas ->
+                                val native = canvas.nativeCanvas
+                                native.save()
+                                native.clipRect(gainL, bottom - actualFillHeight, gainR, bottom)
+                                native.rotate(-90f, markX, markY)
+                                native.drawText("10088", markX,
+                                    markY - (markPaint.ascent() + markPaint.descent()) / 2f,
+                                    markPaint)
+                                native.restore()
+                            }
+                        }
+                    }
                     drawRect(Color(0xFF23313A),Offset(meterL,top),Size(meterR-meterL,plotH))
                     val meterFrac=((monitorOutputLevel+80)/80).coerceIn(0.0,1.0).toFloat()
                     drawRect(if(monitorOutputLevel > -6)Color.Red else if(monitorOutputLevel > -18)Color.Yellow else Color.Green,
@@ -1156,21 +1192,13 @@ internal fun LiveAnalyzerScreen(
                 }
             }
             // DevMode MON identifiers: locate them at the gesture they describe.
-            if (monitoring && !eqMode) {
+            if (showParameterMarkers && monitoring && !eqMode) {
                 // The third quarter of the spectrum Hz axis (between the third
                 // and fourth major frequency ticks) – NOT in the waterfall.
                 val freqPlotWidth = maxWidth - plotLeftDp - plotRightDp
                 Box(Modifier.offset(x=plotLeftDp + freqPlotWidth * 0.625f,
                     y=spectrumHeight - plotBottomDp + 1.dp)) {
                     ParameterNumber.AutoMarker(10009)
-                }
-                // Rotate 90 degrees left, inside the bottom portion of the
-                // turquoise MON-gain bar (3..20 dp), without stealing gestures.
-                Box(Modifier.offset(x=5.dp, y=spectrumHeight - plotBottomDp - 27.dp)
-                    .width(13.dp).height(23.dp), contentAlignment=Alignment.Center) {
-                    Box(Modifier.graphicsLayer { rotationZ = -90f }) {
-                        ParameterNumber.AutoMarker(10088)
-                    }
                 }
             }
             // The complete compact frame is also the sensitive reset surface. Keep the
@@ -1415,7 +1443,7 @@ internal fun LiveAnalyzerScreen(
             }
             // Gestures have no native Slider label: show stable parameter identifiers
             // on their active touch surface without changing hit-testing.
-            if (monitoring && eqMode && state.direct48k) {
+            if (showParameterMarkers && monitoring && eqMode && state.direct48k) {
                 Row(Modifier.align(Alignment.BottomCenter).fillMaxWidth()
                     .padding(start=plotLeftDp, end=plotRightDp, bottom=plotBottomDp + 19.dp),
                     horizontalArrangement=Arrangement.SpaceEvenly) {
@@ -1480,9 +1508,12 @@ internal fun LiveAnalyzerScreen(
                         lineHeight=9.sp,maxLines=1,overflow=TextOverflow.Ellipsis)
                     Text("Laufend: ${level.elapsedSeconds.toInt()} / 30 s",color=cyan,
                         fontSize=8.sp,lineHeight=9.sp,maxLines=1)
-                    Box(Modifier.fillMaxWidth().height(3.dp)
+                    // Compact progress: half-width, exactly 15 visible 2-second steps.
+                    // The Leq accumulator still integrates ALL incoming samples.
+                    val progressSteps = (level.elapsedSeconds / 2.0).toInt().coerceIn(0, 15)
+                    Box(Modifier.fillMaxWidth(0.5f).height(3.dp)
                         .background(Color(0xFF4B5D65),RoundedCornerShape(2.dp))) {
-                        Box(Modifier.fillMaxWidth((level.elapsedSeconds/30.0).toFloat().coerceIn(0f,1f))
+                        Box(Modifier.fillMaxWidth(progressSteps / 15f)
                             .height(3.dp).background(cyan,RoundedCornerShape(2.dp)))
                     }
                 }
@@ -1653,7 +1684,7 @@ internal fun LiveAnalyzerScreen(
                         color=white,fontSize=8.sp,lineHeight=10.sp)
                 }
                 LongPressMark(show=monitoring)
-                Box(Modifier.align(Alignment.TopEnd)) { ParameterNumber.AutoMarker(10097) }
+                if (showParameterMarkers) Box(Modifier.align(Alignment.TopEnd)) { ParameterNumber.AutoMarker(10097) }
             }
             if (state.direct48k) {
                 Box(Modifier.size(buttonWidth,buttonHeight)
@@ -1664,7 +1695,7 @@ internal fun LiveAnalyzerScreen(
                         eqGainsUi=AnalyzerMonitor.eqGainSnapshot()
                     }, contentAlignment=Alignment.Center) {
                     Text(if(eqMode) "EQ" else "F",color=if(eqMode) Color(0xFF48ED87) else white,fontSize=15.sp)
-                    Box(Modifier.align(Alignment.TopEnd)) { ParameterNumber.AutoMarker(10098) }
+                    if (showParameterMarkers) Box(Modifier.align(Alignment.TopEnd)) { ParameterNumber.AutoMarker(10098) }
                 }
             }
             if (state.direct48k) {

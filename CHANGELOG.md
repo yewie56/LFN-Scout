@@ -1,3 +1,8 @@
+## v0.5.165 – DevMode-Parameter und kompakter Leq-Intervallfortschritt
+- Halbbreiter Leq,30s-Fortschritt mit 15 Schritten à 2 s, keine Änderung der Pegelmessung.
+- 10088 im türkisen MON-Gain-Balken live neu gezeichnet und an Gain-Reglerwert angepasst; alle Parameterbezeichner nur in DevMode sichtbar/aktualisiert.
+- Android-Build und Gerätetest offen.
+
 ## 0.5.164
 - Leq,30s-Bandpegel-Vergleich im MON-Wasserfall als Overlay mit echten Bandpassgrenzen.
 - Fixe 30-s-Intervalle, letzter/vorheriger Wert und Delta in dBFS; Fortschritt.
