@@ -266,7 +266,9 @@ internal fun LiveAnalyzerScreen(
     var pendingAudioDisplayGainDb by remember { mutableStateOf(0) }
     var saveMessage by remember { mutableStateOf("") }
     var pendingImageSnapshot by remember { mutableStateOf<LiveAnalyzerController.Snapshot?>(null) }
-    var pendingScreenBitmap by remember { mutableStateOf<Bitmap?>(null) }
+    // A real manual screenshot must be captured AFTER the comment dialog has closed.
+    // While pending, its nonblank comment is drawn as a temporary waterfall overlay.
+    var pendingRealScreenshot by remember { mutableStateOf<Triple<LiveAnalyzerController.Snapshot, String?, String?>?>(null) }
     var imageComment by remember { mutableStateOf("") }
     var imageCommentInteracted by remember { mutableStateOf(false) }
     var imageCommentCountdown by remember { androidx.compose.runtime.mutableIntStateOf(audioNoCommentTimeoutSeconds) }
@@ -455,16 +457,13 @@ internal fun LiveAnalyzerScreen(
         if (remoteActionNumber <= initialRemoteActionNumber) return@LaunchedEffect
         when (BluetoothRemoteControl.pendingAction) {
             "SCREEN" -> {
-                if (state.running && pendingImageSnapshot == null) {
+                if (state.running && pendingImageSnapshot == null && pendingRealScreenshot == null) {
                     val captured = LiveAnalyzerController.captureManualImage()
                     if (captured == null) saveMessage = "Bild nicht gespeichert: kein Nutzsignal oder Export beschäftigt"
                     else {
-                        val screen = if (realScreenshots) AnalyzerScreenCapture.capture() else null
-                        if (realScreenshots && screen == null) saveMessage = "Echter Screenshot nicht verfügbar"
-                        else {
-                            pendingScreenBitmap = screen; pendingImageSnapshot = captured
-                            imageComment = LastCaptureCommentStore.read(context).take(400); imageCommentInteracted = false
-                        }
+                        pendingImageSnapshot = captured
+                        imageComment = LastCaptureCommentStore.read(context).take(400)
+                        imageCommentInteracted = false
                     }
                 }
             }
@@ -619,6 +618,25 @@ internal fun LiveAnalyzerScreen(
                 }
             )
         }
+        // v0.5.170: Let Compose remove the dialog and draw the transient comment
+        // before taking the REAL screenshot. Two UI frames plus a short grace
+        // period avoid capturing a dismissing dialog or the previous frame.
+        val screenshotRequest = pendingRealScreenshot
+        LaunchedEffect(screenshotRequest) {
+            if (screenshotRequest != null) {
+                androidx.compose.runtime.withFrameNanos { }
+                androidx.compose.runtime.withFrameNanos { }
+                delay(90L)
+                val bitmap = AnalyzerScreenCapture.capture()
+                pendingRealScreenshot = null // remove transient overlay after capture
+                if (bitmap == null) {
+                    saveMessage = "Echter Screenshot nicht verfügbar"
+                } else if (!LiveAnalyzerController.saveCapturedImage(
+                        screenshotRequest.first, screenshotRequest.second, bitmap)) {
+                    saveMessage = "Bild nicht gespeichert: Bildexport beschäftigt"
+                }
+            }
+        }
         val capturedImage = pendingImageSnapshot
         if (capturedImage != null) {
             // The frozen image remains stable while the user enters a comment.
@@ -635,10 +653,12 @@ internal fun LiveAnalyzerScreen(
                     val currentComment = imageComment.take(400)
                     LastCaptureCommentStore.save(context, currentComment)
                     val timedComment = LastCaptureCommentStore.forTimeout(currentComment, 400)
-                    val frozenScreen = pendingScreenBitmap
-                    pendingScreenBitmap = null
-                    if (!LiveAnalyzerController.saveCapturedImage(capturedImage, timedComment, frozenScreen))
+                    if (realScreenshots) {
+                        pendingRealScreenshot = Triple(capturedImage, timedComment.takeIf { it.isNotBlank() },
+                            timedComment.takeIf { currentComment.isNotBlank() })
+                    } else if (!LiveAnalyzerController.saveCapturedImage(capturedImage, timedComment)) {
                         saveMessage = "Bild nicht gespeichert: Bildexport beschäftigt"
+                    }
                     imageComment = ""
                     imageCommentInteracted = false
                 }
@@ -648,7 +668,7 @@ internal fun LiveAnalyzerScreen(
                 title = { Text("Kommentar zum Analyzer-Bild") },
                 text = {
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text(if (realScreenshots) "Die Bildschirmansicht ist eingefroren. Der Kommentar wird in den Bildmetadaten gespeichert." else "Der Wasserfall ist bereits eingefroren. Der Kommentar wird unten in das gespeicherte Bild eingeblendet.")
+                        Text(if (realScreenshots) "Nach dem Schließen des Dialogs wird der Kommentar ganz unten im Wasserfall eingeblendet und der echte Screenshot aufgenommen. Ohne Kommentar gibt es kein Overlay." else "Der Wasserfall ist bereits eingefroren. Der Kommentar wird unten in das gespeicherte Bild eingeblendet.")
                         ParameterNumber.Decorated(10008) { OutlinedTextField(
                             value = imageComment,
                             onValueChange = { imageComment = it.take(400); imageCommentInteracted = true },
@@ -666,10 +686,12 @@ internal fun LiveAnalyzerScreen(
                         if (snap != null) {
                             val currentComment = imageComment.take(400)
                             LastCaptureCommentStore.save(context, currentComment)
-                            val frozenScreen = pendingScreenBitmap
-                            pendingScreenBitmap = null
-                            if (!LiveAnalyzerController.saveCapturedImage(snap, currentComment.takeIf { it.isNotBlank() }, frozenScreen))
+                            if (realScreenshots) {
+                                pendingRealScreenshot = Triple(snap, currentComment.takeIf { it.isNotBlank() },
+                                    currentComment.takeIf { it.isNotBlank() })
+                            } else if (!LiveAnalyzerController.saveCapturedImage(snap, currentComment.takeIf { it.isNotBlank() })) {
                                 saveMessage = "Bild nicht gespeichert: Bildexport beschäftigt"
+                            }
                         }
                         imageComment = ""
                         imageCommentInteracted = false
@@ -678,8 +700,6 @@ internal fun LiveAnalyzerScreen(
                 dismissButton = {
                     TextButton(onClick = {
                         pendingImageSnapshot = null
-                        pendingScreenBitmap?.recycle()
-                        pendingScreenBitmap = null
                         imageComment = ""
                         imageCommentInteracted = false
                     }) { Text("Abbrechen") }
@@ -1499,6 +1519,25 @@ internal fun LiveAnalyzerScreen(
                 modifier=Modifier.align(Alignment.TopEnd).padding(end=plotRightDp + 4.dp,top=plotTopDp + 4.dp)
                     .background(Color(0xD9081016),RoundedCornerShape(4.dp)).padding(horizontal=4.dp,vertical=2.dp),
                 color=if(monitoringShift)Color(0xFFFFCF65) else cyan,fontSize=10.sp,lineHeight=12.sp)
+            // v0.5.170: Temporary comment for manual REAL screenshots. Only
+            // nonblank comments receive an overlay; the live waterfall and
+            // analyzer controls are otherwise unchanged. The overlay is removed
+            // immediately after capturing the on-screen pixels.
+            val manualScreenshotComment = pendingRealScreenshot?.third
+            if (!manualScreenshotComment.isNullOrBlank()) {
+                Text(
+                    manualScreenshotComment,
+                    modifier = Modifier.align(Alignment.BottomCenter)
+                        .padding(start = plotLeftDp + 4.dp, end = plotRightDp + 4.dp,
+                            bottom = plotBottomDp + 4.dp)
+                        .background(Color(0xE6081016), RoundedCornerShape(5.dp))
+                        .border(BorderStroke(1.dp, cyan), RoundedCornerShape(5.dp))
+                        .padding(horizontal = 7.dp, vertical = 4.dp),
+                    color = white, fontSize = 11.sp, lineHeight = 13.sp,
+                    textAlign = TextAlign.Center, maxLines = 5,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
             // Two-line waterfall notification is a composited overlay at the LOWER-RIGHT
             // of the plot (inside Hz-axis margins). It does not change the Bitmap, plot
             // coordinates, underlying pixels, colorbar, time axis, or PNG/JPG export.
@@ -1593,19 +1632,13 @@ internal fun LiveAnalyzerScreen(
                     },
                     onLongPress = {
                         saveMessage=""
-                        val captured = LiveAnalyzerController.captureManualImage()
+                        val captured = if (pendingRealScreenshot == null) LiveAnalyzerController.captureManualImage() else null
                         if (captured == null) {
                             saveMessage="Bild nicht gespeichert: kein Nutzsignal oder Bildexport beschäftigt"
                         } else {
-                            val screen = if (realScreenshots) AnalyzerScreenCapture.capture() else null
-                            if (realScreenshots && screen == null) {
-                                saveMessage = "Echter Screenshot nicht verfügbar"
-                            } else {
-                                pendingScreenBitmap = screen
-                                pendingImageSnapshot = captured
-                                imageComment = LastCaptureCommentStore.read(context).take(400)
-                            }
-                            imageCommentInteracted = false
+                        pendingImageSnapshot = captured
+                        imageComment = LastCaptureCommentStore.read(context).take(400)
+                        imageCommentInteracted = false
                         }
                     }
                 )

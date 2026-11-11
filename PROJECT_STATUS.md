@@ -1,3 +1,7 @@
+## v0.5.170 – Quellkandidat, Build-/Gerätetest offen
+
+Manueller echter Screenshot mit sichtbarem Kommentar-Overlay unten im Wasserfall (nur bei nichtleerem Kommentar); Popup vor Erfassung geschlossen; danach Overlay entfernt. Basis v0.5.169. Siehe `BUILD_NOTES_v0.5.170.md`.
+
 ## v0.5.169 – Quellkandidat, Build-/Gerätetest offen
 
 Siehe `BUILD_NOTES_v0.5.169.md`. Basis v0.5.168, keine Änderungen an Rolling/DSP/MON/Leq. Android-Build und Gerätetest offen.

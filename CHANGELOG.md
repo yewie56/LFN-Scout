@@ -1,3 +1,9 @@
+## v0.5.170 – Echter manueller Screenshot mit sichtbarem Kommentar
+- Kommentar-Popup zuerst schließen; bei nichtleerem Kommentar temporäres Overlay ganz unten im Wasserfall, danach echten Screenshot aufnehmen und Overlay wieder entfernen.
+- Bei leerem Kommentar keinerlei Overlay, auch nicht bei `#` durch Timeout.
+- Kontinuierliche Screenshots, Analyzer-Export, GPS, JPG/PNG, Display-Wachhaltung unverändert.
+- Android-Build/Gerätetest offen.
+
 ## v0.5.169 – echter Analyzer-Screenshot, automatischer Echtbildmodus, Wake bei Laden
 
 Siehe `BUILD_NOTES_v0.5.169.md`. Basis v0.5.168, keine Änderungen an Rolling/DSP/MON/Leq. Android-Build und Gerätetest offen.
