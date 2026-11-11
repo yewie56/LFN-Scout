@@ -1,3 +1,7 @@
+# Aktueller Quellstand: v0.5.167 (Android-Build und Gerätetest offen)
+
+Leq,30s-Overlay rechts beschnitten, Inhalte in Originalgröße. Siehe BUILD_NOTES_v0.5.167.md. Letzter vollständig bestätigter Geräteteststand: v0.5.160.
+
 # Aktueller Quellstand: v0.5.166 (Android-Build und Gerätetest offen)
 
 Leq,30s-Overlay insgesamt halbbreit, rechtsbündig im Wasserfall. Siehe BUILD_NOTES_v0.5.166.md. Letzter vollständig bestätigter Geräteteststand: v0.5.160.

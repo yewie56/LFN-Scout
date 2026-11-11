@@ -1,3 +1,6 @@
+## v0.5.167 – Wasserfall-Leq-Overlay ohne Inhaltsverkleinerung
+- Nur überflüssige rechte Boxbreite entfernt (65 % der ehemaligen Box); Karte rechtsbündig. Leq-Hauptwert wieder 16 sp und übrige Typografie nicht verkleinert. Kein DSP- oder Datenpfad-Eingriff. Build-/Gerätetest offen.
+
 ## v0.5.166 – Leq-Overlay halbbreit und rechtsbündig
 - Gesamtes Pegelvergleichs-Overlay halbiert und an den rechten Wasserfallrand verschoben; Beschriftungen auf kurze Zeilen angepasst. Messung unverändert.
 - Android-Build und Gerätetest offen.

@@ -1484,13 +1484,11 @@ internal fun LiveAnalyzerScreen(
             if (state.direct48k && monitoring && !eqMode) {
                 val usableW = maxWidth - plotLeftDp - plotRightDp
                 val usableH = waterfallHeight - plotTopDp - plotBottomDp
-                // v0.5.166: half the former overlay container width, anchored
-                // to the right edge of the actual waterfall plot (not the screen).
-                // Never enter the protected left third, even on narrow devices.
-                val formerOverlayW = usableW * (2f / 3f) - 6.dp
-                val overlayW = (formerOverlayW * 0.5f)
-                    .coerceAtLeast(0.dp)
-                    .coerceAtMost((usableW * (2f / 3f) - 6.dp).coerceAtLeast(0.dp))
+                // v0.5.167: retain v0.5.165 text and progress sizes.
+                // Trim the unused right side of the old card, not its contents:
+                // 65% of the former 2/3-waterfall card width, right-aligned.
+                val formerOverlayW = (usableW * (2f / 3f) - 6.dp).coerceAtLeast(0.dp)
+                val overlayW = formerOverlayW * 0.65f
                 val overlayX = plotLeftDp + usableW - overlayW - 4.dp
                 val overlayY = plotTopDp + usableH / 3f + 2.dp
                 val level = bandComparison
@@ -1506,19 +1504,19 @@ internal fun LiveAnalyzerScreen(
                     .background(Color(0xD9081724), RoundedCornerShape(5.dp))
                     .padding(horizontal=4.dp, vertical=2.dp),
                     verticalArrangement=Arrangement.spacedBy(1.dp)) {
+                    // Keep original text sizes; break only long lines as needed.
                     Text("Leq,30s",color=cyan,fontSize=9.sp,lineHeight=10.sp,maxLines=1)
                     Text("$lo–$hi Hz",color=cyan,fontSize=9.sp,lineHeight=10.sp,
                         maxLines=1,overflow=TextOverflow.Ellipsis)
-                    Text("$latest dBFS",color=white,fontSize=14.sp,lineHeight=15.sp,
+                    Text("$latest dBFS",color=white,fontSize=16.sp,lineHeight=17.sp,
                         fontWeight=FontWeight.Bold,maxLines=1)
                     Text("Vorher: $previous",color=white,fontSize=8.sp,
                         lineHeight=9.sp,maxLines=1)
                     Text("Δ $difference dB",color=white,fontSize=8.sp,
                         lineHeight=9.sp,maxLines=1)
-                    Text("${level.elapsedSeconds.toInt()} / 30 s",color=cyan,
+                    Text("Laufend: ${level.elapsedSeconds.toInt()} / 30 s",color=cyan,
                         fontSize=8.sp,lineHeight=9.sp,maxLines=1)
-                    // Compact progress: half-width, exactly 15 visible 2-second steps.
-                    // The Leq accumulator still integrates ALL incoming samples.
+                    // Existing progress size (50% of card) and 2-s steps retained.
                     val progressSteps = (level.elapsedSeconds / 2.0).toInt().coerceIn(0, 15)
                     Box(Modifier.fillMaxWidth(0.5f).height(3.dp)
                         .background(Color(0xFF4B5D65),RoundedCornerShape(2.dp))) {
